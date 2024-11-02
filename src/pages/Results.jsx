@@ -1,60 +1,20 @@
-function Results() {
-    return (
-        <div>
-        <div className="modal" id="trivlModal">
-  <div className="modal-background"></div>
-  <div className="modal-content">
-      {/* <!-- Your content here --> */}
-      <div className="box">
-          <p><strong>You have completed today's quiz!</strong></p>
-          <div id="results-container">
-            {/* <!-- User data from quiz goes here {score/10}--> */}
-          </div>
-      </div>
-  </div>
-  <button className="modal-close is-large" aria-label="close"></button>
-</div>
+import { useEffect, useState } from 'react';
 
-    <div className="card container is-fluid"> 
-        <div className="card-content">
-          <p className="card-title">
-            Thanks for playing TRIVL
-          </p>
-          <p className="subtitle">
-            {/* <!-- link back to landing page --> */}
-            <a href="./index.html">Play Again Tomorrow</a>
-          </p>
-        </div>
-       
-<button id="openModalBtn">Answer Key</button>
+export default function Results() {
+  const [score, setScore] = useState(0);
 
-{/* <!-- The Modal --> */}
-<div id="myModal" className="modal">
+  useEffect(() => {
+    const questions = JSON.parse(localStorage.getItem('triviaQuestions')) || [];
+    const correctCount = questions.reduce((count, _, index) => {
+      return localStorage.getItem(`question${index}`) === 'correct' ? count + 1 : count;
+    }, 0);
+    setScore(correctCount);
+  }, []);
 
-  {/* <!-- Modal content --> */}
-  <div className="modal-content">
-    <span className="close">&times;</span>
-    <p><strong>Answer Key</strong></p>
-    <div>
-      <ul id="answerList"></ul>
+  return (
+    <div className="results-container">
+      <h2>Your Score</h2>
+      <p>{`You scored ${score} out of ${localStorage.getItem('triviaQuestions')?.length || 5}`}</p>
     </div>
-  </div>
-</div>
-        <footer className="card-footer">
-          <p className="card-footer-item">
-            <span>
-              <a href="https://twitter.com">Share on Twitter</a>
-            </span>
-          </p>
-          <p className="card-footer-item">
-            <span>
-              <a href="https://facebook.com">Share on Facebook</a>
-            </span>
-          </p>
-        </footer>
-      </div>
-      </div>
-    );
+  );
 }
-
-export default Results;
