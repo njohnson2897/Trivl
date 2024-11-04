@@ -1,6 +1,6 @@
 function Header() {
     return (
-        <header>
+    <header>
         <h1 className="title header">TRIVL</h1>
     </header>
     )
