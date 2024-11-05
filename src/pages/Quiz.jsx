@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const oneDayCountdown = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
@@ -91,6 +91,7 @@ export default function Quiz() {
         <div className="timer-modal">
           <p>You can take the quiz again in:</p>
           <h3>{timer}</h3>
+          <p><Link to='/results'>Click here to see your results</Link></p>
         </div>
       ) : (
         <div className="quiz-content">
