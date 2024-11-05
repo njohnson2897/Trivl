@@ -7,7 +7,7 @@ function Footer() {
     return (
       <section className="footer pt-2">
         <div>
-          <div className="container">    
+          <div className="footer-container">    
             <div>
               <div className="row">
                 <div className="col-md-4 col-lg-3">
@@ -38,7 +38,7 @@ function Footer() {
                       </a>
                       </div>
                   </h5>
-                  <h6>Designed by: Nate Johnson</h6>
+                  <h6>Designed by: Nate Johnson, Ben Mallar, Robin Langton, and Bryan LeBeuf</h6>
                 </div>
     
                 <div className="col-md-4 col-lg-3  offset-lg-1">
