@@ -5,7 +5,7 @@ import github from '../assets/gh.png';
 
 function Footer() {
     return (
-      <section className="footer pt-2">
+      <footer>
         <div>
           <div className="footer-container">    
             <div>
@@ -63,7 +63,7 @@ function Footer() {
     
           </div>
         </div>
-      </section>
+      </footer>
         );
 }
 

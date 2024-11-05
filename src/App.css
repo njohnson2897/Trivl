@@ -8,6 +8,10 @@
   margin-top: 30;
 }
 
+footer {
+  border-top: 5px solid black;
+}
+
 .question-block {
  margin: 3% 10%;
 }
