@@ -1,7 +1,11 @@
+import { Link } from 'react-router-dom';
+
 function Header() {
     return (
     <header>
-        <h1 className="title header">TRIVL</h1>
+        <div className='header'>
+        <Link to='/'>TRIVL</Link>
+        </div>
     </header>
     )
 }

@@ -20,7 +20,16 @@
 .header {
   border-bottom: 5px solid black;
   text-align: center;
+}
+
+.header a {
+  color: black;
+  font-size: 30px;
   font-weight: bold;
+}
+
+.header a:hover {
+  color: black;
 }
 
 .quiz-container {
@@ -67,6 +76,10 @@
   color: #fff;
   padding: 40px;
   border-radius: 8px;
+}
+
+.timer-modal a {
+  color: white;
 }
 
 #root {
