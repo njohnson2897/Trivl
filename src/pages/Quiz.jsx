@@ -69,21 +69,21 @@ export default function Quiz() {
   };
 
   // Handle answer selection
-  const handleAnswer = (selectedAnswer) => {
-    const currentQuestion = questions[currentQuestionIndex];
-    if (currentQuestion.correctAnswer === selectedAnswer) {
-      localStorage.setItem(`question${currentQuestionIndex}`, 'correct');
-    } else {
-      localStorage.setItem(`question${currentQuestionIndex}`, 'incorrect');
-    }
+const handleAnswer = (selectedAnswer) => {
+  const currentQuestion = questions[currentQuestionIndex];
+  const isCorrect = currentQuestion.correctAnswer === selectedAnswer;
 
-    if (currentQuestionIndex + 1 < questions.length) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      shuffleOptionsForCurrentQuestion(questions[currentQuestionIndex + 1]);
-    } else {
-      navigate('/results');
-    }
-  };
+  // Store if the answer is correct and the answer itself
+  localStorage.setItem(`question${currentQuestionIndex}`, isCorrect ? 'correct' : 'incorrect');
+  localStorage.setItem(`userAnswer${currentQuestionIndex}`, selectedAnswer); // Store the user's selected answer
+
+  if (currentQuestionIndex + 1 < questions.length) {
+    setCurrentQuestionIndex(currentQuestionIndex + 1);
+    shuffleOptionsForCurrentQuestion(questions[currentQuestionIndex + 1]);
+  } else {
+    navigate('/results');
+  }
+};
 
   return (
     <div className="quiz-container">

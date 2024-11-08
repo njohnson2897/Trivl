@@ -23,8 +23,7 @@ export default function Results() {
 
       <div className="questions-container">
         {questions.map((question, index) => {
-          const userAnswer = localStorage.getItem(`question${index}`);
-          const isCorrect = userAnswer === 'correct';
+          const userAnswerStatus = localStorage.getItem(`question${index}`);
           const userSelectedAnswer = localStorage.getItem(`userAnswer${index}`);
           const correctAnswer = question.correctAnswer;
 
@@ -32,15 +31,13 @@ export default function Results() {
             <div key={index} className="question-block">
               <p>{`Question ${index + 1}: ${question.question}`}</p>
               <div className="options">
-                {[
-                  question.correctAnswer,
-                  ...question.incorrectAnswers,
-                ].map((option, idx) => (
+                {[correctAnswer, ...question.incorrectAnswers].map((option, idx) => (
                   <p
                     key={idx}
-                    className={`option ${option === correctAnswer ? 'correct' : ''} ${
-                      option === userSelectedAnswer ? (isCorrect ? 'user-correct' : 'user-incorrect') : ''
-                    }`}
+                    className={`option 
+                      ${option === correctAnswer ? 'correct' : ''} 
+                      ${option === userSelectedAnswer && userAnswerStatus === 'incorrect' ? 'user-incorrect' : ''}
+                    `}
                   >
                     {option}
                   </p>
