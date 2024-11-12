@@ -1,50 +1,73 @@
 import { useState } from 'react';
-import { Modal, Tab, Tabs, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, ButtonGroup } from 'react-bootstrap';
+import axios from '../../axiosConfig.js';
 
 function AuthModal({ show, handleClose }) {
-  const [key, setKey] = useState('login'); // State to toggle between login and signup
+  const [isRegistering, setIsRegistering] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const endpoint = isRegistering ? '/api/users/register' : '/api/users/login';
+    
+    try {
+      const response = await axios.post(endpoint, { username, password });
+      if (!isRegistering) {
+        // Store the JWT in local storage on login
+        localStorage.setItem('token', response.data.token);
+      }
+      setError(null);
+      handleClose();
+    } catch (err) {
+      setError(err.response?.data?.error || 'An error occurred');
+    }
+  };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+    <Modal show={show} onHide={handleClose}>
       <Modal.Body>
-        {/* Toggle between Login and Signup using Tabs */}
-        <Tabs
-          id="auth-tabs"
-          activeKey={key}
-          onSelect={(k) => setKey(k)}
-          className="mb-3 justify-content-center"
-        >
-          <Tab eventKey="login" title="Log In">
-            <Form>
-              <Form.Group className="mb-3" controlId="loginUsername">
-                <Form.Label>Username</Form.Label>
-                <Form.Control type="text" placeholder="Enter username" />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="loginPassword">
-                <Form.Label>Password</Form.Label>
-                <Form.Control type="password" placeholder="Enter password" />
-              </Form.Group>
-              <Button variant="secondary" type="submit" className="w-100">
-                Log In
-              </Button>
-            </Form>
-          </Tab>
-          <Tab eventKey="signup" title="Sign Up">
-            <Form>
-              <Form.Group className="mb-3" controlId="signupUsername">
-                <Form.Label>Username</Form.Label>
-                <Form.Control type="text" placeholder="Enter username" />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="signupPassword">
-                <Form.Label>Password</Form.Label>
-                <Form.Control type="password" placeholder="Enter password" />
-              </Form.Group>
-              <Button variant="secondary" type="submit" className="w-100">
-                Sign Up
-              </Button>
-            </Form>
-          </Tab>
-        </Tabs>
+        {/* Button group for toggling between Sign Up and Log In */}
+        <ButtonGroup className="w-100 mb-3">
+          <Button 
+            variant={isRegistering ? "secondary" : "outline-secondary"} 
+            onClick={() => setIsRegistering(true)}
+          >
+            Sign Up
+          </Button>
+          <Button 
+            variant={!isRegistering ? "secondary" : "outline-secondary"} 
+            onClick={() => setIsRegistering(false)}
+          >
+            Log In
+          </Button>
+        </ButtonGroup>
+
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mt-3">
+            <Form.Label>Username</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)} 
+              required 
+            />
+          </Form.Group>
+          <Form.Group className="mt-3">
+            <Form.Label>Password</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+          </Form.Group>
+          {error && <p className="text-danger mt-2">{error}</p>}
+          <Button type="submit" className="mt-3" variant="secondary">
+            {isRegistering ? 'Sign Up' : 'Log In'}
+          </Button>
+        </Form>
       </Modal.Body>
     </Modal>
   );
