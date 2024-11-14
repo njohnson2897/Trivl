@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Button, Form, ButtonGroup } from 'react-bootstrap';
 import axios from '../../axiosConfig.js';
 
-function AuthModal({ show, handleClose }) {
+function AuthModal({ show, handleClose, setIsLoggedIn }) {
   const [isRegistering, setIsRegistering] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +17,7 @@ function AuthModal({ show, handleClose }) {
       if (!isRegistering) {
         // Store the JWT in local storage on login
         localStorage.setItem('token', response.data.token);
+        setIsLoggedIn(true);
       }
       setError(null);
       handleClose();
