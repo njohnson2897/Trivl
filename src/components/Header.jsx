@@ -20,11 +20,23 @@ function Header() {
   const toggleOffcanvas = () => setShowOffcanvas(!showOffcanvas);
 
   return (
-    <header className="header d-flex justify-content-between align-items-center px-3 py-2" style={{ height: '60px', borderBottom: '1px solid #ccc', position: 'relative' }}>
-      <Link to="/" className="header-title">TRIVL</Link>
+    <header
+      className="header d-flex justify-content-between align-items-center px-3 py-2"
+      style={{
+        height: '60px',
+        borderBottom: '1px solid #ccc',
+        position: 'relative',
+      }}
+    >
+      <Link to="/" className="header-title">
+        TRIVL
+      </Link>
       <Navbar expand={false} className="p-0 m-0">
-        <Navbar.Toggle aria-controls="offcanvasNavbar" onClick={toggleOffcanvas} style={{ position: 'absolute', right: '5px'}} />
-        
+        <Navbar.Toggle
+          aria-controls="offcanvasNavbar"
+          onClick={toggleOffcanvas}
+          style={{ position: 'absolute', right: '5px' }}
+        />
         <Navbar.Offcanvas
           id="offcanvasNavbar"
           aria-labelledby="offcanvasNavbarLabel"
@@ -37,6 +49,7 @@ function Header() {
           </Offcanvas.Header>
           <Offcanvas.Body>
             <Nav className="flex-column">
+              {/* Authenticated User Actions */}
               {isLoggedIn ? (
                 <Button
                   variant="outline-primary"
@@ -58,6 +71,16 @@ function Header() {
                 </Button>
               )}
 
+              {/* Universal Links */}
+              <Link to="/leaderboard" className="nav-link mb-2">
+                Leaderboard
+              </Link>
+              <Link to="/settings" className="nav-link mb-2">
+                Settings
+              </Link>
+              <Link to="/help" className="nav-link mb-2">
+                Help/Support
+              </Link>
               <Button
                 variant="outline-primary"
                 onClick={toggleOffcanvas}
@@ -69,7 +92,11 @@ function Header() {
           </Offcanvas.Body>
         </Navbar.Offcanvas>
       </Navbar>
-      <AuthModal show={showAuthModal} handleClose={handleCloseAuthModal} setIsLoggedIn={setIsLoggedIn} />
+      <AuthModal
+        show={showAuthModal}
+        handleClose={handleCloseAuthModal}
+        setIsLoggedIn={setIsLoggedIn}
+      />
     </header>
   );
 }
