@@ -51,13 +51,27 @@ function Header() {
             <Nav className="flex-column">
               {/* Authenticated User Actions */}
               {isLoggedIn ? (
-                <Button
-                  variant="outline-primary"
-                  onClick={handleLogout}
-                  className="mb-3"
-                >
-                  Log Out
-                </Button>
+                <>
+                  <Button
+                    variant="outline-primary"
+                    onClick={handleLogout}
+                    className="mb-3"
+                  >
+                    Log Out
+                  </Button>
+                  <Link to="/profile" className="nav-link mb-2">
+                    Profile
+                  </Link>
+                  <Link to="/friends" className="nav-link mb-2">
+                    Friend List
+                  </Link>
+                  <Link to="/quiz-history" className="nav-link mb-2">
+                    Quiz History
+                  </Link>
+                  <Link to="/achievements" className="nav-link mb-2">
+                    Achievements
+                  </Link>
+                </>
               ) : (
                 <Button
                   variant="outline-primary"
