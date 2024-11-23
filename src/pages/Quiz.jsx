@@ -11,7 +11,7 @@ export default function Quiz() {
   const [timer, setTimer] = useState("");
   const [quizTakenToday, setQuizTakenToday] = useState(false);
   const [shuffledOptions, setShuffledOptions] = useState([]);
-  const [score, setScore] = useState(0); // Track user score
+  const [score, setScore] = useState(1); // Track user score
   const navigate = useNavigate();
 
   // Check if the quiz has already been taken today
