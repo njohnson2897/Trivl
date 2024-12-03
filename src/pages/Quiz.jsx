@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from '../../axiosConfig.js';
+import bell from '../assets/button_click.mp3';
 
 const oneDayCountdown = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
@@ -9,68 +10,97 @@ export default function Quiz() {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timer, setTimer] = useState("");
-  const [quizTakenToday, setQuizTakenToday] = useState(false);
+  const [quizStatus, setQuizStatus] = useState('not_started');
   const [shuffledOptions, setShuffledOptions] = useState([]);
-  const [score, setScore] = useState(1); // Track user score
   const navigate = useNavigate();
+  const bellSound = new Audio(bell);
 
-  // Check if the quiz has already been taken today
+
+  // Comprehensive status check on mount
   useEffect(() => {
-    const lastUpdateTime = localStorage.getItem("lastUpdateTime");
+    const checkQuizState = () => {
+      const lastUpdateTime = localStorage.getItem("lastUpdateTime");
+      const currentTime = new Date().getTime();
+
+      // Check if quiz is in cooldown
+      if (
+        lastUpdateTime &&
+        currentTime - parseInt(lastUpdateTime) < oneDayCountdown
+      ) {
+        setQuizStatus('cooldown');
+        startCooldownTimer();
+        return;
+      }
+
+      // Restore quiz state
+      const storedQuestions = localStorage.getItem("triviaQuestions");
+      const storedQuizStatus = localStorage.getItem("quizStatus");
+      
+      if (storedQuizStatus === 'in_progress' && storedQuestions) {
+        const parsedQuestions = JSON.parse(storedQuestions);
+        const savedQuestionIndex = parseInt(localStorage.getItem("currentQuestionIndex") || 0);
+        
+        setQuestions(parsedQuestions);
+        setCurrentQuestionIndex(savedQuestionIndex);
+        setQuizStatus('in_progress');
+        shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+      } else if (storedQuizStatus === 'completed') {
+        setQuizStatus('completed');
+        navigate("/results");
+      }
+    };
+
+    checkQuizState();
+  }, [navigate]);
+
+  // Start cooldown timer
+  const startCooldownTimer = () => {
+    const lastUpdateTime = parseInt(localStorage.getItem("lastUpdateTime") || 0);
     const currentTime = new Date().getTime();
+    const remainingTime = oneDayCountdown - (currentTime - lastUpdateTime);
 
-    if (
-      lastUpdateTime &&
-      currentTime - parseInt(lastUpdateTime) < oneDayCountdown
-    ) {
-      setQuizTakenToday(true);
-      setupTimer();
-    } else {
-      fetchQuestions();
-    }
-  }, []);
+    const interval = setInterval(() => {
+      const newRemainingTime = remainingTime - 1000;
+      
+      if (newRemainingTime <= 0) {
+        clearInterval(interval);
+        localStorage.removeItem("lastUpdateTime");
+        localStorage.removeItem("quizStatus");
+        setQuizStatus('not_started');
+        setTimer("");
+      } else {
+        const hours = Math.floor((newRemainingTime / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((newRemainingTime / (1000 * 60)) % 60);
+        const seconds = Math.floor((newRemainingTime / 1000) % 60);
+        
+        setTimer(`${hours}h ${minutes}m ${seconds}s`);
+      }
+    }, 1000);
+  };
 
-  // Fetch questions from the API or load from localStorage if available
-  const fetchQuestions = () => {
+  // Start the quiz
+  const startQuiz = () => {
     fetch("https://the-trivia-api.com/api/questions")
       .then((response) => response.json())
       .then((data) => {
-        localStorage.setItem("triviaQuestions", JSON.stringify(data));
-        localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
         setQuestions(data);
-        setQuizTakenToday(false);
+        setQuizStatus('in_progress');
+        setCurrentQuestionIndex(0);
+        
+        // Persist quiz state
+        localStorage.setItem("triviaQuestions", JSON.stringify(data));
+        localStorage.setItem("quizStatus", 'in_progress');
+        localStorage.setItem("currentQuestionIndex", '0');
+        
         shuffleOptionsForCurrentQuestion(data[0]);
       })
-      .catch((error) => console.error("Fetch error:", error));
+      .catch((error) => {
+        console.error("Fetch error:", error);
+        alert("Failed to load questions. Please try again.");
+      });
   };
 
-  // Timer setup
-  const setupTimer = () => {
-    const interval = setInterval(() => {
-      const currentTime = new Date().getTime();
-      const lastUpdateTime = parseInt(
-        localStorage.getItem("lastUpdateTime") || 0
-      );
-      const expiryTime = oneDayCountdown - (currentTime - lastUpdateTime);
-
-      const hours = Math.floor((expiryTime / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((expiryTime / (1000 * 60)) % 60);
-      const seconds = Math.floor((expiryTime / 1000) % 60);
-
-      setTimer(`${hours}h ${minutes}m ${seconds}s`);
-
-      if (expiryTime <= 0) {
-        clearInterval(interval);
-        localStorage.removeItem("triviaQuestions");
-        setQuestions([]);
-        setQuizTakenToday(false);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  };
-
-  // Shuffle options for the current question once
+  // Shuffle options for the current question
   const shuffleOptionsForCurrentQuestion = (question) => {
     const options = [question.correctAnswer, ...question.incorrectAnswers];
     setShuffledOptions(options.sort(() => Math.random() - 0.5));
@@ -78,77 +108,93 @@ export default function Quiz() {
 
   // Handle answer selection
   const handleAnswer = (selectedAnswer) => {
+    bellSound.play();
+
     const currentQuestion = questions[currentQuestionIndex];
     const isCorrect = currentQuestion.correctAnswer === selectedAnswer;
 
-    // Store if the answer is correct and the answer itself
+    // Store answer status and selected answer
     localStorage.setItem(
       `question${currentQuestionIndex}`,
       isCorrect ? "correct" : "incorrect"
     );
-    localStorage.setItem(`userAnswer${currentQuestionIndex}`, selectedAnswer); // Store the user's selected answer
-    // Update the score if the answer is correct
-    if (isCorrect) {
-      setScore((prevScore) => prevScore + 1);
-    }
-
+    localStorage.setItem(`userAnswer${currentQuestionIndex}`, selectedAnswer);
+    
+    // Move to next question or complete quiz
     if (currentQuestionIndex + 1 < questions.length) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      shuffleOptionsForCurrentQuestion(questions[currentQuestionIndex + 1]);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      
+      // Persist current question index
+      localStorage.setItem("currentQuestionIndex", nextIndex.toString());
+      
+      shuffleOptionsForCurrentQuestion(questions[nextIndex]);
     } else {
-      handleQuizCompletion(); // Handle quiz completion
+      handleQuizCompletion();
     }
   };
 
   // Handle quiz completion
   const handleQuizCompletion = async () => {
+    // Record last update time and set status
+    localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
+    localStorage.setItem("quizStatus", 'completed');
+    
+    // Remove in-progress quiz state
+    localStorage.removeItem("currentQuestionIndex");
+    
+    setQuizStatus('completed');
+
+    // Log score if token exists
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
 
-        const response = await axiosInstance.post("/api/scores/logscore", {
-          userId,
-          quiz_score: score,
-        });
+        // Calculate score
+        const correctCount = questions.reduce((count, _, index) => {
+          return localStorage.getItem(`question${index}`) === 'correct' ? count + 1 : count;
+        }, 0);
 
-        console.log("Score logged successfully:", response.data);
-        navigate("/results");
+        await axiosInstance.post("/api/scores/logscore", {
+          userId,
+          quiz_score: correctCount,
+        });
       } catch (error) {
         console.error("Error logging score:", error);
-        if (error.response) {
-          console.error("Error response data:", error.response.data);
-          console.error("Error response status:", error.response.status);
-          console.error("Error response headers:", error.response.headers);
-        } else if (error.request) {
-          console.error("No response received:", error.request);
-        } else {
-          console.error("Error message:", error.message);
-        }
-        alert("Failed to save your score. Please try again later.");
-        navigate("/results");
       }
-    } else {
-      console.log("No token found - score not logged");
-      navigate("/results");
     }
+
+    navigate("/results");
   };
 
-  return (
-    <div className="main-content quiz-container">
-      {quizTakenToday ? (
-        <div className="timer-modal">
-          <p>You can take the quiz again in:</p>
-          <h3>{timer}</h3>
-          <p>
-            <Link to="/results">Click here to see your results</Link>
-          </p>
-        </div>
-      ) : (
-        <div className="quiz-content">
-          <h2>Trivia Quiz</h2>
-          {questions.length > 0 ? (
+  // Render different views based on quiz status
+  const renderQuizContent = () => {
+    switch (quizStatus) {
+      case 'not_started':
+        return (
+          <div className="quiz-start-container">
+            <h2 className='quiz-start-title'>Daily Trivia Quiz</h2>
+            <button className='quiz-start-button' onClick={startQuiz}>Start Quiz</button>
+          </div>
+        );
+      
+      case 'cooldown':
+        return (
+          <div className="timer-modal">
+            <p>You can take the quiz again in:</p>
+            <h3>{timer}</h3>
+            <p>
+              <Link to="/results">Click here to see your results</Link>
+            </p>
+          </div>
+        );
+      
+      case 'in_progress':
+        return (
+          <div className="quiz-content">
+            <h2>Trivia Quiz</h2>
             <div className="question-block">
               <p>{`Question ${currentQuestionIndex + 1}: ${
                 questions[currentQuestionIndex].question
@@ -159,11 +205,20 @@ export default function Quiz() {
                 </button>
               ))}
             </div>
-          ) : (
-            <p>Loading questions...</p>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      
+      case 'completed':
+        return null; // Automatically navigates to results
+      
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="main-content quiz-container">
+      {renderQuizContent()}
     </div>
   );
 }
