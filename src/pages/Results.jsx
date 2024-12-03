@@ -17,7 +17,7 @@ export default function Results() {
   }, []);
 
   return (
-    <div className="results-container">
+    <div className="main-content results-container">
       <h2>Your Score</h2>
       <p>{`You scored ${score} out of ${totalQuestions}`}</p>
 

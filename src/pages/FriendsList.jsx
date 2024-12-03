@@ -1,4 +1,8 @@
 export default function FriendsList() {
-    return <h1>Your Friend List</h1>
+    return (
+      <div className='main-content'>
+ <h1 >Your Friend List</h1>
+ </div>
+    );
   }
   

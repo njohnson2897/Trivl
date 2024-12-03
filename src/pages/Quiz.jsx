@@ -136,7 +136,7 @@ export default function Quiz() {
   };
 
   return (
-    <div className="quiz-container">
+    <div className="main-content quiz-container">
       {quizTakenToday ? (
         <div className="timer-modal">
           <p>You can take the quiz again in:</p>
