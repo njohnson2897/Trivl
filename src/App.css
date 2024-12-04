@@ -270,3 +270,56 @@ footer {
   margin-left: 10px;
   margin-right: 10px;
 }
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+/* Card Styling */
+.achievement-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.achievement-card p {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #555;
+}
+
+.achievement-card.achieved p {
+  font-weight: bold;
+  color: #222;
+}
+
+/* Star Icon */
+.star-icon {
+  width: 50px;
+  height: 50px;
+  background-image: url("/assets/achievement-star.png"); /* Path to your PNG/JPG */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: grayscale(100%); /* Makes the image appear "greyed out" */
+  transition: all 0.3s ease-in-out;
+}
+
+.star-icon.achieved {
+  filter: none; /* Removes greyscale to show the color version */
+}
+
+.achievement-card.achieved .star-icon {
+  background: gold;
+  box-shadow: 0px 0px 10px rgba(255, 215, 0, 0.8);
+}
+
+.not-achieved .star-icon {
+  opacity: 0.6;
+}
