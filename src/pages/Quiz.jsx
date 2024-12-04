@@ -217,7 +217,7 @@ export default function Quiz() {
   };
 
   return (
-    <div className="main-content quiz-container">
+    <div className="content-container">
       {renderQuizContent()}
     </div>
   );

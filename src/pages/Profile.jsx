@@ -41,7 +41,8 @@ export default function Profile() {
   // const bestScore = Math.max(...scores.map(score => score.quiz_score), 0);
 
   return (
-    <div className="main-content profile-page">
+    <div className='content-container'>
+    <div className="quiz-content profile-page">
       {/* User Information */}
       <section className="user-info">
         <h2>Your Profile</h2>
@@ -75,6 +76,7 @@ export default function Profile() {
       </section> */}
 
       {/* Performance Chart ?? */}
+    </div>
     </div>
   );
 }

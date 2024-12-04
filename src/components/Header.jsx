@@ -49,16 +49,20 @@ function Header() {
           </Offcanvas.Header>
           <Offcanvas.Body>
             <Nav className="flex-column">
+              {/* Universal Links */}
+              <Link to="/leaderboard" className="nav-link mb-2">
+                Leaderboard
+              </Link>
+              <Link to="/settings" className="nav-link mb-2">
+                Settings
+              </Link>
+              <Link to="/help" className="nav-link mb-2">
+                Help/Support
+              </Link>
+              <Link to="/instructions" className="nav-link mb-2">How to Play</Link>
               {/* Authenticated User Actions */}
               {isLoggedIn ? (
                 <>
-                  <Button
-                    variant="outline-primary"
-                    onClick={handleLogout}
-                    className="mb-3"
-                  >
-                    Log Out
-                  </Button>
                   <Link to="/profile" className="nav-link mb-2">
                     Profile
                   </Link>
@@ -71,6 +75,13 @@ function Header() {
                   <Link to="/achievements" className="nav-link mb-2">
                     Achievements
                   </Link>
+                  <Button
+                    variant="outline-primary"
+                    onClick={handleLogout}
+                    className="mb-3"
+                  >
+                    Log Out
+                  </Button>
                 </>
               ) : (
                 <Button
@@ -84,24 +95,6 @@ function Header() {
                   Log In or Sign Up
                 </Button>
               )}
-
-              {/* Universal Links */}
-              <Link to="/leaderboard" className="nav-link mb-2">
-                Leaderboard
-              </Link>
-              <Link to="/settings" className="nav-link mb-2">
-                Settings
-              </Link>
-              <Link to="/help" className="nav-link mb-2">
-                Help/Support
-              </Link>
-              <Button
-                variant="outline-primary"
-                onClick={toggleOffcanvas}
-                className="mb-3"
-              >
-                How to Play
-              </Button>
             </Nav>
           </Offcanvas.Body>
         </Navbar.Offcanvas>

@@ -70,12 +70,24 @@ footer {
   background-color: #d1d1d1;
 }
 
-.quiz-container {
+.content-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 80vh;
   background-color: #f0f0f0;
+}
+
+.settings-container {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 80vh;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .quiz-content, .timer-modal {
@@ -191,9 +203,6 @@ footer {
   color: #721c24;
 }
 
-.main-content {
-  min-height: 80vh;
-}
 
 .quiz-start-container {
   display: flex;
@@ -236,4 +245,28 @@ footer {
 .quiz-start-button:active {
   transform: scale(0.95);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.settings-container {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f9f9f9;
+  border: solid black 1px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 80vh;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.settings-container section {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.settings-container button {
+  margin-left: 10px;
+  margin-right: 10px;
 }
