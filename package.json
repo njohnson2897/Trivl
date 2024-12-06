@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "install": "npm install && cd server && npm install",
+    "setup": "npm install && cd server && npm install",
     "develop": "concurrently \"cd server && npm start\" \"npm run dev\"",
     "build": "npm run build-client && npm run build-server",
     "build-client": "vite build",
-    "build-server": "cd server && npm install && npm run build",
+    "build-server": "cd server && npm run build",
     "start": "concurrently \"cd server && npm start\" \"npm run preview\"",
     "dev": "vite",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
