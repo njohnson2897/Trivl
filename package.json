@@ -4,13 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "install": "npm install && cd server && npm install",
     "develop": "concurrently \"cd server && npm start\" \"npm run dev\"",
+    "build": "npm run build-client && npm run build-server",
+    "build-client": "vite build",
+    "build-server": "cd server && npm install && npm run build",
+    "start": "concurrently \"cd server && npm start\" \"npm run preview\"",
     "dev": "vite",
-    "build": "vite build",
-    "start": "cd server && npm start",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "install:server": "cd server && npm install"
+    "preview": "vite preview"
   },
   "dependencies": {
     "axios": "^1.7.7",
