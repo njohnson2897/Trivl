@@ -10,12 +10,12 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST,
         dialect: 'postgres',
-        dialectOptions: {
+        dialectOptions: process.env.NODE_ENV === 'production' ? {
             ssl: {
                 require: true,
                 rejectUnauthorized: false
             }
-        }
+        } : {}
     }
 );
 

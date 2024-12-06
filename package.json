@@ -6,10 +6,8 @@
   "scripts": {
     "setup": "npm install && cd server && npm install",
     "develop": "concurrently \"cd server && npm start\" \"npm run dev\"",
-    "build": "npm run build-client && npm run build-server",
-    "build-client": "vite build",
-    "build-server": "cd server && npm run build",
-    "start": "concurrently \"cd server && npm start\" \"npm run preview\"",
+    "build": "vite build",
+    "start": "cd server && npm start",
     "dev": "vite",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
