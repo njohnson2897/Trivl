@@ -9,53 +9,80 @@ const Settings = () => {
 
   return (
     <div className='content-container'>
-    <div className="quiz-content">
-      <h1>Settings</h1>
+      <div className="enhanced-settings-container">
+        <h1 className="settings-title">Account Settings</h1>
 
-      {/* Account Section */}
-      <section>
-        <h2>Account Settings</h2>
-        <button>Edit Profile</button>
-        <button>Change Password</button>
-        <button className="danger">Delete Account</button>
-      </section>
+        {/* Account Section */}
+        <section className="settings-section">
+          <h2 className="section-header">Profile Management</h2>
+          <div className="button-group">
+            <button className="settings-btn edit-profile">
+              <span>✏️</span> Edit Profile
+            </button>
+            <button className="settings-btn change-password">
+              <span>🔐</span> Change Password
+            </button>
+            <button className="settings-btn danger-btn">
+              <span>🗑️</span> Delete Account
+            </button>
+          </div>
+        </section>
 
-      {/* Privacy Section */}
-      <section>
-        <h2>Privacy Settings</h2>
-        <label>
-          <input type="checkbox" /> Public Profile
-        </label>
-        <label>
-          <input type="checkbox" /> Share Scores with Friends
-        </label>
-      </section>
+        {/* Privacy Section */}
+        <section className="settings-section">
+          <h2 className="section-header">Privacy Controls</h2>
+          <div className="toggle-group">
+            <label className="toggle-container">
+              <input type="checkbox" className="toggle-input" />
+              <span className="toggle-slider"></span>
+              Public Profile
+            </label>
+            <label className="toggle-container">
+              <input type="checkbox" className="toggle-input" />
+              <span className="toggle-slider"></span>
+              Share Scores with Friends
+            </label>
+          </div>
+        </section>
 
-      {/* Notifications Section */}
-      <section>
-        <h2>Notifications</h2>
-        <label>
-          <input
-            type="checkbox"
-            checked={notifications}
-            onChange={toggleNotifications}
-          />{" "}
-          Enable Email Notifications
-        </label>
-      </section>
+        {/* Notifications Section */}
+        <section className="settings-section">
+          <h2 className="section-header">Notification Preferences</h2>
+          <label className="toggle-container">
+            <input
+              type="checkbox"
+              className="toggle-input"
+              checked={notifications}
+              onChange={toggleNotifications}
+            />
+            <span className="toggle-slider"></span>
+            Enable Email Notifications
+          </label>
+        </section>
 
-      {/* Theme Section */}
-      <section>
-        <h2>Appearance</h2>
-        <label>
-          Theme:
-          <select value={theme} onChange={handleThemeChange}>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
-      </section>
-    </div>
+        {/* Theme Section */}
+        <section className="settings-section">
+          <h2 className="section-header">Appearance</h2>
+          <div className="theme-select">
+            <label>
+              Theme:
+              <select 
+                value={theme} 
+                onChange={handleThemeChange} 
+                className="theme-dropdown"
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        {/* Save Changes */}
+        <div className="save-changes">
+          <button className="save-btn">Save Changes</button>
+        </div>
+      </div>
     </div>
   );
 };

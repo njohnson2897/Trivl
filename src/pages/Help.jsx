@@ -1,51 +1,50 @@
 export default function Help() {
   return (
     <div className="content-container">
-      <div className="quiz-content">
-        <h2>Help/Support</h2>
+      <div className="help-container">
+        <h1>Help/Support</h1>
 
-        {/* FAQ Section */}
-        <section className="help-section">
-          <h3>Frequently Asked Questions (FAQ)</h3>
+        <section className="faq-section">
+          <h2>Frequently Asked Questions (FAQ)</h2>
           <ul className="faq-list">
             <li>
-              <strong>How do I reset my password?</strong>
+              <h3>How do I reset my password?</h3>
               <p>Go to the Settings page, click "Change Password," and follow the instructions.</p>
             </li>
             <li>
-              <strong>How do I report a bug or issue?</strong>
+              <h3>How do I report a bug or issue?</h3>
               <p>Use the contact form below or email us at <a href="mailto:support@gameapp.com">support@gameapp.com</a>.</p>
             </li>
             <li>
-              <strong>What should I do if the game crashes?</strong>
+              <h3>What should I do if the game crashes?</h3>
               <p>Refresh the page or clear your browser cache. If the issue persists, contact support.</p>
             </li>
             <li>
-              <strong>Where can I see my scores and achievements?</strong>
+              <h3>Where can I see my scores and achievements?</h3>
               <p>Your scores and achievements are visible on the Profile and Achievements pages.</p>
             </li>
             <li>
-              <strong>How can I contact support?</strong>
+              <h3>How can I contact support?</h3>
               <p>Scroll down to the Contact Support section for details.</p>
             </li>
           </ul>
         </section>
 
-        {/* Contact Support Section */}
-        <section className="help-section">
-          <h3>Contact Support</h3>
+        <section className="contact-section">
+          <h2>Contact Support</h2>
           <p>
             If you have any questions or issues, feel free to reach out to us:
           </p>
-          <ul>
+          <ul className="contact-options">
             <li>
               <strong>Email:</strong> <a href="mailto:support@gameapp.com">support@gameapp.com</a>
             </li>
-            <li>
-              <strong>Contact Form:</strong> Fill out the form below to submit your query directly.
-            </li>
           </ul>
+          <p>
+            Or, fill out the form below to submit your query directly.
+          </p>
           <form className="contact-form">
+          <strong>Contact Form:</strong>
             <label>
               <strong>Name:</strong>
               <input type="text" placeholder="Your Name" />
@@ -62,11 +61,10 @@ export default function Help() {
           </form>
         </section>
 
-        {/* Game Guide Section */}
-        <section className="help-section">
-          <h3>Game Guide</h3>
+        <section className="game-guide">
+          <h2>Game Guide</h2>
           <p>
-            Need help understanding how the game works? Here’s a quick guide:
+            Need help understanding how the game works? Here's a quick guide:
           </p>
           <ul>
             <li>

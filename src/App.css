@@ -80,7 +80,7 @@ footer {
 
 .settings-container {
   text-align: center;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 2rem;
   background: #f9f9f9;
@@ -249,28 +249,162 @@ footer {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.settings-container {
+/* Enhanced Settings Styles */
+.enhanced-settings-container {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  max-width: 600px;
+  width: 100%;
+  padding: 40px;
+  margin: 20px;
+}
+
+.settings-title {
+  font-size: 2.5rem;
+  color: #000;
   text-align: center;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: #f9f9f9;
-  border: solid black 1px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-height: 80vh;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.settings-container section {
-  margin-top: 30px;
   margin-bottom: 30px;
+  font-weight: bold;
 }
 
-.settings-container button {
-  margin-left: 10px;
-  margin-right: 10px;
+.settings-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.section-header {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.section-header::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background-color: #000;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settings-btn {
+  flex: 1;
+  padding: 12px 15px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.settings-btn:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.settings-btn span {
+  font-size: 1.2rem;
+}
+
+.danger-btn {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.danger-btn:hover {
+  background-color: #ff3333;
+}
+
+/* Toggle Switch Styles */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 50px;
+  height: 25px;
+  background-color: #ccc;
+  border-radius: 25px;
+  transition: 0.3s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 21px;
+  width: 21px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background-color: #000;
+}
+
+.toggle-input:checked + .toggle-slider::before {
+  transform: translateX(25px);
+}
+
+.theme-select {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.theme-dropdown {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+.save-changes {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.save-btn {
+  padding: 15px 30px;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+  background-color: #333;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
 }
 
 .achievements-grid {
@@ -341,16 +475,61 @@ footer {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.help-section {
-  margin-bottom: 2rem;
+.content-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f0f0f0;
 }
 
-.faq-list li {
-  margin-bottom: 1rem;
+.help-container {
+  max-width: 1000px;
+  width: 100%;
+  padding: 40px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-.faq-list strong {
-  color: #333;
+.help-container h1 {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.help-container section {
+  margin-bottom: 40px;
+}
+
+.help-container h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.help-container h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.faq-list,
+.contact-options {
+  list-style-type: none;
+  margin-left: 0;
+}
+
+.faq-list li,
+.contact-options li {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .contact-form {
@@ -359,11 +538,14 @@ footer {
   gap: 1rem;
   margin-top: 1rem;
   align-items: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .contact-form input,
 .contact-form textarea {
-  width: 70%;
+  width: 100%;
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -371,16 +553,25 @@ footer {
 
 .contact-form button {
   padding: 0.5rem 1rem;
-  background-color: #007bff;
+  background-color: black;
   color: white;
-  border: none;
   border-radius: 4px;
   cursor: pointer;
-  width: 40%;
+  width: 30%;
+  margin-bottom: 10px;
 }
 
 .contact-form button:hover {
   background-color: #0056b3;
+}
+
+.help-container a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.help-container a:hover {
+  text-decoration: underline;
 }
 
 .filter-container {
@@ -498,36 +689,60 @@ footer {
   background-color: #1c7430;
 }
 
-.instructions-section {
-  margin-bottom: 2rem;
+.instructions-container {
+  max-width: 1000px;
+  width: 100%;
+  padding: 40px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-.instructions-section h3 {
-  color: #333;
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+.instructions-container h1 {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 40px;
+  text-align: center;
 }
 
-.instructions-section p {
-  color: #555;
-  margin-bottom: 0.5rem;
+.instructions-container section {
+  margin-bottom: 40px;
 }
 
-.instructions-section ul,
-.instructions-section ol {
-  margin-left: 1.5rem;
-  color: #555;
+.instructions-container h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
-.instructions-section li {
-  margin-bottom: 0.5rem;
+.getting-started,
+.gameplay-basics,
+.scoring-system,
+.achievements,
+.tips-for-success,
+.need-help {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.instructions-section a {
+.instructions-container ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.instructions-container li {
+  margin-bottom: 10px;
+}
+
+.instructions-container a {
   color: #007bff;
   text-decoration: none;
 }
 
-.instructions-section a:hover {
+.instructions-container a:hover {
   text-decoration: underline;
 }
