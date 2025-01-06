@@ -9,9 +9,9 @@ export default function FriendsList() {
     { id: 7, username: "PuzzlePartner", status: "Online", joined: "2023-10-25" },
     { id: 8, username: "AnswerAce", status: "Offline", joined: "2023-11-05" },
     { id: 9, username: "JuneJune", status: "Online", joined: "2024-01-09"},
-    { id: 9, username: "SaucySam", status: "Online", joined: "2022-06-29"},
-    { id: 9, username: "BrendaB", status: "Offline", joined: "2024-02-14"},
-    { id: 9, username: "TailwindTom", status: "Online", joined: "2023-01-25"}
+    { id: 10, username: "SaucySam", status: "Online", joined: "2022-06-29"},
+    { id: 11, username: "BrendaB", status: "Offline", joined: "2024-02-14"},
+    { id: 12, username: "TailwindTom", status: "Online", joined: "2023-01-25"}
   ];
 
   return (

@@ -11,6 +11,14 @@ User.hasMany(Score, {
     onDelete: 'CASCADE',
 });
 
+// Self-referential many-to-many relationship for friends
+User.belongsToMany(User, {
+    through: 'UserFriends',
+    as: 'friends', // Alias for the relationship
+    foreignKey: 'userId',
+    otherKey: 'friendId',
+  });
+
 export default {
     User,
     Score

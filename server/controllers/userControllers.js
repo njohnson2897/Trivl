@@ -9,23 +9,35 @@ export const register = async (req, res) => {
   try {
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Create the user
-    const user = await User.create({ username, password: hashedPassword });
-    
+    const user = await User.create({
+      username,
+      password: hashedPassword,
+      quizScores: [], // Default value
+      friends: [], // Default value
+    });
+
     // Sign a JWT for the new user
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     // Return user info (without password) and the token
-    res.status(201).json({ 
-      user: { id: user.id, username: user.username }, 
-      token 
+    res.status(201).json({
+      user: {
+        id: user.id,
+        username: user.username,
+        createdAt: user.createdAt,
+        quizScores: user.quizScores,
+        friends: user.friends,
+      },
+      token,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error registering user' });
   }
 };
+
 
 // Login controller - POST
 export const login = async (req, res) => {
