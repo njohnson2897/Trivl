@@ -18,37 +18,49 @@ export default function Quiz() {
 
   // Comprehensive status check on mount
   useEffect(() => {
-    const checkQuizState = () => {
-      const lastUpdateTime = localStorage.getItem("lastUpdateTime");
-      const currentTime = new Date().getTime();
+    // Inside the checkQuizState function in useEffect
+const checkQuizState = () => {
+  const lastUpdateTime = localStorage.getItem("lastUpdateTime");
+  const currentTime = new Date().getTime();
 
-      // Check if quiz is in cooldown
-      if (
-        lastUpdateTime &&
-        currentTime - parseInt(lastUpdateTime) < oneDayCountdown
-      ) {
-        setQuizStatus('cooldown');
-        startCooldownTimer();
-        return;
+  // Check if quiz is in cooldown
+  if (lastUpdateTime) {
+    if (currentTime - parseInt(lastUpdateTime) >= oneDayCountdown) {
+      // Clear all quiz-related data from localStorage
+      for (let i = 0; i < 10; i++) { // Assuming max 10 questions
+        localStorage.removeItem(`question${i}`);
+        localStorage.removeItem(`userAnswer${i}`);
       }
+      localStorage.removeItem("lastUpdateTime");
+      localStorage.removeItem("quizStatus");
+      localStorage.removeItem("triviaQuestions");
+      localStorage.removeItem("currentQuestionIndex");
+      setQuizStatus('not_started');
+      return;
+    } else if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
+      setQuizStatus('cooldown');
+      startCooldownTimer();
+      return;
+    }
+  }
 
-      // Restore quiz state
-      const storedQuestions = localStorage.getItem("triviaQuestions");
-      const storedQuizStatus = localStorage.getItem("quizStatus");
-      
-      if (storedQuizStatus === 'in_progress' && storedQuestions) {
-        const parsedQuestions = JSON.parse(storedQuestions);
-        const savedQuestionIndex = parseInt(localStorage.getItem("currentQuestionIndex") || 0);
-        
-        setQuestions(parsedQuestions);
-        setCurrentQuestionIndex(savedQuestionIndex);
-        setQuizStatus('in_progress');
-        shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
-      } else if (storedQuizStatus === 'completed') {
-        setQuizStatus('completed');
-        navigate("/results");
-      }
-    };
+  // Rest of the existing code...
+  const storedQuestions = localStorage.getItem("triviaQuestions");
+  const storedQuizStatus = localStorage.getItem("quizStatus");
+  
+  if (storedQuizStatus === 'in_progress' && storedQuestions) {
+    const parsedQuestions = JSON.parse(storedQuestions);
+    const savedQuestionIndex = parseInt(localStorage.getItem("currentQuestionIndex") || 0);
+    
+    setQuestions(parsedQuestions);
+    setCurrentQuestionIndex(savedQuestionIndex);
+    setQuizStatus('in_progress');
+    shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+  } else if (storedQuizStatus === 'completed') {
+    setQuizStatus('completed');
+    navigate("/results");
+  }
+};
 
     checkQuizState();
   }, [navigate]);
