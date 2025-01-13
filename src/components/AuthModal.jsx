@@ -14,11 +14,22 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
     
     try {
       const response = await axios.post(endpoint, { username, password });
-      if (!isRegistering) {
-        // Store the JWT in local storage on login
+      
+      if (isRegistering) {
+        // After successful registration, immediately log in
+        const loginResponse = await axios.post('/api/users/login', { username, password });
+        localStorage.setItem('token', loginResponse.data.token);
+        setIsLoggedIn(true);
+        setUsername('');
+        setPassword('');
+      } else {
+        // Regular login flow remains the same
         localStorage.setItem('token', response.data.token);
         setIsLoggedIn(true);
+        setUsername('');
+        setPassword('');
       }
+      
       setError(null);
       handleClose();
     } catch (err) {
