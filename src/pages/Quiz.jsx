@@ -67,27 +67,28 @@ const checkQuizState = () => {
 
   // Start cooldown timer
   const startCooldownTimer = () => {
-    const lastUpdateTime = parseInt(localStorage.getItem("lastUpdateTime") || 0);
-    const currentTime = new Date().getTime();
-    const remainingTime = oneDayCountdown - (currentTime - lastUpdateTime);
-
     const interval = setInterval(() => {
-      const newRemainingTime = remainingTime - 1000;
+      const lastUpdateTime = parseInt(localStorage.getItem("lastUpdateTime") || "0");
+      const currentTime = new Date().getTime();
+      const remainingTime = oneDayCountdown - (currentTime - lastUpdateTime);
       
-      if (newRemainingTime <= 0) {
+      if (remainingTime <= 0) {
         clearInterval(interval);
         localStorage.removeItem("lastUpdateTime");
         localStorage.removeItem("quizStatus");
         setQuizStatus('not_started');
         setTimer("");
       } else {
-        const hours = Math.floor((newRemainingTime / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((newRemainingTime / (1000 * 60)) % 60);
-        const seconds = Math.floor((newRemainingTime / 1000) % 60);
+        const hours = Math.floor((remainingTime / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((remainingTime / (1000 * 60)) % 60);
+        const seconds = Math.floor((remainingTime / 1000) % 60);
         
         setTimer(`${hours}h ${minutes}m ${seconds}s`);
       }
     }, 1000);
+  
+    // Clean up interval on component unmount
+    return () => clearInterval(interval);
   };
 
   // Start the quiz
