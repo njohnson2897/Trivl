@@ -93,6 +93,9 @@ const checkQuizState = () => {
 
   // Start the quiz
   const startQuiz = () => {
+    const startTime = new Date().getTime(); // Record the quiz start time
+    localStorage.setItem("quizStartTime", startTime); // Save it to local storage
+
     fetch("https://the-trivia-api.com/api/questions")
       .then((response) => response.json())
       .then((data) => {
@@ -153,6 +156,12 @@ const checkQuizState = () => {
     localStorage.removeItem("currentQuestionIndex");
     setQuizStatus("completed");
   
+    // Calculate time taken
+    const quizStartTime = localStorage.getItem("quizStartTime");
+    const timeTaken = quizStartTime
+      ? Math.floor((new Date().getTime() - parseInt(quizStartTime)) / 1000) // Time in seconds
+      : null;
+  
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -161,7 +170,9 @@ const checkQuizState = () => {
   
         // Calculate score
         const correctCount = questions.reduce((count, question, index) => {
-          return localStorage.getItem(`question${index}`) === "correct" ? count + 1 : count;
+          return localStorage.getItem(`question${index}`) === "correct"
+            ? count + 1
+            : count;
         }, 0);
   
         // Collect data for categories, difficulties, and isNiche
@@ -183,9 +194,10 @@ const checkQuizState = () => {
         await axiosInstance.post("/api/scores/logscore", {
           userId,
           quiz_score: correctCount,
-          quiz_difficulty: quizDifficulty, // New field
+          quiz_difficulty: quizDifficulty,
           categories,
           is_niche: isNicheArray,
+          time_taken: timeTaken, // New field
         });
       } catch (error) {
         console.error("Error logging score:", error);
@@ -194,6 +206,7 @@ const checkQuizState = () => {
   
     navigate("/results");
   };
+  
   
 
   // Render different views based on quiz status

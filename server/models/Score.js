@@ -31,6 +31,10 @@ Score.init(
             type: DataTypes.JSON, // Stores an array of boolean values
             allowNull: true,
         },
+        time_taken: {
+            type: DataTypes.INTEGER, // Store duration in seconds
+            allowNull: false,
+        },
         date_taken: {
             type: DataTypes.DATE,
             allowNull: false,

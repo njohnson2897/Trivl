@@ -3,7 +3,7 @@ import User from "../models/User.js";
 
 export const logScore = async (req, res) => {
   try {
-    const { userId, quiz_score, quiz_difficulty, categories, is_niche } = req.body;
+    const { userId, quiz_score, quiz_difficulty, categories, is_niche, time_taken  } = req.body;
 
     // Check if user exists
     const user = await User.findByPk(userId);
@@ -18,6 +18,7 @@ export const logScore = async (req, res) => {
       quiz_difficulty, // Store aggregated quiz difficulty
       categories,
       is_niche,
+      time_taken,
     });
 
     res.status(201).json(newScore);
