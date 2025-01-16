@@ -3,7 +3,7 @@ import User from "../models/User.js";
 
 export const logScore = async (req, res) => {
   try {
-    const { userId, quiz_score } = req.body;
+    const { userId, quiz_score, quiz_difficulty, categories, is_niche } = req.body;
 
     // Check if user exists
     const user = await User.findByPk(userId);
@@ -14,7 +14,10 @@ export const logScore = async (req, res) => {
     // Create a new score entry
     const newScore = await Score.create({
       user_id: userId,
-      quiz_score: quiz_score,
+      quiz_score,
+      quiz_difficulty, // Store aggregated quiz difficulty
+      categories,
+      is_niche,
     });
 
     res.status(201).json(newScore);
@@ -23,6 +26,7 @@ export const logScore = async (req, res) => {
     res.status(500).json({ error: "Error logging score" });
   }
 };
+
 
 // GET scores by user ID
 export const getScoresByUser = async (req, res) => {

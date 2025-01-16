@@ -19,6 +19,18 @@ Score.init(
                 max: 10,
             },
         },
+        quiz_difficulty: {
+            type: DataTypes.STRING, // Stores 'easy', 'medium', or 'hard'
+            allowNull: false,
+        },
+        categories: {
+            type: DataTypes.JSON, // Stores an array of categories (e.g., ['science', 'math'])
+            allowNull: true,
+        },
+        is_niche: {
+            type: DataTypes.JSON, // Stores an array of boolean values
+            allowNull: true,
+        },
         date_taken: {
             type: DataTypes.DATE,
             allowNull: false,

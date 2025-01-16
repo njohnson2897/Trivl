@@ -147,40 +147,54 @@ const checkQuizState = () => {
     }
   };
 
-  // Handle quiz completion
   const handleQuizCompletion = async () => {
-    // Record last update time and set status
     localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
-    localStorage.setItem("quizStatus", 'completed');
-    
-    // Remove in-progress quiz state
+    localStorage.setItem("quizStatus", "completed");
     localStorage.removeItem("currentQuestionIndex");
-    
-    setQuizStatus('completed');
-
-    // Log score if token exists
+    setQuizStatus("completed");
+  
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
-
+  
         // Calculate score
-        const correctCount = questions.reduce((count, _, index) => {
-          return localStorage.getItem(`question${index}`) === 'correct' ? count + 1 : count;
+        const correctCount = questions.reduce((count, question, index) => {
+          return localStorage.getItem(`question${index}`) === "correct" ? count + 1 : count;
         }, 0);
-
+  
+        // Collect data for categories, difficulties, and isNiche
+        const categories = questions.map((q) => q.category);
+        const difficulties = questions.map((q) => q.difficulty);
+        const isNicheArray = questions.map((q) => q.isNiche);
+  
+        // Determine quiz difficulty (mode of difficulties array)
+        const difficultyCounts = difficulties.reduce((counts, difficulty) => {
+          counts[difficulty] = (counts[difficulty] || 0) + 1;
+          return counts;
+        }, {});
+  
+        const quizDifficulty = Object.keys(difficultyCounts).reduce((a, b) =>
+          difficultyCounts[a] > difficultyCounts[b] ? a : b
+        );
+  
+        // Post the data to the backend
         await axiosInstance.post("/api/scores/logscore", {
           userId,
           quiz_score: correctCount,
+          quiz_difficulty: quizDifficulty, // New field
+          categories,
+          is_niche: isNicheArray,
         });
       } catch (error) {
         console.error("Error logging score:", error);
       }
     }
-
+  
     navigate("/results");
   };
+  
 
   // Render different views based on quiz status
   const renderQuizContent = () => {
