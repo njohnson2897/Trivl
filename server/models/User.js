@@ -1,3 +1,4 @@
+// models/User.js
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/connection.js';
 
@@ -14,16 +15,21 @@ User.init(
     username: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true, // Ensure usernames are unique
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    friends: {
+      type: DataTypes.ARRAY(DataTypes.INTEGER),  // Changed this from JSON to ARRAY
+      defaultValue: [],
+      allowNull: false
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW, // Automatically set creation timestamp
+      defaultValue: DataTypes.NOW,
     },
   },
   {
