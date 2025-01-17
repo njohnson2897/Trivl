@@ -5,6 +5,7 @@ import axios from '../../axiosConfig.js';
 function AuthModal({ show, handleClose, setIsLoggedIn }) {
   const [isRegistering, setIsRegistering] = useState(true);
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState(''); // New state for email
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
@@ -13,7 +14,11 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
     const endpoint = isRegistering ? '/api/users/register' : '/api/users/login';
     
     try {
-      const response = await axios.post(endpoint, { username, password });
+      const requestData = isRegistering 
+        ? { username, email, password } // Include email during registration
+        : { username, password };
+
+      const response = await axios.post(endpoint, requestData);
       
       if (isRegistering) {
         // After successful registration, immediately log in
@@ -21,6 +26,7 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
         localStorage.setItem('token', loginResponse.data.token);
         setIsLoggedIn(true);
         setUsername('');
+        setEmail('');
         setPassword('');
       } else {
         // Regular login flow remains the same
@@ -40,7 +46,6 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Body>
-        {/* Button group for toggling between Sign Up and Log In */}
         <ButtonGroup className="w-100 mb-3">
           <Button 
             variant={isRegistering ? "secondary" : "outline-secondary"} 
@@ -66,6 +71,17 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
               required 
             />
           </Form.Group>
+          {isRegistering && (
+            <Form.Group className="mt-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required 
+              />
+            </Form.Group>
+          )}
           <Form.Group className="mt-3">
             <Form.Label>Password</Form.Label>
             <Form.Control 

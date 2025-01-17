@@ -1,4 +1,3 @@
-// models/User.js
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/connection.js';
 
@@ -17,14 +16,22 @@ User.init(
       allowNull: false,
       unique: true,
     },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true, // Ensures a valid email format
+      },
+    },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     friends: {
-      type: DataTypes.ARRAY(DataTypes.INTEGER),  // Changed this from JSON to ARRAY
+      type: DataTypes.ARRAY(DataTypes.INTEGER),
       defaultValue: [],
-      allowNull: false
+      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,

@@ -4,7 +4,7 @@ import User from '../models/User.js';
 
 // Register controller - POST
 export const register = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     // Hash the password before saving
@@ -13,6 +13,7 @@ export const register = async (req, res) => {
     // Create the user
     const user = await User.create({
       username,
+      email, // Include email here
       password: hashedPassword,
       quizScores: [], // Default value
       friends: [], // Default value
@@ -26,6 +27,7 @@ export const register = async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
+        email: user.email, // Include email in response
         createdAt: user.createdAt,
         quizScores: user.quizScores,
         friends: user.friends,
@@ -37,6 +39,7 @@ export const register = async (req, res) => {
     res.status(500).json({ error: 'Error registering user' });
   }
 };
+
 
 
 // Login controller - POST
