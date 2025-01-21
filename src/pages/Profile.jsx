@@ -50,7 +50,7 @@ export default function Profile() {
   const averageScore = scores.reduce((sum, score) => sum + score.quiz_score, 0) / totalQuizzes || 0;
   const bestScore = Math.max(...scores.map(score => score.quiz_score), 0);
   const averageDuration = 
-    scores.reduce((sum, score) => sum + (score.quiz_duration || 0), 0) / totalQuizzes || 0;
+    scores.reduce((sum, score) => sum + (score.time_taken || 0), 0) / totalQuizzes || 0;
 
   // Get the last 5 quizzes (sorted by most recent)
   const recentScores = [...scores].sort((a, b) => new Date(b.date_taken) - new Date(a.date_taken)).slice(0, 5);
