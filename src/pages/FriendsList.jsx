@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axiosInstance from "../../axiosConfig";
-import { jwtDecode } from "jwt-Decode";
+import { jwtDecode } from "jwt-decode";
 
 export default function FriendsList({ userId }) {
   const [friends, setFriends] = useState([]);
