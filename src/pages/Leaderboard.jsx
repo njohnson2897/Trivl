@@ -1,22 +1,88 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axiosInstance from '../../axiosConfig.js';
 
-const users = [
-  { id: 1, username: "QuizMaster99", lifetimeScore: 45000, averageScore: 87 },
-  { id: 2, username: "TriviaQueen", lifetimeScore: 32000, averageScore: 92 },
-  { id: 3, username: "SmartyPants", lifetimeScore: 27000, averageScore: 85 },
-  { id: 4, username: "Brainiac123", lifetimeScore: 51000, averageScore: 88 },
-  { id: 5, username: "QuickThinker", lifetimeScore: 38000, averageScore: 80 },
-  { id: 6, username: "KnowledgeKing", lifetimeScore: 61000, averageScore: 91 },
-  { id: 7, username: "FastLearner", lifetimeScore: 33000, averageScore: 84 },
-  { id: 8, username: "TheTriviaKid", lifetimeScore: 15000, averageScore: 78 },
-  { id: 9, username: "QuizWhiz", lifetimeScore: 42000, averageScore: 89 },
-  { id: 10, username: "ThinkTank", lifetimeScore: 29000, averageScore: 86 },
-];
-
-export default function Leaderboard() {
+const Leaderboard = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState("lifetimeScore");
 
-  const sortedUsers = [...users].sort((a, b) => b[filter] - a[filter]);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const formatDuration = (minutes) => {
+    const totalSeconds = Math.round(minutes * 60);
+    const displayMinutes = Math.floor(totalSeconds / 60);
+    const displaySeconds = totalSeconds % 60;
+    return `${displayMinutes}m ${displaySeconds}s`;
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/api/users');
+      
+      // Process users data to calculate scores
+      const processedUsers = response.data.map(user => {
+        const scores = user.quizScores || [];
+        const lifetimeScore = scores.reduce((sum, score) => sum + score.quiz_score, 0);
+        const averageScore = scores.length > 0 
+          ? (scores.reduce((sum, score) => sum + score.quiz_score, 0) / scores.length).toFixed(1)
+          : 0;
+        
+        // Calculate average duration
+        const totalDuration = scores.reduce((sum, score) => sum + (score.quiz_duration || 0), 0);
+        const averageDuration = scores.length > 0 ? totalDuration / scores.length : 0;
+
+        return {
+          id: user.id,
+          username: user.username,
+          lifetimeScore,
+          averageScore: parseFloat(averageScore),
+          gamesPlayed: scores.length,
+          averageDuration
+        };
+      });
+
+      setUsers(processedUsers);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError(err.response?.data?.error || 'Failed to load leaderboard data');
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sort users and get top 100 based on current filter
+  const topUsers = [...users]
+    .sort((a, b) => {
+      // Special handling for duration - faster times should rank higher
+      if (filter === 'averageDuration') {
+        return a[filter] - b[filter]; // Ascending order for duration
+      }
+      return b[filter] - a[filter]; // Descending order for other metrics
+    })
+    .slice(0, 100);
+
+  if (loading) return (
+    <div className="content-container">
+      <div className="quiz-content">
+        <h2>Loading leaderboard...</h2>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="content-container">
+      <div className="quiz-content">
+        <h2>Error</h2>
+        <p>{error}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="content-container">
@@ -31,18 +97,30 @@ export default function Leaderboard() {
           >
             <option value="lifetimeScore">Lifetime Score</option>
             <option value="averageScore">Average Score</option>
+            <option value="gamesPlayed">Games Played</option>
+            <option value="averageDuration">Average Duration</option>
           </select>
         </div>
         <div className="leaderboard-grid">
-          {sortedUsers.map((user) => (
-            <div key={user.id} className="leaderboard-card">
-              <h3>{user.username}</h3>
-              <p>Lifetime Score: {user.lifetimeScore}</p>
+          {topUsers.map((user, index) => (
+            <div 
+              key={user.id} 
+              className="leaderboard-card"
+              style={{ transition: 'transform 0.2s' }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <h3>#{index + 1} {user.username}</h3>
+              <p>Lifetime Score: {user.lifetimeScore.toLocaleString()}</p>
               <p>Average Score: {user.averageScore}%</p>
+              <p>Games Played: {user.gamesPlayed}</p>
+              <p>Average Duration: {formatDuration(user.averageDuration)}</p>
             </div>
           ))}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Leaderboard;

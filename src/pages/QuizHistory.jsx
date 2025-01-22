@@ -19,7 +19,6 @@ export default function QuizHistory() {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log(response)
         setQuizHistory(response.data.scores); // Adjust based on the structure of your response
         setError(null);
       } catch (err) {
@@ -31,7 +30,6 @@ export default function QuizHistory() {
     };
 
     fetchQuizHistory();
-    console.log(quizHistory)
   }, []);
 
   if (loading) {
