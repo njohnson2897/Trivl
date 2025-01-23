@@ -34,6 +34,7 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
         setIsLoggedIn(true);
         setUsername('');
         setPassword('');
+        setEmail('');
       }
       
       setError(null);

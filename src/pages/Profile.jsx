@@ -60,7 +60,7 @@ export default function Profile() {
       <div className="quiz-content profile-page">
         {/* User Information */}
         <section className="user-info">
-          <h1>Your Profile</h1>
+          <h2>Your Profile</h2>
           <p><strong>Username:</strong> {userData?.username}</p>
           <p><strong>Email:</strong> {userData?.email}</p>
           <p><strong>Member Since:</strong> {new Date(userData?.createdAt).toLocaleDateString()}</p>

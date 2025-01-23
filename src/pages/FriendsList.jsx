@@ -34,7 +34,7 @@ export default function FriendsList({ userId }) {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h2>Your Friends</h2>
+        <h2 className="mb-4">Your Friends</h2>
         <div className="friends-grid">
           {friends.length > 0 ? (
             friends.map((friend) => (

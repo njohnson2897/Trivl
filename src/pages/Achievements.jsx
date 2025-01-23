@@ -21,7 +21,7 @@ export default function Achievements() {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h1 className='mb-4'>Your Achievements</h1>
+        <h2 className='mb-4'>Your Achievements</h2>
         <div className="achievements-grid">
           {achievementsList.map((achievement) => (
             <div

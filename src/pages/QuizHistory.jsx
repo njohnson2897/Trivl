@@ -33,7 +33,11 @@ export default function QuizHistory() {
   }, []);
 
   if (loading) {
-    return <p>Loading your quiz history...</p>;
+    return <div className="content-container">
+      <div className="quiz-content">
+      <p>Loading your quiz history. . .</p>
+      </div>
+    </div>
   }
 
   if (error) {
@@ -41,7 +45,12 @@ export default function QuizHistory() {
   }
 
   if (quizHistory.length === 0) {
-    return <p>You haven't taken any quizzes yet. Start playing to see your quiz history here!</p>;
+    return <div className="content-container">
+      <div className="quiz-content">
+        <h2 className="mb-4">Your Quiz History</h2>
+      <p>You haven't taken any quizzes yet. Start playing to see your quiz history here!</p>
+      </div>
+    </div>
   }
 
   return (
