@@ -1,5 +1,6 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/connection.js';
+import UserFriends from './UserFriends.js'; // Import the join table model
 
 class User extends Model {}
 
@@ -21,16 +22,11 @@ User.init(
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true, // Ensures a valid email format
+        isEmail: true,
       },
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
-    friends: {
-      type: DataTypes.ARRAY(DataTypes.INTEGER),
-      defaultValue: [],
       allowNull: false,
     },
     createdAt: {
@@ -47,5 +43,13 @@ User.init(
     modelName: 'user',
   }
 );
+
+// Define the many-to-many relationship
+User.belongsToMany(User, {
+  through: UserFriends, // Use the join table
+  as: 'friends', // Alias for the relationship
+  foreignKey: 'userId', // Foreign key in the join table
+  otherKey: 'friendId', // Foreign key for the friend in the join table
+});
 
 export default User;

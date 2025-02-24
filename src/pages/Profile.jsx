@@ -4,32 +4,31 @@ import axiosInstance from '../../axiosConfig.js';
 import { jwtDecode } from "jwt-decode";
 
 export default function Profile() {
-  const [userData, setUserData] = useState(null); // User info state
-  const [scores, setScores] = useState([]);       // Quiz scores state
-  const [friends, setFriends] = useState([]);     // User's friends state
+  const [userData, setUserData] = useState(null);
+  const [scores, setScores] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch user data, scores, and friends
     const fetchProfileData = async () => {
       const token = localStorage.getItem("token");
       try {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
-    
+
         const [userResponse, scoresResponse, friendsResponse] = await Promise.all([
           axiosInstance.get(`/api/users/${userId}`),
           axiosInstance.get(`/api/scores/${userId}`),
           axiosInstance.get(`/api/friends/${userId}`),
         ]);
-    
+
         setUserData(userResponse.data);
-        setScores(scoresResponse.data.scores || []); // Use the 'scores' property, fallback to an empty array
-        setFriends(friendsResponse.data); // Assuming this is already correctly structured
-    
+        setScores(scoresResponse.data.scores || []);
+        setFriends(friendsResponse.data.friends || []);
+
         console.log("User Data:", userResponse.data);
-        console.log("Scores Data:", scoresResponse.data); // Log full response to confirm structure
+        console.log("Scores Data:", scoresResponse.data);
         console.log("Friends Data:", friendsResponse.data);
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -38,7 +37,6 @@ export default function Profile() {
         setLoading(false);
       }
     };
-    
 
     fetchProfileData();
   }, [navigate]);
@@ -58,7 +56,6 @@ export default function Profile() {
   return (
     <div className="content-container">
       <div className="quiz-content profile-page">
-        {/* User Information */}
         <section className="user-info">
           <h2>Your Profile</h2>
           <p><strong>Username:</strong> {userData?.username}</p>

@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../../axiosConfig";
 import { jwtDecode } from "jwt-decode";
 
-export default function FriendsList({ userId }) {
+export default function FriendsList() {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch friends from the API
     const fetchFriends = async () => {
       const token = localStorage.getItem("token");
       try {
@@ -26,7 +25,7 @@ export default function FriendsList({ userId }) {
     };
 
     fetchFriends();
-  }, [userId]);
+  }, []);
 
   if (loading) return <div>Loading friends...</div>;
   if (error) return <div className="error">{error}</div>;
