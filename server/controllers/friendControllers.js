@@ -1,5 +1,6 @@
-import { User, UserFriends } from '../models/index.js';
+import models from '../models/index.js';
 
+const { User, UserFriends } = models;
 
 // ADD FRIENDS - POST
 export const addFriend = async (req, res) => {
@@ -37,23 +38,24 @@ export const getFriends = async (req, res) => {
     try {
       const { userId } = req.params;
   
-      // Find all accepted friendships for the user
-      const friendships = await UserFriends.findAll({
-        where: {
-          userId,
-          status: 'accepted',
-        },
+      // Find the user and include their friends
+      const user = await User.findByPk(userId, {
         include: [
           {
             model: User,
-            as: 'friend', // Use the alias defined in the relationship
+            as: 'friends', // Use the alias defined in the association
             attributes: ['id', 'username', 'createdAt'],
+            through: { attributes: [] }, // Exclude join table attributes
           },
         ],
       });
   
-      // Extract friend details
-      const friends = friendships.map((friendship) => friendship.friend);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      // Extract friends from the user object
+      const friends = user.friends;
   
       res.status(200).json({ friends });
     } catch (error) {

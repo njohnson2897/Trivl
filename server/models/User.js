@@ -1,6 +1,5 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/connection.js';
-import UserFriends from './UserFriends.js'; // Import the join table model
 
 class User extends Model {}
 
@@ -43,13 +42,5 @@ User.init(
     modelName: 'user',
   }
 );
-
-// Define the many-to-many relationship
-User.belongsToMany(User, {
-  through: UserFriends, // Use the join table
-  as: 'friends', // Alias for the relationship
-  foreignKey: 'userId', // Foreign key in the join table
-  otherKey: 'friendId', // Foreign key for the friend in the join table
-});
 
 export default User;

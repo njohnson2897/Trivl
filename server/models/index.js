@@ -2,6 +2,7 @@ import User from './User.js';
 import Score from './Score.js';
 import UserFriends from './UserFriends.js';
 
+
 // Define relationships
 Score.belongsTo(User, {
   foreignKey: 'user_id',
