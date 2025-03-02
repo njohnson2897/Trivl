@@ -12,9 +12,9 @@ import Profile from "./pages/Profile.jsx";
 import FriendsList from "./pages/FriendsList.jsx";
 import QuizHistory from "./pages/QuizHistory.jsx";
 import Achievements from "./pages/Achievements.jsx";
-
-import "./index.css";
 import Instructions from "./pages/Instructions.jsx";
+import UserList from "./pages/UserList.jsx";
+import Notifications from "./pages/Notifications.jsx";
 
 const router = createBrowserRouter([
   {
@@ -31,7 +31,9 @@ const router = createBrowserRouter([
       { path: "friends", element: <FriendsList /> },
       { path: "quiz-history", element: <QuizHistory /> },
       { path: "achievements", element: <Achievements /> },
-      { path: "instructions", element: <Instructions />}
+      { path: "instructions", element: <Instructions /> },
+      { path: "user-list", element: <UserList /> },
+      { path: "notifications", element: <Notifications /> },
     ],
   },
 ]);

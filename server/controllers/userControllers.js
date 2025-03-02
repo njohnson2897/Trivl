@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { Op } from 'sequelize';
 
 // Register controller - POST
 export const register = async (req, res) => {
@@ -98,5 +99,26 @@ export const getUserById = async (req, res) => {
   } catch (error) {
       console.error('Error fetching user:', error);
       res.status(500).json({ error: 'Error fetching user' });
+  }
+};
+
+// search users - GET
+export const searchUsers = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    const users = await User.findAll({
+      where: {
+        username: {
+          [Op.iLike]: `%${query}%`, // Case-insensitive search
+        },
+      },
+      attributes: ['id', 'username', 'createdAt'], // Only return necessary fields
+    });
+
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ error: 'Error searching users' });
   }
 };

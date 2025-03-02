@@ -1,6 +1,4 @@
-import models from '../models/index.js';
-
-const { User, UserFriends } = models;
+import { User, UserFriends } from '../models/index.js';
 
 // ADD FRIENDS - POST
 export const addFriend = async (req, res) => {
@@ -87,5 +85,92 @@ export const removeFriend = async (req, res) => {
       res.status(500).json({ error: "Error removing friend" });
   }
 };
+
+// get pending requests - GET
+export const getPendingRequests = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log('Fetching pending requests for user:', userId);
+
+    const pendingRequests = await UserFriends.findAll({
+      where: {
+        friendId: userId,
+        status: 'pending',
+      },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username'],
+        },
+      ],
+    });
+
+    console.log('Pending requests:', pendingRequests);
+    res.status(200).json({ requests: pendingRequests });
+  } catch (error) {
+    console.error('Error fetching pending requests:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+    });
+    res.status(500).json({ error: 'Error fetching pending requests' });
+  }
+};
+
+// accept friend request - UPDATE
+export const acceptFriendRequest = async (req, res) => {
+  try {
+    const { userId, friendId } = req.body;
+
+    // Find the pending friend request
+    const friendship = await UserFriends.findOne({
+      where: {
+        userId: friendId, // The friend sent the request
+        friendId: userId, // The current user is the recipient
+        status: 'pending',
+      },
+    });
+
+    if (!friendship) {
+      return res.status(404).json({ error: 'Friend request not found' });
+    }
+
+    // Update the status to 'accepted'
+    await friendship.update({ status: 'accepted' });
+
+    res.status(200).json({ message: 'Friend request accepted' });
+  } catch (error) {
+    console.error('Error accepting friend request:', error);
+    res.status(500).json({ error: 'Error accepting friend request' });
+  }
+};
   
+// decline friend request - DELETE
+export const declineFriendRequest = async (req, res) => {
+  try {
+    const { userId, friendId } = req.body;
+
+    // Find the pending friend request
+    const friendship = await UserFriends.findOne({
+      where: {
+        userId: friendId, // The friend sent the request
+        friendId: userId, // The current user is the recipient
+        status: 'pending',
+      },
+    });
+
+    if (!friendship) {
+      return res.status(404).json({ error: 'Friend request not found' });
+    }
+
+    // Delete the friend request
+    await friendship.destroy();
+
+    res.status(200).json({ message: 'Friend request declined' });
+  } catch (error) {
+    console.error('Error declining friend request:', error);
+    res.status(500).json({ error: 'Error declining friend request' });
+  }
+};
   

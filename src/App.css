@@ -29,6 +29,8 @@ footer {
   align-items: center;
   padding: 10px 20px;
   background-color: white;
+  border-bottom: 1px solid #ccc;
+  position: relative; /* Add this */
 }
 
 .header-section {
@@ -52,7 +54,7 @@ footer {
 .header nav {
   position: absolute;
   right: 20px;
-  top: 50%;
+  top: 20%;
   transform: translateY(-50%);
   display: flex;
   gap: 10px;

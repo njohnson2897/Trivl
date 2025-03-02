@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Button, Offcanvas } from 'react-bootstrap';
-import AuthModal from './AuthModal.jsx'; // Assuming AuthModal is in the same folder
+import AuthModal from './AuthModal.jsx';
 
 function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -14,20 +14,13 @@ function Header() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
-    setShowOffcanvas(false); // Close the menu on logout
+    setShowOffcanvas(false);
   };
 
   const toggleOffcanvas = () => setShowOffcanvas(!showOffcanvas);
 
   return (
-    <header
-      className="header d-flex justify-content-between align-items-center px-3 py-2"
-      style={{
-        height: '60px',
-        borderBottom: '1px solid #ccc',
-        position: 'relative',
-      }}
-    >
+    <header className="header d-flex justify-content-between align-items-center px-3 py-2">
       <Link to="/" className="header-title">
         TRIVL
       </Link>
@@ -35,7 +28,7 @@ function Header() {
         <Navbar.Toggle
           aria-controls="offcanvasNavbar"
           onClick={toggleOffcanvas}
-          style={{ position: 'absolute', right: '5px' }}
+          style={{ position: 'absolute', right: '5px', top: '1px' }} // Fix the position
         />
         <Navbar.Offcanvas
           id="offcanvasNavbar"
@@ -49,7 +42,6 @@ function Header() {
           </Offcanvas.Header>
           <Offcanvas.Body>
             <Nav className="flex-column">
-              {/* Universal Links */}
               <Link to="/leaderboard" className="nav-link mb-2">
                 Leaderboard
               </Link>
@@ -59,8 +51,9 @@ function Header() {
               <Link to="/help" className="nav-link mb-2">
                 Help/Support
               </Link>
-              <Link to="/instructions" className="nav-link mb-2">How to Play</Link>
-              {/* Authenticated User Actions */}
+              <Link to="/instructions" className="nav-link mb-2">
+                How to Play
+              </Link>
               {isLoggedIn ? (
                 <>
                   <Link to="/profile" className="nav-link mb-2">
@@ -74,6 +67,12 @@ function Header() {
                   </Link>
                   <Link to="/achievements" className="nav-link mb-2">
                     Achievements
+                  </Link>
+                  <Link to="/user-list" className="nav-link mb-2"> {/* Add this line */}
+                    User List
+                  </Link>
+                  <Link to="/notifications" className="nav-link mb-2">
+                    Notifications
                   </Link>
                   <Button
                     variant="outline-primary"

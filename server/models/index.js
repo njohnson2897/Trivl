@@ -2,7 +2,6 @@ import User from './User.js';
 import Score from './Score.js';
 import UserFriends from './UserFriends.js';
 
-
 // Define relationships
 Score.belongsTo(User, {
   foreignKey: 'user_id',
@@ -22,8 +21,17 @@ User.belongsToMany(User, {
   otherKey: 'friendId',
 });
 
-export default {
-  User,
-  Score,
-  UserFriends,
-};
+// Associate UserFriends with User for the userId relationship
+UserFriends.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user'  // This matches the alias you're using in your query
+});
+
+// Associate UserFriends with User for the friendId relationship
+UserFriends.belongsTo(User, {
+  foreignKey: 'friendId',
+  as: 'friend'
+});
+
+// Export models
+export { User, Score, UserFriends };
