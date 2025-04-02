@@ -65,9 +65,9 @@ function Header() {
                   <Link to="/quiz-history" className="nav-link mb-2">
                     Quiz History
                   </Link>
-                  <Link to="/achievements" className="nav-link mb-2">
+                  {/* <Link to="/achievements" className="nav-link mb-2">
                     Achievements
-                  </Link>
+                  </Link> */}
                   <Link to="/user-list" className="nav-link mb-2"> {/* Add this line */}
                     User List
                   </Link>

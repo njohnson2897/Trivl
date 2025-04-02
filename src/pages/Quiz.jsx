@@ -151,16 +151,15 @@ const checkQuizState = () => {
   };
 
   const handleQuizCompletion = async () => {
-    localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
-    localStorage.setItem("quizStatus", "completed");
-    localStorage.removeItem("currentQuestionIndex");
-    setQuizStatus("completed");
-  
-    // Calculate time taken
     const quizStartTime = localStorage.getItem("quizStartTime");
     const timeTaken = quizStartTime
       ? Math.floor((new Date().getTime() - parseInt(quizStartTime)) / 1000) // Time in seconds
       : null;
+    localStorage.setItem("quizTimeTaken", timeTaken.toString());
+    localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
+    localStorage.setItem("quizStatus", "completed");
+    localStorage.removeItem("currentQuestionIndex");
+    setQuizStatus("completed");
   
     const token = localStorage.getItem("token");
     if (token) {

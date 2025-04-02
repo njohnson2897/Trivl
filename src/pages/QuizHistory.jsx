@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from '../../axiosConfig.js';
 import { jwtDecode } from "jwt-decode";
+import { formatTime } from '../utils/helpers.js';
 
 export default function QuizHistory() {
   const [quizHistory, setQuizHistory] = useState([]);
@@ -62,7 +63,7 @@ export default function QuizHistory() {
             <div key={quiz.id} className="quiz-history-card">
               <p><strong>Date:</strong> {new Date(quiz.date_taken).toLocaleDateString()}</p>
               <p><strong>Score:</strong> {quiz.quiz_score}</p>
-              <p><strong>Time Taken:</strong> {quiz.time_taken}</p>
+              <p><strong>Time Taken:</strong> {formatTime(quiz.time_taken)}</p>
               <p><strong>Difficulty:</strong> {quiz.quiz_difficulty}</p>
             </div>
           ))}

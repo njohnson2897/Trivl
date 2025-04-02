@@ -2,61 +2,65 @@ export default function Instructions() {
   return (
     <div className="content-container">
       <div className="instructions-container">
-        <h1>How to Play</h1>
-
-        <section className="getting-started">
-          <h2>Getting Started</h2>
-          <ul>
-            <li>Sign up or log in to access all features.</li>
-            <li>Explore quizzes via the home page or categories.</li>
-            <li>Choose a quiz, read the description, and hit "Start" to begin.</li>
-          </ul>
-        </section>
-
-        <section className="gameplay-basics">
-          <h2>Gameplay Basics</h2>
-          <ul>
-            <li>Read each question carefully.</li>
-            <li>Select the answer you think is correct.</li>
-            <li>You will automatically be moved to the next question.</li>
-            <li>Finish all questions to see your score and review correct answers.</li>
-          </ul>
-        </section>
-
-        <section className="scoring-system">
-          <h2>Scoring System</h2>
-          <ul>
-            <li><strong>Correct Answer:</strong> +10 points.</li>
-            <li><strong>Incorrect Answer:</strong> 0 points.</li>
-            <li>Check the leaderboard to see how you rank against others!</li>
-          </ul>
-        </section>
-
-        <section className="achievements">
-          <h2>Achievements</h2>
-          <ul>
-            <li>Complete 10 quizzes to unlock the "Quiz Master" badge.</li>
-            <li>Score 1000 total points for the "High Scorer" badge.</li>
-            <li>Play every category to unlock the "Trivia Explorer" badge.</li>
-          </ul>
-          <p>Check the Achievements page to see all possible awards!</p>
-        </section>
-
-        <section className="tips-for-success">
-          <h2>Tips for Success</h2>
-          <ul>
-            <li>Use the leaderboard to track top-performing players for motivation.</li>
-            <li>Revisit completed quizzes to improve your knowledge.</li>
-            <li>Start with easier categories and work your way up to the harder ones.</li>
-          </ul>
-        </section>
-
-        <section className="need-help">
-          <h2>Need Help?</h2>
+        <h1>How to Play Trivl</h1>
+        
+        <div className="instructions-section">
+          <h2>Game Overview</h2>
           <p>
-            Visit the <a href="/help">Help/Support</a> page for assistance or contact our support team for more detailed inquiries.
+            Trivl is a daily trivia challenge where you answer 10 questions each day.
+            Test your knowledge, compete with friends, and track your progress!
           </p>
-        </section>
+        </div>
+
+        <div className="instructions-section">
+          <h2>Gameplay</h2>
+          <ul className="instructions-list">
+            <li>Each quiz consists of 10 random questions</li>
+            <li>You have unlimited time to answer each question</li>
+            <li>Select your answer by clicking on it</li>
+            <li>You'll see your results immediately after completing the quiz</li>
+          </ul>
+        </div>
+
+        <div className="instructions-section">
+          <h2>Scoring System</h2>
+          <table className="scoring-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Correct Answer</td>
+                <td>+10 points</td>
+              </tr>
+              <tr>
+                <td>Incorrect Answer</td>
+                <td>0 points</td>
+              </tr>
+              <tr>
+                <td>Perfect Score (10/10)</td>
+                <td>Bonus 20 points</td>
+              </tr>
+              <tr>
+                <td>Fast Completion (Less than 3 min)</td>
+                <td>Bonus 10 points</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="instructions-section">
+          <h2>Tips</h2>
+          <ul className="instructions-list">
+            <li>Read questions carefully before answering</li>
+            <li>Play daily to maintain your streak</li>
+            <li>Check the leaderboard to see how you compare</li>
+            <li>Challenge friends to beat your scores</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

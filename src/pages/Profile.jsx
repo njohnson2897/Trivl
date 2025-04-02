@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../axiosConfig.js';
 import { jwtDecode } from "jwt-decode";
+import { formatTime } from '../utils/helpers.js';
 
 export default function Profile() {
   const [userData, setUserData] = useState(null);
@@ -69,7 +70,7 @@ export default function Profile() {
           <p><strong>Total Quizzes Taken:</strong> {totalQuizzes}</p>
           <p><strong>Average Score:</strong> {averageScore.toFixed(1)}</p>
           <p><strong>Best Score:</strong> {bestScore}</p>
-          <p><strong>Average Quiz Duration:</strong> {averageDuration.toFixed(2)} minutes</p>
+          <p><strong>Average Quiz Duration:</strong> {formatTime(averageDuration)}</p>
         </section>
 
         {/* Recent Scores */}
@@ -81,8 +82,8 @@ export default function Profile() {
                 <li key={index}>
                   <p><strong>Date:</strong> {new Date(score.date_taken).toLocaleDateString()}</p>
                   <p><strong>Score:</strong> {score.quiz_score}/10</p>
-                  <p><strong>Difficulty:</strong> {score.difficulty}</p>
-                  <p><strong>Duration:</strong> {score.quiz_duration} minutes</p>
+                  <p><strong>Difficulty:</strong> {score.quiz_difficulty}</p>
+                  <p><strong>Duration:</strong> {formatTime(score.time_taken)}</p>
                 </li>
               ))}
             </ul>

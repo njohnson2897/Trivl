@@ -35,9 +35,9 @@ export default function UserList() {
 
   return (
     <div className="content-container">
-      <div className="quiz-content">
+      <div className="user-list-container">
         <h2>Search Users</h2>
-        <div className="search-bar">
+        <div className="user-search-bar">
           <input
             type="text"
             placeholder="Search by username"
@@ -49,18 +49,19 @@ export default function UserList() {
 
         {error && <p className="error">{error}</p>}
 
-        <div className="search-results">
-          {searchResults.length > 0 ? (
-            searchResults.map((user) => (
-              <div key={user.id} className="user-card">
-                <h3>{user.username}</h3>
-                <p>Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
-                <button onClick={() => handleSendFriendRequest(user.id)}>Send Friend Request</button>
-              </div>
-            ))
-          ) : (
-            <p>No users found.</p>
-          )}
+        <div className="user-search-results">
+          {searchResults.map((user) => (
+            <div key={user.id} className="user-card">
+              <h3>{user.username}</h3>
+              <p>Member since: {new Date(user.createdAt).toLocaleDateString()}</p>
+              <button 
+                onClick={() => handleSendFriendRequest(user.id)}
+                className="friend-request-btn"
+              >
+                Send Friend Request
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { formatTime } from '../utils/helpers';
 
 export default function Results() {
   const [score, setScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [questions, setQuestions] = useState([]);
+  const [timeTaken, setTimeTaken] = useState(0);
 
   useEffect(() => {
     const loadedQuestions = JSON.parse(localStorage.getItem('triviaQuestions')) || [];
@@ -14,12 +16,20 @@ export default function Results() {
       return localStorage.getItem(`question${index}`) === 'correct' ? count + 1 : count;
     }, 0);
     setScore(correctCount);
+
+    const storedTime = localStorage.getItem('quizTimeTaken');
+    if (storedTime) {
+      setTimeTaken(parseInt(storedTime));
+    }
   }, []);
+
+  
 
   return (
     <div className="quiz-content results-container">
       <h2>Your Score</h2>
       <p>{`You scored ${score} out of ${totalQuestions}`}</p>
+      {timeTaken > 0 && <p>{`Time taken: ${formatTime(timeTaken)}`}</p>}
 
       <div className="questions-container">
         {questions.map((question, index) => {

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axiosInstance from '../../axiosConfig.js';
+import { formatTime } from '../utils/helpers.js';
 
 const Leaderboard = () => {
   const [users, setUsers] = useState([]);
@@ -10,13 +11,6 @@ const Leaderboard = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  const formatDuration = (minutes) => {
-    const totalSeconds = Math.round(minutes * 60);
-    const displayMinutes = Math.floor(totalSeconds / 60);
-    const displaySeconds = totalSeconds % 60;
-    return `${displayMinutes}m ${displaySeconds}s`;
-  };
 
   const fetchUsers = async () => {
     try {
@@ -114,7 +108,7 @@ const Leaderboard = () => {
               <p>Lifetime Score: {user.lifetimeScore.toLocaleString()}</p>
               <p>Average Score: {user.averageScore}%</p>
               <p>Games Played: {user.gamesPlayed}</p>
-              <p>Average Duration: {formatDuration(user.averageDuration)}</p>
+              <p>Average Duration: {formatTime(user.averageDuration)}</p>
             </div>
           ))}
         </div>
