@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../axiosConfig";
 import { jwtDecode } from "jwt-decode";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function FriendsList() {
   const [friends, setFriends] = useState([]);
@@ -27,19 +28,38 @@ export default function FriendsList() {
     fetchFriends();
   }, []);
 
-  if (loading) return <div>Loading friends...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <div className="error">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h2 className="mb-4">Your Friends</h2>
+        <h2>Your Friends</h2>
         <div className="friends-grid">
           {friends.length > 0 ? (
             friends.map((friend) => (
               <div key={friend.id} className="friend-card">
                 <h3>{friend.username}</h3>
-                <p>Status: <span className="offline">Unknown</span></p>
+                <p>
+                  Status: <span className="offline">Unknown</span>
+                </p>
                 <p>Joined: {new Date(friend.createdAt).toLocaleDateString()}</p>
                 <button className="message-btn">Send Message</button>
                 <button className="challenge-btn">Challenge to Quiz</button>

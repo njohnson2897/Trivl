@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import axiosInstance from '../../axiosConfig.js';
+import axiosInstance from "../../axiosConfig.js";
 import { jwtDecode } from "jwt-decode";
-import { formatTime } from '../utils/helpers.js';
+import { formatTime } from "../utils/helpers.js";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function QuizHistory() {
   const [quizHistory, setQuizHistory] = useState([]);
@@ -13,8 +14,8 @@ export default function QuizHistory() {
       try {
         // Fetch quiz scores using the existing getScores endpoint
         const token = localStorage.getItem("token");
-        const decodedToken = jwtDecode(token)
-        const userId = decodedToken.id
+        const decodedToken = jwtDecode(token);
+        const userId = decodedToken.id;
         const response = await axiosInstance.get(`/api/scores/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -34,24 +35,37 @@ export default function QuizHistory() {
   }, []);
 
   if (loading) {
-    return <div className="content-container">
-      <div className="quiz-content">
-      <p>Loading your quiz history. . .</p>
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <LoadingSpinner />
+        </div>
       </div>
-    </div>
+    );
   }
 
   if (error) {
-    return <p className="text-danger">{error}</p>;
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <p className="text-danger">{error}</p>
+        </div>
+      </div>
+    );
   }
 
   if (quizHistory.length === 0) {
-    return <div className="content-container">
-      <div className="quiz-content">
-        <h2 className="mb-4">Your Quiz History</h2>
-      <p>You haven't taken any quizzes yet. Start playing to see your quiz history here!</p>
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <h2 className="mb-4">Your Quiz History</h2>
+          <p>
+            You haven't taken any quizzes yet. Start playing to see your quiz
+            history here!
+          </p>
+        </div>
       </div>
-    </div>
+    );
   }
 
   return (
@@ -61,10 +75,19 @@ export default function QuizHistory() {
         <div className="quiz-history-grid">
           {quizHistory.map((quiz) => (
             <div key={quiz.id} className="quiz-history-card">
-              <p><strong>Date:</strong> {new Date(quiz.date_taken).toLocaleDateString()}</p>
-              <p><strong>Score:</strong> {quiz.quiz_score}</p>
-              <p><strong>Time Taken:</strong> {formatTime(quiz.time_taken)}</p>
-              <p><strong>Difficulty:</strong> {quiz.quiz_difficulty}</p>
+              <p>
+                <strong>Date:</strong>{" "}
+                {new Date(quiz.date_taken).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Score:</strong> {quiz.quiz_score}
+              </p>
+              <p>
+                <strong>Time Taken:</strong> {formatTime(quiz.time_taken)}
+              </p>
+              <p>
+                <strong>Difficulty:</strong> {quiz.quiz_difficulty}
+              </p>
             </div>
           ))}
         </div>

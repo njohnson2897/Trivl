@@ -6,7 +6,6 @@ import github from '../assets/gh.png';
 function Footer() {
     return (
       <footer>
-        <div>
           <div className="footer-container">    
             <div>
               <div className="row">
@@ -41,7 +40,7 @@ function Footer() {
                   <h6>Designed by: Nate Johnson, Ben Mallar, Robin Langton, and Bryan LeBeuf</h6>
                 </div>
     
-                <div className="col-md-4 col-lg-3  offset-lg-1">
+                <div className="col-md-4 col-lg-3 offset-lg-1">
                   <div>
                     <h5>
                       Contact Us
@@ -62,7 +61,6 @@ function Footer() {
             </div>
     
           </div>
-        </div>
       </footer>
         );
 }

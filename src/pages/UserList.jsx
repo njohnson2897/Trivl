@@ -35,7 +35,7 @@ export default function UserList() {
 
   return (
     <div className="content-container">
-      <div className="user-list-container">
+      <div className="user-list-container quiz-content">
         <h2>Search Users</h2>
         <div className="user-search-bar">
           <input

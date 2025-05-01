@@ -1,86 +1,60 @@
 export default function Help() {
   return (
     <div className="content-container">
-      <div className="help-container">
-        <h1>Help/Support</h1>
+      <div className="instructions-container">
+        <h1>Help & Support</h1>
 
-        <section className="faq-section">
-          <h2>Frequently Asked Questions (FAQ)</h2>
-          <ul className="faq-list">
-            <li>
-              <h3>How do I reset my password?</h3>
-              <p>Go to the Settings page, click "Change Password," and follow the instructions.</p>
-            </li>
-            <li>
-              <h3>How do I report a bug or issue?</h3>
-              <p>Use the contact form below or email us at <a href="mailto:support@gameapp.com">support@gameapp.com</a>.</p>
-            </li>
-            <li>
-              <h3>What should I do if the game crashes?</h3>
-              <p>Refresh the page or clear your browser cache. If the issue persists, contact support.</p>
-            </li>
-            <li>
-              <h3>Where can I see my scores and achievements?</h3>
-              <p>Your scores and achievements are visible on the Profile and Achievements pages.</p>
-            </li>
-            <li>
-              <h3>How can I contact support?</h3>
-              <p>Scroll down to the Contact Support section for details.</p>
-            </li>
-          </ul>
-        </section>
+        <div className="instructions-section">
+          <h2>Frequently Asked Questions</h2>
+          <div className="faq-item">
+            <h3>How do I reset my password?</h3>
+            <p>Go to the Settings page, click "Change Password," and follow the instructions.</p>
+          </div>
+          
+          <div className="faq-item">
+            <h3>How do I report a bug or contact support?</h3>
+            <p>Please use the contact form below with details about the issue you encountered.</p>
+          </div>
 
-        <section className="contact-section">
-          <h2>Contact Support</h2>
-          <p>
-            If you have any questions or issues, feel free to reach out to us:
-          </p>
-          <ul className="contact-options">
-            <li>
-              <strong>Email:</strong> <a href="mailto:support@gameapp.com">support@gameapp.com</a>
-            </li>
-          </ul>
-          <p>
-            Or, fill out the form below to submit your query directly.
-          </p>
-          <form className="contact-form">
-          <strong>Contact Form:</strong>
-            <label>
-              <strong>Name:</strong>
-              <input type="text" placeholder="Your Name" />
-            </label>
-            <label>
-              <strong>Email:</strong>
-              <input type="email" placeholder="Your Email" />
-            </label>
-            <label>
-              <strong>Message:</strong>
-              <textarea placeholder="Describe your issue or question"></textarea>
-            </label>
-            <button type="submit">Submit</button>
-          </form>
-        </section>
+          <div className="faq-item">
+            <h3>Where can I see my scores and achievements?</h3>
+            <p>Your past scores are visible on the Quiz History page.  Achievements are coming soon!</p>
+          </div>
 
-        <section className="game-guide">
-          <h2>Game Guide</h2>
-          <p>
-            Need help understanding how the game works? Here's a quick guide:
-          </p>
-          <ul>
-            <li>
-              <strong>Starting a Quiz:</strong> Select a topic and difficulty level, then click "Start Quiz."
-            </li>
-            <li>
-              <strong>Scoring System:</strong> Earn points for each correct answer. Bonuses are awarded for streaks.
-            </li>
-            <li>
-              <strong>Achievements:</strong> Unlock achievements by completing challenges or reaching milestones.
-            </li>
-            <li>
-              <strong>Profile Management:</strong> View and edit your profile details on the Profile page.
-            </li>
-          </ul>
-        </section>
+          <div className="faq-item">
+            <h3>Why can't I take the quiz again today?</h3>
+            <p>Trivl is a daily challenge! You can only take one quiz per day. Come back tomorrow!</p>
+          </div>
+        </div>
+
+        <div className="instructions-section">
+          <h2>Contact Our Team</h2>
+          <div className="contact-methods">
+            <div className="contact-card">
+              <h3>Email Support</h3>
+              <p><a href="mailto:trivlsupport@gmail.com">trivlsupport@gmail.com</a></p>
+              <p>We will do our best to respond to all support messages within 24 hours</p>
+              <p>Feel free to reach out directly over email or use the form to the right to submit a request</p>
+            </div>
+
+            <div className="contact-card">
+              <h3>Submit a Request</h3>
+              <form className="contact-form">
+                <div className="form-group">
+                  <label>Your Email</label>
+                  <input type="email" placeholder="you@example.com" required />
+                </div>
+                <div className="form-group">
+                  <label>Message</label>
+                  <textarea placeholder="Describe your issue..." rows="4" required></textarea>
+                </div>
+                <button type="submit" className="submit-btn">
+                  Send Message
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
