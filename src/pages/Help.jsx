@@ -1,4 +1,55 @@
+import { useState } from "react";
+
 export default function Help() {
+  const [formData, setFormData] = useState({
+    email: "",
+    message: "",
+  });
+  const [status, setStatus] = useState({
+    type: "",
+    message: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ type: "loading", message: "Sending message..." });
+
+    try {
+      const response = await fetch("http://localhost:5000/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send message");
+      }
+
+      setStatus({
+        type: "success",
+        message: "Message sent successfully!",
+      });
+      setFormData({ email: "", message: "" });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setStatus({
+        type: "error",
+        message: error.message || "Failed to send message. Please try again.",
+      });
+    }
+  };
+
   return (
     <div className="content-container">
       <div className="quiz-content">
@@ -61,21 +112,48 @@ export default function Help() {
 
             <div className="contact-card">
               <h3>Submit a Request</h3>
-              <form className="contact-form">
+              <form className="contact-form" onSubmit={handleSubmit}>
                 <div className="form-group">
                   <label>Your Email</label>
-                  <input type="email" placeholder="you@example.com" required />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    required
+                  />
                 </div>
                 <div className="form-group">
                   <label>Message</label>
                   <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
                     placeholder="Describe your issue..."
                     rows="4"
                     required
                   ></textarea>
                 </div>
-                <button type="submit" className="submit-btn">
-                  Send Message
+                {status.message && (
+                  <div
+                    className={`alert ${
+                      status.type === "success"
+                        ? "alert-success"
+                        : status.type === "error"
+                        ? "alert-danger"
+                        : "alert-info"
+                    } mt-2`}
+                  >
+                    {status.message}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  className="submit-btn"
+                  disabled={status.type === "loading"}
+                >
+                  {status.type === "loading" ? "Sending..." : "Send Message"}
                 </button>
               </form>
             </div>
