@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { formatTime } from '../utils/helpers';
+import { useEffect, useState } from "react";
+import { formatTime } from "../utils/helpers";
 
 export default function Results() {
   const [score, setScore] = useState(0);
@@ -8,54 +8,66 @@ export default function Results() {
   const [timeTaken, setTimeTaken] = useState(0);
 
   useEffect(() => {
-    const loadedQuestions = JSON.parse(localStorage.getItem('triviaQuestions')) || [];
+    const loadedQuestions =
+      JSON.parse(localStorage.getItem("triviaQuestions")) || [];
     setTotalQuestions(loadedQuestions.length);
     setQuestions(loadedQuestions);
 
     const correctCount = loadedQuestions.reduce((count, _, index) => {
-      return localStorage.getItem(`question${index}`) === 'correct' ? count + 1 : count;
+      return localStorage.getItem(`question${index}`) === "correct"
+        ? count + 1
+        : count;
     }, 0);
     setScore(correctCount);
 
-    const storedTime = localStorage.getItem('quizTimeTaken');
+    const storedTime = localStorage.getItem("quizTimeTaken");
     if (storedTime) {
       setTimeTaken(parseInt(storedTime));
     }
   }, []);
 
-  
-
   return (
-    <div className="quiz-content results-container">
-      <h2>Your Score</h2>
-      <p>{`You scored ${score} out of ${totalQuestions}`}</p>
-      {timeTaken > 0 && <p>{`Time taken: ${formatTime(timeTaken)}`}</p>}
+    <div className="content-container">
+      <div className="quiz-content">
+        <h1>Your Results</h1>
+        <p>{`You scored ${score} out of ${totalQuestions}`}</p>
+        {timeTaken > 0 && <p>{`Time taken: ${formatTime(timeTaken)}`}</p>}
 
-      <div className="questions-container">
-        {questions.map((question, index) => {
-          const userAnswerStatus = localStorage.getItem(`question${index}`);
-          const userSelectedAnswer = localStorage.getItem(`userAnswer${index}`);
-          const correctAnswer = question.correctAnswer;
+        <div className="questions-container">
+          {questions.map((question, index) => {
+            const userAnswerStatus = localStorage.getItem(`question${index}`);
+            const userSelectedAnswer = localStorage.getItem(
+              `userAnswer${index}`
+            );
+            const correctAnswer = question.correctAnswer;
 
-          return (
-            <div key={index} className="question-block">
-              <p>{`Question ${index + 1}: ${question.question}`}</p>
-              <div className="options">
-                {[correctAnswer, ...question.incorrectAnswers].map((option, idx) => (
-                  <p
-                    key={idx}
-                    className={`option 
-                      ${option === correctAnswer ? 'correct' : ''} 
-                      ${option === userSelectedAnswer && userAnswerStatus === 'incorrect' ? 'user-incorrect' : ''}
-                    `}
-                  >
-                    {option}
-                  </p>
-                ))}
+            return (
+              <div key={index} className="question-block">
+                <p>{`Question ${index + 1}: ${question.question}`}</p>
+                <div className="options">
+                  {[correctAnswer, ...question.incorrectAnswers].map(
+                    (option, idx) => (
+                      <p
+                        key={idx}
+                        className={`option 
+                        ${option === correctAnswer ? "correct" : ""} 
+                        ${
+                          option === userSelectedAnswer &&
+                          userAnswerStatus === "incorrect"
+                            ? "user-incorrect"
+                            : ""
+                        }
+                      `}
+                      >
+                        {option}
+                      </p>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

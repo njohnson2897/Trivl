@@ -1,27 +1,30 @@
-import { useEffect, useState } from "react";
-import axiosInstance from "../../axiosConfig.js";
+import { useState, useEffect } from "react";
+import axiosInstance from "../../axiosConfig";
 import { jwtDecode } from "jwt-decode";
-import { formatTime } from "../utils/helpers.js";
+import { formatTime } from "../utils/helpers";
 import LoadingSpinner from "../components/LoadingSpinner";
 
-export default function QuizHistory() {
+const QuizHistory = () => {
+  const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
   const [quizHistory, setQuizHistory] = useState([]);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchQuizHistory = async () => {
       try {
-        // Fetch quiz scores using the existing getScores endpoint
         const token = localStorage.getItem("token");
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
+
         const response = await axiosInstance.get(`/api/scores/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        setQuizHistory(response.data.scores); // Adjust based on the structure of your response
+
+        setQuizHistory(response.data.scores);
         setError(null);
       } catch (err) {
         console.error(err);
@@ -33,6 +36,21 @@ export default function QuizHistory() {
 
     fetchQuizHistory();
   }, []);
+
+  const filteredHistory = quizHistory.filter((quiz) => {
+    if (filter === "all") return true;
+    return quiz.quiz_difficulty.toLowerCase() === filter.toLowerCase();
+  });
+
+  const sortedHistory = [...filteredHistory].sort((a, b) => {
+    if (sortBy === "date") {
+      return new Date(b.date_taken) - new Date(a.date_taken);
+    }
+    if (sortBy === "score") {
+      return b.quiz_score - a.quiz_score;
+    }
+    return 0;
+  });
 
   if (loading) {
     return (
@@ -48,21 +66,7 @@ export default function QuizHistory() {
     return (
       <div className="content-container">
         <div className="quiz-content">
-          <p className="text-danger">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (quizHistory.length === 0) {
-    return (
-      <div className="content-container">
-        <div className="quiz-content">
-          <h2 className="mb-4">Your Quiz History</h2>
-          <p>
-            You haven't taken any quizzes yet. Start playing to see your quiz
-            history here!
-          </p>
+          <p className="error-message">{error}</p>
         </div>
       </div>
     );
@@ -71,27 +75,73 @@ export default function QuizHistory() {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h1 className="mb-4">Your Quiz History</h1>
+        <h1>Quiz History</h1>
+
+        <div className="filter-container">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="settings-dropdown"
+          >
+            <option value="all">All Difficulties</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="settings-dropdown"
+          >
+            <option value="date">Sort by Date</option>
+            <option value="score">Sort by Score</option>
+          </select>
+        </div>
+
         <div className="quiz-history-grid">
-          {quizHistory.map((quiz) => (
+          {sortedHistory.map((quiz) => (
             <div key={quiz.id} className="quiz-history-card">
-              <p>
-                <strong>Date:</strong>{" "}
-                {new Date(quiz.date_taken).toLocaleDateString()}
-              </p>
-              <p>
-                <strong>Score:</strong> {quiz.quiz_score}
-              </p>
-              <p>
-                <strong>Time Taken:</strong> {formatTime(quiz.time_taken)}
-              </p>
-              <p>
-                <strong>Difficulty:</strong> {quiz.quiz_difficulty}
-              </p>
+              <div className="quiz-history-header">
+                <h3>
+                  Quiz on {new Date(quiz.date_taken).toLocaleDateString()}
+                </h3>
+                <span
+                  className={`difficulty-badge ${quiz.quiz_difficulty.toLowerCase()}`}
+                >
+                  {quiz.quiz_difficulty}
+                </span>
+              </div>
+
+              <div className="quiz-history-details">
+                <div className="detail-item">
+                  <span className="detail-label">Score:</span>
+                  <span className="detail-value">{quiz.quiz_score}/10</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Time:</span>
+                  <span className="detail-value">
+                    {formatTime(quiz.time_taken)}
+                  </span>
+                </div>
+              </div>
+
+              <button className="view-details-btn">View Details</button>
             </div>
           ))}
         </div>
+
+        {sortedHistory.length === 0 && (
+          <div className="empty-state">
+            <p>
+              You haven&apos;t taken any quizzes yet. Start playing to see your
+              quiz history here!
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default QuizHistory;

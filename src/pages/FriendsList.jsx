@@ -51,7 +51,7 @@ export default function FriendsList() {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h2>Your Friends</h2>
+        <h1>Your Friends</h1>
         <div className="friends-grid">
           {friends.length > 0 ? (
             friends.map((friend) => (

@@ -88,24 +88,57 @@ export default function Notifications() {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h2>Notifications</h2>
-        <div className="notifications-list">
-          {pendingRequests.length > 0 ? (
-            pendingRequests.map((request) => (
+        <h1>Notifications</h1>
+
+        {pendingRequests.length > 0 ? (
+          <div className="notifications-list">
+            {pendingRequests.map((request) => (
               <div key={request.id} className="notification-card">
                 <h3>{request.user.username} sent you a friend request.</h3>
-                <button onClick={() => handleAcceptRequest(request.user.id)}>
-                  Accept
-                </button>
-                <button onClick={() => handleDeclineRequest(request.user.id)}>
-                  Decline
-                </button>
+                <div className="notification-actions">
+                  <button
+                    onClick={() => handleAcceptRequest(request.user.id)}
+                    className="accept-btn"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleDeclineRequest(request.user.id)}
+                    className="decline-btn"
+                  >
+                    Decline
+                  </button>
+                </div>
               </div>
-            ))
-          ) : (
-            <p>No pending notifications.</p>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="notifications-empty-state">
+            <div className="empty-state-icon">🔔</div>
+            <h3>No Pending Notifications</h3>
+            <p>
+              Your notification center is currently empty. Here's what you can
+              do:
+            </p>
+            <div className="notification-tips">
+              <div className="tip-card">
+                <h4>Find Friends</h4>
+                <p>Search for other players and send them friend requests</p>
+              </div>
+              <div className="tip-card">
+                <h4>Challenge Players</h4>
+                <p>
+                  Challenge your friends to quiz battles and compete for high
+                  scores
+                </p>
+              </div>
+              <div className="tip-card">
+                <h4>Check Leaderboard</h4>
+                <p>See how you rank against other players in the leaderboard</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

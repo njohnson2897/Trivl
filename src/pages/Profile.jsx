@@ -71,92 +71,97 @@ export default function Profile() {
 
   return (
     <div className="content-container">
-      <div className="quiz-content profile-page">
-        <section className="user-info">
-          <h2>Your Profile</h2>
-          <p>
-            <strong>Username:</strong> {userData?.username}
-          </p>
-          <p>
-            <strong>Email:</strong> {userData?.email}
-          </p>
-          <p>
-            <strong>Member Since:</strong>{" "}
-            {new Date(userData?.createdAt).toLocaleDateString()}
-          </p>
-        </section>
+      <div className="quiz-content">
+        <h1>Your Profile</h1>
 
-        {/* Quiz Stats */}
-        <section className="quiz-stats">
-          <h3>Quiz Stats</h3>
-          <p>
-            <strong>Total Quizzes Taken:</strong> {totalQuizzes}
-          </p>
-          <p>
-            <strong>Average Score:</strong> {averageScore.toFixed(1)}
-          </p>
-          <p>
-            <strong>Best Score:</strong> {bestScore}
-          </p>
-          <p>
-            <strong>Average Quiz Duration:</strong>{" "}
-            {formatTime(averageDuration)}
-          </p>
-        </section>
+        <div className="profile-section">
+          <h3>Account Information</h3>
+          <div className="profile-info">
+            <p>
+              <strong>Username:</strong> {userData?.username}
+            </p>
+            <p>
+              <strong>Email:</strong> {userData?.email}
+            </p>
+            <p>
+              <strong>Member Since:</strong>{" "}
+              {new Date(userData?.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
 
-        {/* Recent Scores */}
-        <section className="recent-scores">
+        <div className="profile-section">
+          <h3>Quiz Statistics</h3>
+          <div className="quiz-stats-grid">
+            <div className="stat-card">
+              <strong>{totalQuizzes}</strong>
+              <p>Total Quizzes</p>
+            </div>
+            <div className="stat-card">
+              <strong>{averageScore.toFixed(1)}</strong>
+              <p>Average Score</p>
+            </div>
+            <div className="stat-card">
+              <strong>{bestScore}</strong>
+              <p>Best Score</p>
+            </div>
+            <div className="stat-card">
+              <strong>{formatTime(averageDuration)}</strong>
+              <p>Avg. Duration</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="profile-section">
           <h3>Recent Scores</h3>
-          {recentScores.length > 0 ? (
-            <ul>
-              {recentScores.map((score, index) => (
-                <li key={index}>
-                  <p>
-                    <strong>Date:</strong>{" "}
-                    {new Date(score.date_taken).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Score:</strong> {score.quiz_score}/10
-                  </p>
-                  <p>
-                    <strong>Difficulty:</strong> {score.quiz_difficulty}
-                  </p>
-                  <p>
-                    <strong>Duration:</strong> {formatTime(score.time_taken)}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No recent scores available.</p>
-          )}
-        </section>
+          <div className="recent-scores">
+            {recentScores.length > 0 ? (
+              <ul>
+                {recentScores.map((score, index) => (
+                  <li key={index}>
+                    <p>
+                      <strong>Date:</strong>{" "}
+                      {new Date(score.date_taken).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Score:</strong> {score.quiz_score}/10
+                    </p>
+                    <p>
+                      <strong>Difficulty:</strong> {score.quiz_difficulty}
+                    </p>
+                    <p>
+                      <strong>Duration:</strong> {formatTime(score.time_taken)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No recent scores available.</p>
+            )}
+          </div>
+        </div>
 
-        {/* Friends List */}
-        <section className="friends-list">
+        <div className="profile-section">
           <h3>Friends</h3>
-          {friends.length > 0 ? (
-            <ul>
-              {friends.map((friend, index) => (
-                <li key={index}>
+          <div className="friends-grid">
+            {friends.length > 0 ? (
+              friends.map((friend) => (
+                <div key={friend.id} className="friend-card">
+                  <h3>{friend.username}</h3>
                   <p>
-                    <strong>Username:</strong> {friend.username}
+                    Joined: {new Date(friend.createdAt).toLocaleDateString()}
                   </p>
-                  <p>
-                    <strong>Email:</strong> {friend.email}
-                  </p>
-                  <p>
-                    <strong>Member Since:</strong>{" "}
-                    {new Date(friend.createdAt).toLocaleDateString()}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>You have no friends added yet.</p>
-          )}
-        </section>
-        <button>Edit Profile</button>
+                  <button className="message-btn">Send Message</button>
+                  <button className="challenge-btn">Challenge to Quiz</button>
+                </div>
+              ))
+            ) : (
+              <p>You have no friends added yet.</p>
+            )}
+          </div>
+        </div>
+
+        <button className="edit-profile-btn">Edit Profile</button>
       </div>
     </div>
   );

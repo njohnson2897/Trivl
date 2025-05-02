@@ -1,24 +1,28 @@
 export default function Instructions() {
   return (
     <div className="content-container">
-      <div className="instructions-container">
+      <div className="quiz-content">
         <h1>How to Play Trivl</h1>
-        
-        <div className="instructions-section">
-          <h2>Game Overview</h2>
-          <p>
-            Trivl is a daily trivia challenge where you answer 10 questions each day.
-            Test your knowledge, compete with friends, and track your progress!
-          </p>
-        </div>
 
         <div className="instructions-section">
+          <h2>Game Overview</h2>
+          <div className="instructions-intro">
+            <p>
+              Trivl is a daily trivia challenge where you can test your
+              knowledge and compete with friends. Each day brings new questions
+              across various categories, and you'll have a limited time to
+              answer them all.
+            </p>
+          </div>
+
           <h2>Gameplay</h2>
           <ul className="instructions-list">
             <li>Each quiz consists of 10 random questions</li>
             <li>You have unlimited time to answer each question</li>
             <li>Select your answer by clicking on it</li>
-            <li>You'll see your results immediately after completing the quiz</li>
+            <li>
+              You'll see your results immediately after completing the quiz
+            </li>
           </ul>
         </div>
 

@@ -222,6 +222,7 @@ const checkQuizState = () => {
       case 'cooldown':
         return (
           <div className="timer-modal">
+            <h1>You have completed today's quiz!</h1>
             <p>You can take the quiz again in:</p>
             <h3>{timer}</h3>
             <p>

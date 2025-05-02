@@ -1,67 +1,108 @@
-import { useState } from 'react';
-import axiosInstance from '../../axiosConfig.js';
-import { jwtDecode } from 'jwt-decode';
+import { useState } from "react";
+import axiosInstance from "../../axiosConfig.js";
+import { jwtDecode } from "jwt-decode";
 
 export default function UserList() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
     try {
-      const response = await axiosInstance.get(`/api/users/search?query=${searchQuery}`);
+      setIsSearching(true);
+      const response = await axiosInstance.get(
+        `/api/users/search?query=${searchQuery}`
+      );
       setSearchResults(response.data.users);
       setError(null);
     } catch (err) {
-      console.error('Error searching users:', err);
-      setError('Failed to search users. Please try again.');
+      console.error("Error searching users:", err);
+      setError("Failed to search users. Please try again.");
       setSearchResults([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
   const handleSendFriendRequest = async (friendId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const decodedToken = jwtDecode(token);
       const userId = decodedToken.id;
 
-      await axiosInstance.post('/api/friends/add', { userId, friendId });
-      alert('Friend request sent!');
+      await axiosInstance.post("/api/friends/add", { userId, friendId });
+      alert("Friend request sent!");
     } catch (err) {
-      console.error('Error sending friend request:', err);
-      alert('Failed to send friend request. Please try again.');
+      console.error("Error sending friend request:", err);
+      alert("Failed to send friend request. Please try again.");
     }
   };
 
   return (
     <div className="content-container">
-      <div className="user-list-container quiz-content">
-        <h2>Search Users</h2>
-        <div className="user-search-bar">
-          <input
-            type="text"
-            placeholder="Search by username"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button onClick={handleSearch}>Search</button>
+      <div className="quiz-content">
+        <h1>Find Users</h1>
+
+        <div className="user-search-section">
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search by username..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+              className="user-search-input"
+            />
+            <button
+              onClick={handleSearch}
+              className="search-btn"
+              disabled={isSearching}
+            >
+              {isSearching ? "Searching..." : "Search"}
+            </button>
+          </div>
+
+          {!searchQuery && (
+            <div className="search-tips">
+              <h3>Search Tips</h3>
+              <ul>
+                <li>Search by username to find specific users</li>
+                <li>
+                  You can send friend requests to connect with other players
+                </li>
+                <li>Challenge your friends to quiz battles</li>
+                <li>Compare scores and compete on the leaderboard</li>
+              </ul>
+            </div>
+          )}
         </div>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error-message">{error}</p>}
 
         <div className="user-search-results">
-          {searchResults.map((user) => (
-            <div key={user.id} className="user-card">
-              <h3>{user.username}</h3>
-              <p>Member since: {new Date(user.createdAt).toLocaleDateString()}</p>
-              <button 
-                onClick={() => handleSendFriendRequest(user.id)}
-                className="friend-request-btn"
-              >
-                Send Friend Request
-              </button>
+          {searchResults.length > 0 ? (
+            searchResults.map((user) => (
+              <div key={user.id} className="user-card">
+                <h3>{user.username}</h3>
+                <p>
+                  Member since: {new Date(user.createdAt).toLocaleDateString()}
+                </p>
+                <button
+                  onClick={() => handleSendFriendRequest(user.id)}
+                  className="friend-request-btn"
+                >
+                  Send Friend Request
+                </button>
+              </div>
+            ))
+          ) : searchQuery && !isSearching ? (
+            <div className="empty-state">
+              <p>No users found matching "{searchQuery}"</p>
             </div>
-          ))}
+          ) : null}
         </div>
       </div>
     </div>

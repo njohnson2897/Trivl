@@ -87,8 +87,7 @@ const Leaderboard = () => {
     return (
       <div className="content-container">
         <div className="quiz-content">
-          <h2>Error</h2>
-          <p>{error}</p>
+          <p className="error-message">{error}</p>
         </div>
       </div>
     );
@@ -97,13 +96,13 @@ const Leaderboard = () => {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h2>Leaderboard</h2>
+        <h1>Leaderboard</h1>
+
         <div className="filter-container">
-          <label htmlFor="filter">Sort By:</label>
           <select
-            id="filter"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
+            className="settings-dropdown"
           >
             <option value="lifetimeScore">Lifetime Score</option>
             <option value="averageScore">Average Score</option>
@@ -111,29 +110,45 @@ const Leaderboard = () => {
             <option value="averageDuration">Average Duration</option>
           </select>
         </div>
+
         <div className="leaderboard-grid">
           {topUsers.map((user, index) => (
-            <div
-              key={user.id}
-              className="leaderboard-card"
-              style={{ transition: "transform 0.2s" }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = "scale(1.02)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.transform = "scale(1)")
-              }
-            >
-              <h3>
-                #{index + 1} {user.username}
-              </h3>
-              <p>Lifetime Score: {user.lifetimeScore.toLocaleString()}</p>
-              <p>Average Score: {user.averageScore}%</p>
-              <p>Games Played: {user.gamesPlayed}</p>
-              <p>Average Duration: {formatTime(user.averageDuration)}</p>
+            <div key={user.id} className="leaderboard-card">
+              <div className="leaderboard-rank">#{index + 1}</div>
+              <div className="leaderboard-content">
+                <h3>{user.username}</h3>
+                <div className="leaderboard-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Lifetime Score:</span>
+                    <span className="stat-value">
+                      {user.lifetimeScore.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Average Score:</span>
+                    <span className="stat-value">{user.averageScore}/10</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Games Played:</span>
+                    <span className="stat-value">{user.gamesPlayed}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Avg. Duration:</span>
+                    <span className="stat-value">
+                      {formatTime(user.averageDuration)}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
+
+        {topUsers.length === 0 && (
+          <div className="empty-state">
+            <p>No users found on the leaderboard.</p>
+          </div>
+        )}
       </div>
     </div>
   );
