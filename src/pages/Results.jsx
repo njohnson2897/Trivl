@@ -30,8 +30,10 @@ export default function Results() {
     <div className="content-container">
       <div className="quiz-content">
         <h1>Your Results</h1>
-        <p>{`You scored ${score} out of ${totalQuestions}`}</p>
-        {timeTaken > 0 && <p>{`Time taken: ${formatTime(timeTaken)}`}</p>}
+        <div className="results-summary">
+          <p>{`Score: ${score}/${totalQuestions}`}</p>
+          {timeTaken > 0 && <p>{`Time: ${formatTime(timeTaken)}`}</p>}
+        </div>
 
         <div className="questions-container">
           {questions.map((question, index) => {
