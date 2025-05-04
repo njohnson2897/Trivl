@@ -1410,3 +1410,89 @@ footer {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+/* Achievements Page Styles */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.achievement-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.achievement-card.not-achieved {
+  filter: grayscale(100%);
+  opacity: 0.7;
+}
+
+.achievement-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-icon i {
+  font-size: 24px;
+  color: #000;
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.achievement-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.achievement-date {
+  margin-top: 0.5rem !important;
+  font-size: 0.8rem !important;
+  color: #888 !important;
+}
+
+/* Achievement Icons */
+.icon-rookie::before { content: "🎯"; }
+.icon-high-score::before { content: "🏆"; }
+.icon-perfect::before { content: "⭐"; }
+.icon-speed::before { content: "⚡"; }
+.icon-master::before { content: "👑"; }
+.icon-enthusiast::before { content: "🎮"; }
+.icon-legend::before { content: "🌟"; }
+.icon-consistent::before { content: "📈"; }
+.icon-streak::before { content: "🔥"; }
+.icon-quick::before { content: "⚡"; }
+.icon-category::before { content: "📚"; }
+.icon-night::before { content: "🌙"; }
+.icon-morning::before { content: "🌅"; }
+.icon-weekend::before { content: "🎉"; }
+.icon-social::before { content: "👥"; }

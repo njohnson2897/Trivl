@@ -1,5 +1,5 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/connection.js';
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/connection.js";
 
 class User extends Model {}
 
@@ -39,7 +39,7 @@ User.init(
     timestamps: false,
     freezeTableName: true,
     underscored: true,
-    modelName: 'user',
+    modelName: "user",
   }
 );
 

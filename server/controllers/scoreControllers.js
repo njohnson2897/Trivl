@@ -1,9 +1,17 @@
 import Score from "../models/Score.js";
 import User from "../models/User.js";
+import { checkAchievements } from "./achievementControllers.js";
 
 export const logScore = async (req, res) => {
   try {
-    const { userId, quiz_score, quiz_difficulty, categories, is_niche, time_taken  } = req.body;
+    const {
+      userId,
+      quiz_score,
+      quiz_difficulty,
+      categories,
+      is_niche,
+      time_taken,
+    } = req.body;
 
     // Check if user exists
     const user = await User.findByPk(userId);
@@ -21,13 +29,15 @@ export const logScore = async (req, res) => {
       time_taken,
     });
 
+    // Check for new achievements
+    await checkAchievements(userId);
+
     res.status(201).json(newScore);
   } catch (error) {
     console.error("Error logging score:", error);
     res.status(500).json({ error: "Error logging score" });
   }
 };
-
 
 // GET scores by user ID
 export const getScoresByUser = async (req, res) => {
@@ -44,12 +54,12 @@ export const getScoresByUser = async (req, res) => {
     const scores = await Score.findAll({
       where: { user_id: userId },
       order: [["date_taken", "DESC"]],
-    //   include: [
-    //     {
-    //       model: User,
-    //       attributes: "username", // Include only specific user fields
-    //     },
-    //   ],
+      //   include: [
+      //     {
+      //       model: User,
+      //       attributes: "username", // Include only specific user fields
+      //     },
+      //   ],
     });
 
     // Calculate some statistics

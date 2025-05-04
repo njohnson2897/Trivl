@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Navbar, Nav, Button, Offcanvas } from 'react-bootstrap';
-import AuthModal from './AuthModal.jsx';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Navbar, Nav, Button, Offcanvas } from "react-bootstrap";
+import AuthModal from "./AuthModal.jsx";
 
 function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [showOffcanvas, setShowOffcanvas] = useState(false);
 
   const handleShowAuthModal = () => setShowAuthModal(true);
   const handleCloseAuthModal = () => setShowAuthModal(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
     setShowOffcanvas(false);
   };
@@ -64,10 +64,10 @@ function Header() {
                   <Link to="/quiz-history" className="nav-link mb-2">
                     Quiz History
                   </Link>
-                  {/* <Link to="/achievements" className="nav-link mb-2">
+                  <Link to="/achievements" className="nav-link mb-2">
                     Achievements
-                  </Link> */}
-                  <Link to="/user-list" className="nav-link mb-2"> {/* Add this line */}
+                  </Link>
+                  <Link to="/user-list" className="nav-link mb-2">
                     User List
                   </Link>
                   <Link to="/notifications" className="nav-link mb-2">

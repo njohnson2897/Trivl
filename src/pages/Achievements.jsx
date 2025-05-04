@@ -1,41 +1,102 @@
-// // Example list of achievements with "achieved" status
-// const achievementsList = [
-//   { id: 1, name: "Trivia Rookie", achieved: true },
-//   { id: 2, name: "Streak Starter", achieved: true },
-//   { id: 3, name: "High Scorer", achieved: false },
-//   { id: 4, name: "Quick Thinker", achieved: false },
-//   { id: 5, name: "Trivia Champ", achieved: true },
-//   { id: 6, name: "Perfect Round", achieved: false },
-//   { id: 7, name: "Night Owl", achieved: true },
-//   { id: 8, name: "Early Bird", achieved: false },
-//   { id: 9, name: "Mastermind", achieved: false },
-//   { id: 10, name: "Unstoppable", achieved: false },
-//   { id: 11, name: "Explorer", achieved: true },
-//   { id: 12, name: "Lucky Guess", achieved: false },
-//   { id: 13, name: "Speed Demon", achieved: false },
-//   { id: 14, name: "Completionist", achieved: false },
-//   { id: 15, name: "Comeback King", achieved: true },
-// ];
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import LoadingSpinner from "../components/LoadingSpinner";
 
-// export default function Achievements() {
-//   return (
-//     <div className="content-container">
-//       <div className="quiz-content">
-//         <h2 className='mb-4'>Your Achievements</h2>
-//         <div className="achievements-grid">
-//           {achievementsList.map((achievement) => (
-//             <div
-//               key={achievement.id}
-//               className={`achievement-card ${
-//                 achievement.achieved ? "achieved" : "not-achieved"
-//               }`}
-//             >
-//               <div className="star-icon"></div>
-//               <p>{achievement.name}</p>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+const Achievements = () => {
+  const [achievements, setAchievements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Please log in to view achievements");
+          setLoading(false);
+          return;
+        }
+
+        const decoded = jwtDecode(token);
+        const response = await axios.get(
+          `http://localhost:5000/api/achievements/${decoded.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setAchievements(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch achievements");
+        setLoading(false);
+      }
+    };
+
+    fetchAchievements();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <p className="error-message">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content-container">
+      <div className="quiz-content">
+        <h1>Achievements</h1>
+
+        <div className="achievements-grid">
+          {achievements.map((achievement) => (
+            <div
+              key={achievement.name}
+              className={`achievement-card ${
+                !achievement.achieved ? "not-achieved" : ""
+              }`}
+            >
+              <div
+                className={`achievement-icon icon-${achievement.icon}`}
+              ></div>
+              <div className="achievement-info">
+                <h3>{achievement.name}</h3>
+                <p>{achievement.description}</p>
+                {achievement.date_achieved && (
+                  <p className="achievement-date">
+                    Achieved on:{" "}
+                    {new Date(achievement.date_achieved).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {achievements.length === 0 && (
+          <div className="empty-state">
+            <p>No achievements yet. Keep playing to earn achievements!</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Achievements;
