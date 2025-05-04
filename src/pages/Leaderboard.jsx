@@ -17,14 +17,22 @@ const Leaderboard = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get("/api/users");
+      console.log("API Response:", response.data);
 
       // Process users data to calculate scores
       const processedUsers = response.data.map((user) => {
-        const scores = user.quizScores || [];
+        console.log("Processing user:", user);
+        console.log("User scores:", user.scores);
+
+        const scores = user.scores || [];
+        console.log("Scores array:", scores);
+
         const lifetimeScore = scores.reduce(
           (sum, score) => sum + score.quiz_score,
           0
         );
+        console.log("Lifetime score:", lifetimeScore);
+
         const averageScore =
           scores.length > 0
             ? (
@@ -32,16 +40,18 @@ const Leaderboard = () => {
                 scores.length
               ).toFixed(1)
             : 0;
+        console.log("Average score:", averageScore);
 
         // Calculate average duration
         const totalDuration = scores.reduce(
-          (sum, score) => sum + (score.quiz_duration || 0),
+          (sum, score) => sum + (score.time_taken || 0),
           0
         );
         const averageDuration =
           scores.length > 0 ? totalDuration / scores.length : 0;
+        console.log("Average duration:", averageDuration);
 
-        return {
+        const processedUser = {
           id: user.id,
           username: user.username,
           lifetimeScore,
@@ -49,8 +59,11 @@ const Leaderboard = () => {
           gamesPlayed: scores.length,
           averageDuration,
         };
+        console.log("Processed user:", processedUser);
+        return processedUser;
       });
 
+      console.log("All processed users:", processedUsers);
       setUsers(processedUsers);
       setError(null);
     } catch (err) {
