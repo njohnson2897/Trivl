@@ -132,3 +132,16 @@ export const searchUsers = async (req, res) => {
     res.status(500).json({ error: "Error searching users" });
   }
 };
+
+// Check username availability - GET
+export const checkUsername = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const user = await User.findOne({ where: { username } });
+    res.json({ available: !user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error checking username availability" });
+  }
+};
