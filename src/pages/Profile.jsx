@@ -9,6 +9,7 @@ export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [scores, setScores] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -19,20 +20,27 @@ export default function Profile() {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
 
-        const [userResponse, scoresResponse, friendsResponse] =
-          await Promise.all([
-            axiosInstance.get(`/api/users/${userId}`),
-            axiosInstance.get(`/api/scores/${userId}`),
-            axiosInstance.get(`/api/friends/${userId}`),
-          ]);
+        const [
+          userResponse,
+          scoresResponse,
+          friendsResponse,
+          achievementsResponse,
+        ] = await Promise.all([
+          axiosInstance.get(`/api/users/${userId}`),
+          axiosInstance.get(`/api/scores/${userId}`),
+          axiosInstance.get(`/api/friends/${userId}`),
+          axiosInstance.get(`/api/achievements/${userId}`),
+        ]);
 
         setUserData(userResponse.data);
         setScores(scoresResponse.data.scores || []);
         setFriends(friendsResponse.data.friends || []);
+        setAchievements(achievementsResponse.data || []);
 
         console.log("User Data:", userResponse.data);
         console.log("Scores Data:", scoresResponse.data);
         console.log("Friends Data:", friendsResponse.data);
+        console.log("Achievements Data:", achievementsResponse.data);
       } catch (error) {
         console.error("Error fetching profile data:", error);
         if (error.response?.status === 401) navigate("/login");
@@ -137,6 +145,38 @@ export default function Profile() {
               </ul>
             ) : (
               <p>No recent scores available.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="profile-section">
+          <h3>Recent Achievements</h3>
+          <div className="recent-achievements">
+            {achievements.length > 0 ? (
+              achievements
+                .filter((achievement) => achievement.achieved)
+                .sort(
+                  (a, b) =>
+                    new Date(b.date_achieved) - new Date(a.date_achieved)
+                )
+                .slice(0, 3)
+                .map((achievement) => (
+                  <div key={achievement.name} className="achievement-item">
+                    <div className="achievement-header">
+                      <div
+                        className={`achievement-icon icon-${achievement.icon}`}
+                      ></div>
+                      <h4>{achievement.name}</h4>
+                    </div>
+                    <p>{achievement.description}</p>
+                    <p className="achievement-date">
+                      Earned:{" "}
+                      {new Date(achievement.date_achieved).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))
+            ) : (
+              <p>No achievements earned yet.</p>
             )}
           </div>
         </div>
