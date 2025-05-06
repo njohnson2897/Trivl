@@ -1,8 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import { User, Score } from "../models/index.js";
 import { Op } from "sequelize";
-import Score from "../models/Score.js";
 
 // Register controller - POST
 export const register = async (req, res) => {

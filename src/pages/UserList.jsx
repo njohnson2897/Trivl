@@ -14,7 +14,7 @@ export default function UserList() {
     try {
       setIsSearching(true);
       const response = await axiosInstance.get(
-        `/api/users/search?query=${searchQuery}`
+        `/api/users/search?query=${encodeURIComponent(searchQuery)}`
       );
       setSearchResults(response.data.users);
       setError(null);
