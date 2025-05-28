@@ -20,27 +20,17 @@ export default function Profile() {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
 
-        const [
-          userResponse,
-          scoresResponse,
-          friendsResponse,
-          achievementsResponse,
-        ] = await Promise.all([
-          axiosInstance.get(`/api/users/${userId}`),
-          axiosInstance.get(`/api/scores/${userId}`),
-          axiosInstance.get(`/api/friends/${userId}`),
-          axiosInstance.get(`/api/achievements/${userId}`),
-        ]);
+        const response = await axiosInstance.get(
+          `/api/users/${userId}/profile`
+        );
+        const profileData = response.data;
 
-        setUserData(userResponse.data);
-        setScores(scoresResponse.data.scores || []);
-        setFriends(friendsResponse.data.friends || []);
-        setAchievements(achievementsResponse.data || []);
+        setUserData(profileData);
+        setScores(profileData.recentScores || []);
+        setFriends(profileData.friends || []);
+        setAchievements(profileData.achievements || []);
 
-        console.log("User Data:", userResponse.data);
-        console.log("Scores Data:", scoresResponse.data);
-        console.log("Friends Data:", friendsResponse.data);
-        console.log("Achievements Data:", achievementsResponse.data);
+        console.log("Profile Data:", profileData);
       } catch (error) {
         console.error("Error fetching profile data:", error);
         if (error.response?.status === 401) navigate("/login");
@@ -76,6 +66,10 @@ export default function Profile() {
   const recentScores = [...scores]
     .sort((a, b) => new Date(b.date_taken) - new Date(a.date_taken))
     .slice(0, 5);
+
+  const handleFriendClick = (friendId) => {
+    navigate(`/user/${friendId}`);
+  };
 
   return (
     <div className="content-container">
@@ -186,13 +180,34 @@ export default function Profile() {
           <div className="friends-grid">
             {friends.length > 0 ? (
               friends.map((friend) => (
-                <div key={friend.id} className="friend-card">
+                <div
+                  key={friend.id}
+                  className="friend-card"
+                  onClick={() => handleFriendClick(friend.id)}
+                  style={{ cursor: "pointer" }}
+                >
                   <h3>{friend.username}</h3>
                   <p>
                     Joined: {new Date(friend.createdAt).toLocaleDateString()}
                   </p>
-                  <button className="message-btn">Send Message</button>
-                  <button className="challenge-btn">Challenge to Quiz</button>
+                  <button
+                    className="message-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // TODO: Implement messaging
+                    }}
+                  >
+                    Send Message
+                  </button>
+                  <button
+                    className="challenge-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // TODO: Implement challenge
+                    }}
+                  >
+                    Challenge to Quiz
+                  </button>
                 </div>
               ))
             ) : (

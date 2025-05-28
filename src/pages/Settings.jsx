@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axiosInstance from "../../axiosConfig.js";
 
 const Settings = () => {
   const [theme, setTheme] = useState("light");
@@ -7,12 +8,65 @@ const Settings = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [difficulty, setDifficulty] = useState("medium");
   const [language, setLanguage] = useState("english");
+  const [isPublic, setIsPublic] = useState(false);
+  const [shareScores, setShareScores] = useState(true);
+  const [showOnline, setShowOnline] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axiosInstance.get("/api/users/settings");
+        const settings = response.data;
+
+        setTheme(settings.theme || "light");
+        setNotifications(settings.notifications ?? true);
+        setEmailNotifications(settings.emailNotifications ?? true);
+        setSoundEnabled(settings.soundEnabled ?? true);
+        setDifficulty(settings.difficulty || "medium");
+        setLanguage(settings.language || "english");
+        setIsPublic(settings.isPublic ?? false);
+        setShareScores(settings.shareScores ?? true);
+        setShowOnline(settings.showOnline ?? true);
+      } catch (err) {
+        console.error("Error fetching settings:", err);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   const handleThemeChange = (e) => setTheme(e.target.value);
   const toggleNotifications = () => setNotifications(!notifications);
   const toggleEmailNotifications = () =>
     setEmailNotifications(!emailNotifications);
   const toggleSound = () => setSoundEnabled(!soundEnabled);
+  const togglePublic = () => setIsPublic(!isPublic);
+  const toggleShareScores = () => setShareScores(!shareScores);
+  const toggleShowOnline = () => setShowOnline(!showOnline);
+
+  const handleSaveChanges = async () => {
+    try {
+      setIsSaving(true);
+      await axiosInstance.post("/api/users/settings", {
+        theme,
+        notifications,
+        emailNotifications,
+        soundEnabled,
+        difficulty,
+        language,
+        isPublic,
+        shareScores,
+        showOnline,
+      });
+      alert("Settings saved successfully!");
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="content-container">
@@ -40,17 +94,32 @@ const Settings = () => {
           <h3>Privacy Controls</h3>
           <div className="toggle-group">
             <label className="toggle-container">
-              <input type="checkbox" className="toggle-input" />
+              <input
+                type="checkbox"
+                className="toggle-input"
+                checked={isPublic}
+                onChange={togglePublic}
+              />
               <span className="toggle-slider"></span>
               Public Profile
             </label>
             <label className="toggle-container">
-              <input type="checkbox" className="toggle-input" />
+              <input
+                type="checkbox"
+                className="toggle-input"
+                checked={shareScores}
+                onChange={toggleShareScores}
+              />
               <span className="toggle-slider"></span>
               Share Scores with Friends
             </label>
             <label className="toggle-container">
-              <input type="checkbox" className="toggle-input" />
+              <input
+                type="checkbox"
+                className="toggle-input"
+                checked={showOnline}
+                onChange={toggleShowOnline}
+              />
               <span className="toggle-slider"></span>
               Show Online Status
             </label>
@@ -147,7 +216,13 @@ const Settings = () => {
 
         {/* Save Changes */}
         <div className="save-changes">
-          <button className="save-btn">Save Changes</button>
+          <button
+            className="save-btn"
+            onClick={handleSaveChanges}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
         </div>
       </div>
     </div>

@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../axiosConfig.js";
 import { jwtDecode } from "jwt-decode";
 
 export default function UserList() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
@@ -29,16 +31,16 @@ export default function UserList() {
 
   const handleSendFriendRequest = async (friendId) => {
     try {
-      const token = localStorage.getItem("token");
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.id;
-
-      await axiosInstance.post("/api/friends/add", { userId, friendId });
+      await axiosInstance.post("/api/friends/add", { friendId });
       alert("Friend request sent!");
     } catch (err) {
       console.error("Error sending friend request:", err);
       alert("Failed to send friend request. Please try again.");
     }
+  };
+
+  const handleProfileClick = (userId) => {
+    navigate(`/user/${userId}`);
   };
 
   return (
@@ -86,7 +88,16 @@ export default function UserList() {
           {searchResults.length > 0 ? (
             searchResults.map((user) => (
               <div key={user.id} className="user-card">
-                <h3>{user.username}</h3>
+                <h3
+                  onClick={() => handleProfileClick(user.id)}
+                  style={{
+                    cursor: "pointer",
+                    color: "#000",
+                    textDecoration: "underline",
+                  }}
+                >
+                  {user.username}
+                </h3>
                 <p>
                   Member since: {new Date(user.createdAt).toLocaleDateString()}
                 </p>

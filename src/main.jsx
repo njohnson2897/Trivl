@@ -9,6 +9,7 @@ import Leaderboard from "./pages/Leaderboard.jsx";
 import Settings from "./pages/Settings.jsx";
 import Help from "./pages/Help.jsx";
 import Profile from "./pages/Profile.jsx";
+import UserProfile from "./pages/UserProfile.jsx";
 import FriendsList from "./pages/FriendsList.jsx";
 import QuizHistory from "./pages/QuizHistory.jsx";
 import Achievements from "./pages/Achievements.jsx";
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: "settings", element: <Settings /> },
       { path: "help", element: <Help /> },
       { path: "profile", element: <Profile /> },
+      { path: "user/:userId", element: <UserProfile /> },
       { path: "friends", element: <FriendsList /> },
       { path: "quiz-history", element: <QuizHistory /> },
       { path: "achievements", element: <Achievements /> },

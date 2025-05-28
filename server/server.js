@@ -28,14 +28,17 @@ app.use(routes);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve static files from the React app's build folder
-const buildPath = path.join(__dirname, "../dist"); // Adjust if your React build folder has a different name
-app.use(express.static(buildPath));
+// Only serve static files in production
+if (process.env.NODE_ENV === "production") {
+  // Serve static files from the React app's build folder
+  const buildPath = path.join(__dirname, "../dist");
+  app.use(express.static(buildPath));
 
-// Serve React frontend for any unknown route
-app.get("*", (req, res) => {
-  res.sendFile(path.join(buildPath, "index.html"));
-});
+  // Serve React frontend for any unknown route
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(buildPath, "index.html"));
+  });
+}
 
 sequelize.sync({ force: true }).then(() => {
   app.listen(PORT, () => console.log(`App listening on port ${PORT}!`));

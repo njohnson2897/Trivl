@@ -10,15 +10,10 @@ export default function Notifications() {
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
-      const token = localStorage.getItem("token");
       try {
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.id;
-
-        const response = await axiosInstance.get(
-          `/api/friends/pending/${userId}`
-        );
-        setPendingRequests(response.data.requests);
+        const response = await axiosInstance.get(`/api/friends/requests`);
+        console.log("Friend requests:", response.data.friendRequests); // Debug log
+        setPendingRequests(response.data.friendRequests);
         setError(null);
       } catch (err) {
         console.error("Error fetching pending requests:", err);
@@ -31,15 +26,12 @@ export default function Notifications() {
     fetchPendingRequests();
   }, []);
 
-  const handleAcceptRequest = async (friendId) => {
+  const handleAcceptRequest = async (requestId) => {
     try {
-      const token = localStorage.getItem("token");
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.id;
-
-      await axiosInstance.post("/api/friends/accept", { userId, friendId });
+      console.log("Accepting request:", requestId); // Debug log
+      await axiosInstance.post(`/api/friends/accept/${requestId}`);
       setPendingRequests(
-        pendingRequests.filter((request) => request.id !== friendId)
+        pendingRequests.filter((request) => request.id !== requestId)
       );
       alert("Friend request accepted!");
     } catch (err) {
@@ -48,15 +40,12 @@ export default function Notifications() {
     }
   };
 
-  const handleDeclineRequest = async (friendId) => {
+  const handleDeclineRequest = async (requestId) => {
     try {
-      const token = localStorage.getItem("token");
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.id;
-
-      await axiosInstance.post("/api/friends/decline", { userId, friendId });
+      console.log("Declining request:", requestId); // Debug log
+      await axiosInstance.post(`/api/friends/reject/${requestId}`);
       setPendingRequests(
-        pendingRequests.filter((request) => request.id !== friendId)
+        pendingRequests.filter((request) => request.id !== requestId)
       );
       alert("Friend request declined.");
     } catch (err) {
@@ -93,17 +82,17 @@ export default function Notifications() {
         {pendingRequests.length > 0 ? (
           <div className="notifications-list">
             {pendingRequests.map((request) => (
-              <div key={request.id} className="notification-card">
+              <div key={`request-${request.id}`} className="notification-card">
                 <h3>{request.user.username} sent you a friend request.</h3>
                 <div className="notification-actions">
                   <button
-                    onClick={() => handleAcceptRequest(request.user.id)}
+                    onClick={() => handleAcceptRequest(request.id)}
                     className="accept-btn"
                   >
                     Accept
                   </button>
                   <button
-                    onClick={() => handleDeclineRequest(request.user.id)}
+                    onClick={() => handleDeclineRequest(request.id)}
                     className="decline-btn"
                   >
                     Decline

@@ -1,29 +1,34 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/connection.js';
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/connection.js";
 
 class UserFriends extends Model {}
 
 UserFriends.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'user', // References the User table
-        key: 'id',
+        model: "user", // References the User table
+        key: "id",
       },
     },
     friendId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'user', // References the User table
-        key: 'id',
+        model: "user", // References the User table
+        key: "id",
       },
     },
     status: {
-      type: DataTypes.ENUM('pending', 'accepted', 'blocked'),
-      defaultValue: 'pending',
+      type: DataTypes.ENUM("pending", "accepted", "blocked"),
+      defaultValue: "pending",
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -35,7 +40,7 @@ UserFriends.init(
     timestamps: false,
     freezeTableName: true,
     underscored: true,
-    modelName: 'user_friends',
+    modelName: "user_friends",
   }
 );
 
