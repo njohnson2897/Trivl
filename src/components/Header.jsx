@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Navbar, Nav, Button, Offcanvas } from "react-bootstrap";
 import AuthModal from "./AuthModal.jsx";
 
@@ -7,6 +7,7 @@ function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [showOffcanvas, setShowOffcanvas] = useState(false);
+  const navigate = useNavigate();
 
   const handleShowAuthModal = () => setShowAuthModal(true);
   const handleCloseAuthModal = () => setShowAuthModal(false);
@@ -15,6 +16,7 @@ function Header() {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     setShowOffcanvas(false);
+    navigate("/");
   };
 
   const toggleOffcanvas = () => setShowOffcanvas(!showOffcanvas);
