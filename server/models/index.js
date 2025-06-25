@@ -12,6 +12,7 @@ Score.belongsTo(User, {
 User.hasMany(Score, {
   foreignKey: "user_id",
   onDelete: "CASCADE",
+  as: "Scores",
 });
 
 // Achievement relationships

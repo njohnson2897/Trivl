@@ -52,20 +52,11 @@ export default function Profile() {
     );
   }
 
-  // Calculate stats
-  const totalQuizzes = scores.length;
-  const averageScore =
-    scores.reduce((sum, score) => sum + score.quiz_score, 0) / totalQuizzes ||
-    0;
-  const bestScore = Math.max(...scores.map((score) => score.quiz_score), 0);
-  const averageDuration =
-    scores.reduce((sum, score) => sum + (score.time_taken || 0), 0) /
-      totalQuizzes || 0;
-
-  // Get the last 5 quizzes (sorted by most recent)
-  const recentScores = [...scores]
-    .sort((a, b) => new Date(b.date_taken) - new Date(a.date_taken))
-    .slice(0, 5);
+  // Calculate stats from the backend data
+  const totalQuizzes = userData?.totalQuizzes || 0;
+  const averageScore = userData?.averageScore || 0;
+  const bestScore = userData?.highestScore || 0;
+  const averageDuration = userData?.averageDuration || 0;
 
   const handleFriendClick = (friendId) => {
     navigate(`/user/${friendId}`);
@@ -100,7 +91,7 @@ export default function Profile() {
               <p>Total Quizzes</p>
             </div>
             <div className="stat-card">
-              <strong>{averageScore.toFixed(1)}</strong>
+              <strong>{averageScore}</strong>
               <p>Average Score</p>
             </div>
             <div className="stat-card">
@@ -117,23 +108,28 @@ export default function Profile() {
         <div className="profile-section">
           <h3>Recent Scores</h3>
           <div className="recent-scores">
-            {recentScores.length > 0 ? (
+            {scores.length > 0 ? (
               <ul>
-                {recentScores.map((score, index) => (
+                {scores.map((score, index) => (
                   <li key={index}>
                     <p>
                       <strong>Date:</strong>{" "}
-                      {new Date(score.date_taken).toLocaleDateString()}
+                      {new Date(score.date).toLocaleDateString()}
                     </p>
                     <p>
-                      <strong>Score:</strong> {score.quiz_score}/10
+                      <strong>Score:</strong> {score.score}/10
                     </p>
-                    <p>
-                      <strong>Difficulty:</strong> {score.quiz_difficulty}
-                    </p>
-                    <p>
-                      <strong>Duration:</strong> {formatTime(score.time_taken)}
-                    </p>
+                    {score.difficulty && (
+                      <p>
+                        <strong>Difficulty:</strong> {score.difficulty}
+                      </p>
+                    )}
+                    {score.time_taken && (
+                      <p>
+                        <strong>Duration:</strong>{" "}
+                        {formatTime(score.time_taken)}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -147,28 +143,21 @@ export default function Profile() {
           <h3>Recent Achievements</h3>
           <div className="recent-achievements">
             {achievements.length > 0 ? (
-              achievements
-                .filter((achievement) => achievement.achieved)
-                .sort(
-                  (a, b) =>
-                    new Date(b.date_achieved) - new Date(a.date_achieved)
-                )
-                .slice(0, 3)
-                .map((achievement) => (
-                  <div key={achievement.name} className="achievement-item">
-                    <div className="achievement-header">
-                      <div
-                        className={`achievement-icon icon-${achievement.icon}`}
-                      ></div>
-                      <h4>{achievement.name}</h4>
-                    </div>
-                    <p>{achievement.description}</p>
-                    <p className="achievement-date">
-                      Earned:{" "}
-                      {new Date(achievement.date_achieved).toLocaleDateString()}
-                    </p>
+              achievements.map((achievement) => (
+                <div key={achievement.name} className="achievement-item">
+                  <div className="achievement-header">
+                    <div
+                      className={`achievement-icon icon-${achievement.icon}`}
+                    ></div>
+                    <h4>{achievement.name}</h4>
                   </div>
-                ))
+                  <p>{achievement.description}</p>
+                  <p className="achievement-date">
+                    Earned:{" "}
+                    {new Date(achievement.date_achieved).toLocaleDateString()}
+                  </p>
+                </div>
+              ))
             ) : (
               <p>No achievements earned yet.</p>
             )}

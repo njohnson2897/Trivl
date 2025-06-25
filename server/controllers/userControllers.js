@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { User, Score, UserFriends } from "../models/index.js";
+import { User, Score, UserFriends, Achievement } from "../models/index.js";
 import { Op } from "sequelize";
 
 // Register controller - POST
@@ -83,6 +83,7 @@ export const getUsers = async (req, res) => {
       include: [
         {
           model: Score,
+          as: "Scores",
           attributes: ["quiz_score", "time_taken", "date_taken"],
         },
       ],
@@ -163,7 +164,13 @@ export const getUserProfile = async (req, res) => {
       include: [
         {
           model: Score,
-          attributes: ["quiz_score", "time_taken", "date_taken"],
+          as: "Scores",
+          attributes: [
+            "quiz_score",
+            "time_taken",
+            "date_taken",
+            "quiz_difficulty",
+          ],
         },
       ],
     });
@@ -171,6 +178,13 @@ export const getUserProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    // Debug: Try a direct query to see if there are any scores
+    const directScores = await Score.findAll({
+      where: { user_id: parseInt(id) },
+    });
+    console.log("Direct scores query result:", directScores);
+    console.log("Direct scores count:", directScores.length);
 
     // Get user's friends
     const friends = await UserFriends.findAll({
@@ -243,8 +257,24 @@ export const getUserProfile = async (req, res) => {
       });
     }
 
+    // Get user's achievements
+    const achievements = await Achievement.findAll({
+      where: {
+        user_id: parseInt(id),
+        date_achieved: {
+          [Op.ne]: null, // Only get achieved achievements
+        },
+      },
+      order: [["date_achieved", "DESC"]],
+      limit: 3, // Get the 3 most recent achievements
+    });
+
     // Calculate statistics
     const scores = user.Scores || [];
+    console.log("User scores from database:", scores);
+    console.log("User ID:", id);
+    console.log("Scores array length:", scores.length);
+
     const totalQuizzes = scores.length;
     const averageScore =
       totalQuizzes > 0
@@ -254,6 +284,11 @@ export const getUserProfile = async (req, res) => {
     const highestScore =
       totalQuizzes > 0
         ? Math.max(...scores.map((score) => score.quiz_score))
+        : 0;
+    const averageDuration =
+      totalQuizzes > 0
+        ? scores.reduce((acc, score) => acc + (score.time_taken || 0), 0) /
+          totalQuizzes
         : 0;
 
     // Return full profile data
@@ -267,11 +302,23 @@ export const getUserProfile = async (req, res) => {
       totalQuizzes,
       averageScore: Math.round(averageScore),
       highestScore,
-      recentScores: scores.slice(-5).map((score) => ({
-        score: score.quiz_score,
-        date: score.date_taken,
-      })),
+      averageDuration: Math.round(averageDuration),
+      recentScores: scores
+        .sort((a, b) => new Date(b.date_taken) - new Date(a.date_taken))
+        .slice(0, 5)
+        .map((score) => ({
+          score: score.quiz_score,
+          date: score.date_taken,
+          difficulty: score.quiz_difficulty,
+          time_taken: score.time_taken,
+        })),
       friends: friendsList,
+      achievements: achievements.map((achievement) => ({
+        name: achievement.name,
+        description: achievement.description,
+        icon: achievement.icon,
+        date_achieved: achievement.date_achieved,
+      })),
     });
   } catch (error) {
     console.error("Error fetching user profile:", error);
