@@ -14,6 +14,18 @@ const Settings = () => {
   const [showOnline, setShowOnline] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Store original values to detect changes
+  const [originalSettings, setOriginalSettings] = useState({
+    notifications: true,
+    emailNotifications: true,
+    soundEnabled: true,
+    difficulty: "medium",
+    language: "english",
+    isPublic: false,
+    shareScores: true,
+    showOnline: true,
+  });
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -29,6 +41,18 @@ const Settings = () => {
         setIsPublic(settings.isPublic ?? false);
         setShareScores(settings.shareScores ?? true);
         setShowOnline(settings.showOnline ?? true);
+
+        // Store original values
+        setOriginalSettings({
+          notifications: settings.notifications ?? true,
+          emailNotifications: settings.emailNotifications ?? true,
+          soundEnabled: settings.soundEnabled ?? true,
+          difficulty: settings.difficulty || "medium",
+          language: settings.language || "english",
+          isPublic: settings.isPublic ?? false,
+          shareScores: settings.shareScores ?? true,
+          showOnline: settings.showOnline ?? true,
+        });
       } catch (err) {
         console.error("Error fetching settings:", err);
       }
@@ -64,11 +88,25 @@ const Settings = () => {
   const toggleShareScores = () => setShareScores(!shareScores);
   const toggleShowOnline = () => setShowOnline(!showOnline);
 
+  // Check if there are any changes
+  const hasChanges = () => {
+    return (
+      notifications !== originalSettings.notifications ||
+      emailNotifications !== originalSettings.emailNotifications ||
+      soundEnabled !== originalSettings.soundEnabled ||
+      difficulty !== originalSettings.difficulty ||
+      language !== originalSettings.language ||
+      isPublic !== originalSettings.isPublic ||
+      shareScores !== originalSettings.shareScores ||
+      showOnline !== originalSettings.showOnline
+    );
+  };
+
   const handleSaveChanges = async () => {
     try {
       setIsSaving(true);
-      await axiosInstance.post("/api/users/settings", {
-        theme,
+      const response = await axiosInstance.post("/api/users/settings", {
+        theme: getCurrentThemeValue(), // Include theme but backend will ignore it
         notifications,
         emailNotifications,
         soundEnabled,
@@ -78,6 +116,19 @@ const Settings = () => {
         shareScores,
         showOnline,
       });
+
+      // Update original settings after successful save
+      setOriginalSettings({
+        notifications,
+        emailNotifications,
+        soundEnabled,
+        difficulty,
+        language,
+        isPublic,
+        shareScores,
+        showOnline,
+      });
+
       alert("Settings saved successfully!");
     } catch (err) {
       console.error("Error saving settings:", err);
@@ -253,16 +304,18 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Save Changes */}
-        <div className="save-changes">
-          <button
-            className="save-btn"
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
-        </div>
+        {/* Save Changes - Only show when there are changes */}
+        {hasChanges() && (
+          <div className="save-changes">
+            <button
+              className="save-btn"
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

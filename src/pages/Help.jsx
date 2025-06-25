@@ -90,7 +90,7 @@ export default function Help() {
           </div>
         </div>
 
-        <div className="instructions-section">
+        <div className="instructions-section" id="contact">
           <h2>Contact Our Team</h2>
           <div className="contact-methods">
             <div className="contact-card">

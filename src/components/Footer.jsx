@@ -2,56 +2,20 @@ import facebook from "../assets/fb.png";
 import twitter from "../assets/twitter.png";
 import instagram from "../assets/instagram.png";
 import github from "../assets/gh.png";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Footer() {
-  const [formData, setFormData] = useState({
-    email: "",
-    message: "",
-  });
-  const [status, setStatus] = useState({
-    type: "",
-    message: "",
-  });
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setStatus({ type: "loading", message: "Sending message..." });
-
-    try {
-      const response = await fetch("http://localhost:5000/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to send message");
+  const handleContactClick = () => {
+    navigate("/help");
+    // Scroll to contact section after navigation
+    setTimeout(() => {
+      const contactSection = document.getElementById("contact");
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: "smooth" });
       }
-
-      setStatus({
-        type: "success",
-        message: "Message sent successfully!",
-      });
-      setFormData({ email: "", message: "" });
-    } catch (error) {
-      console.error("Error sending message:", error);
-      setStatus({
-        type: "error",
-        message: error.message || "Failed to send message. Please try again.",
-      });
-    }
+    }, 100);
   };
 
   return (
@@ -59,7 +23,7 @@ export default function Footer() {
       <div className="footer-container">
         <div>
           <div className="row">
-            <div className="col-md-4 col-lg-3">
+            <div className="col-md-4">
               <div>
                 <div className="mb-2">
                   <span>Want to Spread the Word? Share On Social Media!</span>
@@ -93,7 +57,7 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="col-md-4 col-lg-3 offset-lg-2">
+            <div className="col-md-4">
               <h5>
                 <div>
                   <a
@@ -112,55 +76,17 @@ export default function Footer() {
               </h6>
             </div>
 
-            <div className="col-md-4 col-lg-3 offset-lg-1">
+            <div className="col-md-4">
               <div>
-                <h5>Contact Us</h5>
-                <div className="form" id="bottom">
-                  <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="form-control form-control-sm"
-                        placeholder="Email"
-                        required
-                      />
-                      <textarea
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        className="form-control form-control-sm"
-                        placeholder="Message"
-                        required
-                        rows="3"
-                      />
-                      {status.message && (
-                        <div
-                          className={`alert ${
-                            status.type === "success"
-                              ? "alert-success"
-                              : status.type === "error"
-                              ? "alert-danger"
-                              : "alert-info"
-                          } mt-2`}
-                        >
-                          {status.message}
-                        </div>
-                      )}
-                      <button
-                        type="submit"
-                        className="btn btn-dark btn-block btn-sm my-2"
-                        disabled={status.type === "loading"}
-                      >
-                        {status.type === "loading"
-                          ? "Sending..."
-                          : "Send Message"}
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                <p className="footer-text mb-3">
+                  Have questions or feedback? We'd love to hear from you!
+                </p>
+                <button
+                  onClick={handleContactClick}
+                  className="btn btn-outline-primary"
+                >
+                  Contact Us
+                </button>
               </div>
             </div>
           </div>

@@ -337,7 +337,6 @@ export const getUserSettings = async (req, res) => {
     }
 
     res.status(200).json({
-      theme: user.theme || "light",
       notifications: user.notifications ?? true,
       emailNotifications: user.emailNotifications ?? true,
       soundEnabled: user.soundEnabled ?? true,
@@ -358,7 +357,7 @@ export const updateUserSettings = async (req, res) => {
   try {
     const userId = req.user.id; // From auth middleware
     const {
-      theme,
+      theme, // Destructure but don't use (handled by frontend)
       notifications,
       emailNotifications,
       soundEnabled,
@@ -375,9 +374,8 @@ export const updateUserSettings = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Update user settings
+    // Update user settings (excluding theme which is managed by frontend)
     await user.update({
-      theme,
       notifications,
       emailNotifications,
       soundEnabled,
@@ -391,7 +389,6 @@ export const updateUserSettings = async (req, res) => {
     res.status(200).json({
       message: "Settings updated successfully",
       settings: {
-        theme,
         notifications,
         emailNotifications,
         soundEnabled,

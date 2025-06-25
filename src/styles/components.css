@@ -1443,6 +1443,61 @@
   color: var(--text-quaternary);
 }
 
+/* Dark mode specific styles for auth modal */
+[data-theme="dark"] .auth-modal .text-muted {
+  color: var(--text-quaternary) !important;
+}
+
+[data-theme="dark"] .auth-modal .form-control::placeholder {
+  color: var(--text-quaternary);
+}
+
+[data-theme="dark"] .auth-modal .valid-feedback {
+  color: var(--color-success);
+}
+
+[data-theme="dark"] .auth-modal .invalid-feedback {
+  color: var(--color-danger);
+}
+
+[data-theme="dark"] .auth-modal .btn-outline-dark {
+  color: var(--text-primary);
+  border-color: var(--border-secondary);
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .auth-modal .btn-outline-dark:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-quaternary);
+  border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .auth-modal .btn-outline-dark:active,
+[data-theme="dark"] .auth-modal .btn-outline-dark.active {
+  color: var(--text-inverse);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Fix submit button text contrast in dark mode */
+[data-theme="dark"] .auth-modal .btn-dark {
+  color: var(--text-inverse) !important;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .auth-modal .btn-dark:hover {
+  color: var(--text-inverse) !important;
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+[data-theme="dark"] .auth-modal .btn-dark:disabled {
+  color: var(--text-quaternary) !important;
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-secondary);
+}
+
 .auth-form .form-label {
   font-weight: 500;
   color: var(--text-secondary);
@@ -1508,16 +1563,39 @@ footer {
   border-top: 1px solid var(--border-primary);
   background-color: var(--bg-secondary);
   margin-top: auto;
+  padding: var(--spacing-xl) 0;
 }
 
 .footer-container {
-  width: 80%;
-  margin: var(--spacing-xxl) auto;
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-heavy);
-  text-align: center;
-  background-color: var(--bg-card);
-  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+/* Footer Headings */
+footer h5, footer h6 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+}
+
+/* Footer Contact Button */
+footer .btn-outline-primary {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background-color: transparent;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+}
+
+footer .btn-outline-primary:hover {
+  color: var(--text-inverse);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Footer Links */
@@ -1541,51 +1619,108 @@ footer .text-dark:hover {
   color: var(--text-primary) !important;
 }
 
-/* Footer Headings */
-footer h5, footer h6 {
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
-}
-
-/* Footer Form */
-footer .form-control {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-secondary);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-}
-
-footer .form-control:focus {
-  background-color: var(--bg-primary);
-  border-color: var(--color-accent);
-  color: var(--text-primary);
-  box-shadow: 0 0 0 0.2rem rgba(100, 108, 255, 0.1);
-}
-
-footer .form-control::placeholder {
-  color: var(--text-muted);
-}
-
-/* Footer Buttons */
-footer .btn-dark {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--text-inverse);
-}
-
-footer .btn-dark:hover {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-  color: var(--text-inverse);
-}
-
 /* Footer Social Icons */
 footer img {
   transition: transform var(--transition-fast);
+  border-radius: var(--radius-sm);
 }
 
 footer img:hover {
   transform: scale(1.1);
+}
+
+/* Make social media icons white in dark mode */
+[data-theme="dark"] footer img[src*="fb.png"],
+[data-theme="dark"] footer img[src*="twitter.png"],
+[data-theme="dark"] footer img[src*="instagram.png"] {
+  filter: brightness(0) invert(1);
+}
+
+/* Keep GitHub icon as is since it's already white */
+[data-theme="dark"] footer img[src*="gh.png"] {
+  filter: none;
+}
+
+/* Footer sections */
+footer .row {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+}
+
+footer .col-md-4 {
+  margin-bottom: var(--spacing-lg);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Social media section */
+footer .mb-2 {
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: var(--spacing-md) !important;
+  font-size: var(--font-size-sm);
+}
+
+/* Social icons container */
+footer .col-md-4:first-child {
+  text-align: left;
+}
+
+/* GitHub section */
+footer .text-dark img {
+  margin-right: var(--spacing-sm);
+  vertical-align: middle;
+}
+
+footer .col-md-4:nth-child(2) {
+  text-align: center;
+}
+
+/* Contact section */
+footer .text-muted {
+  color: var(--text-quaternary) !important;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+footer .footer-text {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+footer .col-md-4:last-child {
+  text-align: right;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  footer {
+    padding: var(--spacing-lg) 0;
+  }
+  
+  .footer-container {
+    width: 95%;
+    padding: 0 var(--spacing-md);
+  }
+  
+  footer .row {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+  
+  footer .col-md-4 {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  footer .col-md-4:first-child,
+  footer .col-md-4:nth-child(2),
+  footer .col-md-4:last-child {
+    text-align: center;
+  }
 }
 
 /* ========================================
