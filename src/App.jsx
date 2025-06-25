@@ -1,30 +1,38 @@
-import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom'
+import { useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import { isTokenExpired, removeToken } from "./utils/authUtils";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
-import Header from './components/Header'
-import Footer from './components/Footer'
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css'
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles/theme.css";
+import "./styles/components.css";
 
 function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token && isTokenExpired(token)) {
-      console.log("Token is expired")
+      console.log("Token is expired");
       removeToken(); // Clear expired token
       window.location.href = "/";
     }
   }, []);
 
   return (
-    <>
-    <Header />
-    <Outlet />
-    <Footer />
-    </>
-  )
+    <ThemeProvider>
+      <div
+        style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+      >
+        <Header />
+        <main style={{ flex: 1 }}>
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;

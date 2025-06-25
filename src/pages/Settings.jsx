@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../axiosConfig.js";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Settings = () => {
-  const [theme, setTheme] = useState("light");
+  const { theme, setThemeMode, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -19,7 +20,7 @@ const Settings = () => {
         const response = await axiosInstance.get("/api/users/settings");
         const settings = response.data;
 
-        setTheme(settings.theme || "light");
+        // Don't override theme from context
         setNotifications(settings.notifications ?? true);
         setEmailNotifications(settings.emailNotifications ?? true);
         setSoundEnabled(settings.soundEnabled ?? true);
@@ -36,7 +37,25 @@ const Settings = () => {
     fetchSettings();
   }, []);
 
-  const handleThemeChange = (e) => setTheme(e.target.value);
+  const handleThemeChange = (e) => {
+    const newTheme = e.target.value;
+    if (newTheme === "system") {
+      // Remove theme from localStorage to use system preference
+      localStorage.removeItem("theme");
+      // Check system preference
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        setThemeMode("dark");
+      } else {
+        setThemeMode("light");
+      }
+    } else {
+      setThemeMode(newTheme);
+    }
+  };
+
   const toggleNotifications = () => setNotifications(!notifications);
   const toggleEmailNotifications = () =>
     setEmailNotifications(!emailNotifications);
@@ -68,6 +87,15 @@ const Settings = () => {
     }
   };
 
+  // Determine the current theme value for the select
+  const getCurrentThemeValue = () => {
+    const savedTheme = localStorage.getItem("theme");
+    if (!savedTheme) {
+      return "system";
+    }
+    return savedTheme;
+  };
+
   return (
     <div className="content-container">
       <div className="quiz-content">
@@ -86,6 +114,36 @@ const Settings = () => {
             <button className="settings-btn danger-btn">
               <span>🗑️</span> Delete Account
             </button>
+          </div>
+        </div>
+
+        {/* Theme Section */}
+        <div className="profile-section">
+          <h3>Appearance</h3>
+          <div className="settings-grid">
+            <div className="setting-item">
+              <label>Theme:</label>
+              <select
+                value={getCurrentThemeValue()}
+                onChange={handleThemeChange}
+                className="settings-dropdown"
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="system">System Default</option>
+              </select>
+            </div>
+            <div className="setting-item">
+              <label>Quick Toggle:</label>
+              <button
+                onClick={toggleTheme}
+                className="settings-btn"
+                style={{ width: "100%", marginTop: "0.5rem" }}
+              >
+                <span>{theme === "dark" ? "☀️" : "🌙"}</span>
+                Switch to {theme === "dark" ? "Light" : "Dark"} Mode
+              </button>
+            </div>
           </div>
         </div>
 
@@ -192,25 +250,6 @@ const Settings = () => {
                 <option value="german">German</option>
               </select>
             </div>
-          </div>
-        </div>
-
-        {/* Theme Section */}
-        <div className="profile-section">
-          <h3>Appearance</h3>
-          <div className="theme-select">
-            <label>
-              Theme:
-              <select
-                value={theme}
-                onChange={handleThemeChange}
-                className="settings-dropdown"
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System Default</option>
-              </select>
-            </label>
           </div>
         </div>
 
