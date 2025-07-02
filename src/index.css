@@ -12,6 +12,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
 }
 
 /* Remove the old color scheme styles that conflict with our theme system */
@@ -23,6 +24,32 @@ html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth; /* Smooth scrolling for better UX */
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 767px) {
+  body {
+    font-size: 16px; /* Prevent zoom on iOS when focusing inputs */
+  }
+  
+  /* Improve touch scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent text selection on interactive elements */
+  button, .btn, .nav-link {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Improve tap highlights */
+  button, .btn, .nav-link, a {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
 }
 
 /* Remove the old prefers-color-scheme media query as it's now handled in theme.css */
