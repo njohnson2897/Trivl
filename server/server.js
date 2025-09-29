@@ -15,7 +15,11 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3000"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:3000",
+    ],
     credentials: true,
   })
 );
@@ -40,6 +44,27 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-sequelize.sync({ force: true }).then(() => {
-  app.listen(PORT, () => console.log(`App listening on port ${PORT}!`));
-});
+// Run migrations and start server
+const startServer = async () => {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    console.log("Database connection established successfully.");
+
+    // Sync models (this will create tables if they don't exist)
+    // Note: In production, you should run migrations separately
+    await sequelize.sync({ alter: true });
+    console.log("Database synchronized successfully.");
+
+    // Start the server
+    app.listen(PORT, () => {
+      console.log(`App listening on port ${PORT}!`);
+      console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+    });
+  } catch (error) {
+    console.error("Unable to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
