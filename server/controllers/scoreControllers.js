@@ -29,6 +29,11 @@ export const logScore = async (req, res) => {
       time_taken,
     });
 
+    // Update user's lastQuizDate to current time
+    await user.update({
+      lastQuizDate: new Date(),
+    });
+
     // Check for new achievements
     await checkAchievements(userId);
 

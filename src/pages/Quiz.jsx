@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from "../../axiosConfig.js";
@@ -13,87 +13,219 @@ export default function Quiz() {
   const [timer, setTimer] = useState("");
   const [quizStatus, setQuizStatus] = useState("not_started");
   const [shuffledOptions, setShuffledOptions] = useState([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const cooldownIntervalRef = useRef(null);
   const navigate = useNavigate();
   const bellSound = new Audio(bell);
 
-  // Comprehensive status check on mount
+  // Clear quiz state when component mounts or when user logs in
   useEffect(() => {
-    // Inside the checkQuizState function in useEffect
-    const checkQuizState = () => {
-      const lastUpdateTime = localStorage.getItem("lastUpdateTime");
-      const currentTime = new Date().getTime();
+    const clearCompletedQuizState = () => {
+      const token = localStorage.getItem("token");
 
-      // Check if quiz is in cooldown
-      if (lastUpdateTime) {
-        if (currentTime - parseInt(lastUpdateTime) >= oneDayCountdown) {
-          // Clear all quiz-related data from localStorage
-          for (let i = 0; i < 10; i++) {
-            // Assuming max 10 questions
-            localStorage.removeItem(`question${i}`);
-            localStorage.removeItem(`userAnswer${i}`);
-          }
-          localStorage.removeItem("lastUpdateTime");
-          localStorage.removeItem("quizStatus");
-          localStorage.removeItem("triviaQuestions");
-          localStorage.removeItem("currentQuestionIndex");
-          setQuizStatus("not_started");
-          return;
-        } else if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
-          setQuizStatus("cooldown");
-          startCooldownTimer();
-          return;
+      // Clear ALL quiz data when a user logs in/out to prevent interference
+      const storedQuizStatus = localStorage.getItem("quizStatus");
+      if (
+        storedQuizStatus === "completed" ||
+        storedQuizStatus === "in_progress"
+      ) {
+        localStorage.removeItem("quizStatus");
+        localStorage.removeItem("quizTimeTaken");
+        localStorage.removeItem("triviaQuestions");
+        localStorage.removeItem("currentQuestionIndex");
+        localStorage.removeItem("quizStartTime");
+        // Clear question answers
+        for (let i = 0; i < 10; i++) {
+          localStorage.removeItem(`question${i}`);
+          localStorage.removeItem(`userAnswer${i}`);
         }
       }
 
-      // Rest of the existing code...
-      const storedQuestions = localStorage.getItem("triviaQuestions");
-      const storedQuizStatus = localStorage.getItem("quizStatus");
+      // Always clear timer and reset quiz status when user state changes
+      setTimer("");
+      setQuizStatus("not_started");
 
-      if (storedQuizStatus === "in_progress" && storedQuestions) {
-        const parsedQuestions = JSON.parse(storedQuestions);
-        const savedQuestionIndex = parseInt(
-          localStorage.getItem("currentQuestionIndex") || 0
-        );
+      // Clear any running cooldown timer
+      if (cooldownIntervalRef.current) {
+        clearInterval(cooldownIntervalRef.current);
+        cooldownIntervalRef.current = null;
+      }
 
-        setQuestions(parsedQuestions);
-        setCurrentQuestionIndex(savedQuestionIndex);
-        setQuizStatus("in_progress");
-        shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
-      } else if (storedQuizStatus === "completed") {
-        setQuizStatus("completed");
-        navigate("/results");
+      // Trigger a refresh of the quiz state
+      setRefreshTrigger((prev) => prev + 1);
+    };
+
+    // Clear on mount
+    clearCompletedQuizState();
+
+    // Listen for login/logout events
+    window.addEventListener("userLogin", clearCompletedQuizState);
+    window.addEventListener("userLogout", clearCompletedQuizState);
+
+    return () => {
+      window.removeEventListener("userLogin", clearCompletedQuizState);
+      window.removeEventListener("userLogout", clearCompletedQuizState);
+    };
+  }, []); // Run on every mount
+
+  // Comprehensive status check on mount
+  useEffect(() => {
+    const checkQuizState = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        // If no token, check localStorage for quiz state and cooldown
+        const lastUpdateTime = localStorage.getItem("lastUpdateTime");
+        const currentTime = new Date().getTime();
+
+        // Check if quiz is in cooldown (for non-logged in users)
+        if (lastUpdateTime) {
+          if (currentTime - parseInt(lastUpdateTime) >= oneDayCountdown) {
+            // Clear all quiz-related data from localStorage
+            for (let i = 0; i < 10; i++) {
+              localStorage.removeItem(`question${i}`);
+              localStorage.removeItem(`userAnswer${i}`);
+            }
+            localStorage.removeItem("lastUpdateTime");
+            localStorage.removeItem("quizStatus");
+            localStorage.removeItem("triviaQuestions");
+            localStorage.removeItem("currentQuestionIndex");
+            setQuizStatus("not_started");
+            return;
+          } else if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
+            setQuizStatus("cooldown");
+            startCooldownTimer();
+            return;
+          }
+        }
+
+        // Check for in-progress quiz
+        const storedQuestions = localStorage.getItem("triviaQuestions");
+        const storedQuizStatus = localStorage.getItem("quizStatus");
+
+        if (storedQuizStatus === "in_progress" && storedQuestions) {
+          const parsedQuestions = JSON.parse(storedQuestions);
+          const savedQuestionIndex = parseInt(
+            localStorage.getItem("currentQuestionIndex") || 0
+          );
+
+          setQuestions(parsedQuestions);
+          setCurrentQuestionIndex(savedQuestionIndex);
+          setQuizStatus("in_progress");
+          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+        } else if (storedQuizStatus === "completed") {
+          setQuizStatus("completed");
+          navigate("/results");
+        } else {
+          setQuizStatus("not_started");
+        }
+        return;
+      }
+
+      try {
+        // Check cooldown status from backend
+        const response = await axiosInstance.get("/api/users/cooldown");
+        const cooldownData = response.data;
+
+        if (!cooldownData.canTakeQuiz) {
+          setQuizStatus("cooldown");
+          startCooldownTimer(cooldownData.timeRemaining);
+          return;
+        }
+
+        // Check for in-progress quiz in localStorage (only for in_progress, not completed)
+        const storedQuestions = localStorage.getItem("triviaQuestions");
+        const storedQuizStatus = localStorage.getItem("quizStatus");
+
+        if (storedQuizStatus === "in_progress" && storedQuestions) {
+          const parsedQuestions = JSON.parse(storedQuestions);
+          const savedQuestionIndex = parseInt(
+            localStorage.getItem("currentQuestionIndex") || 0
+          );
+
+          setQuestions(parsedQuestions);
+          setCurrentQuestionIndex(savedQuestionIndex);
+          setQuizStatus("in_progress");
+          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+        } else {
+          // If logged in, don't check for completed status in localStorage
+          // The cooldown check above already handles this via the backend
+          setQuizStatus("not_started");
+        }
+      } catch (error) {
+        console.error("Error checking cooldown status:", error);
+        // Fallback to localStorage check (only for in_progress, not completed)
+        const storedQuestions = localStorage.getItem("triviaQuestions");
+        const storedQuizStatus = localStorage.getItem("quizStatus");
+
+        if (storedQuizStatus === "in_progress" && storedQuestions) {
+          const parsedQuestions = JSON.parse(storedQuestions);
+          const savedQuestionIndex = parseInt(
+            localStorage.getItem("currentQuestionIndex") || 0
+          );
+
+          setQuestions(parsedQuestions);
+          setCurrentQuestionIndex(savedQuestionIndex);
+          setQuizStatus("in_progress");
+          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+        } else {
+          // If logged in, don't check for completed status in localStorage
+          setQuizStatus("not_started");
+        }
       }
     };
 
     checkQuizState();
-  }, [navigate]);
+  }, [navigate, refreshTrigger]);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownIntervalRef.current) {
+        clearInterval(cooldownIntervalRef.current);
+        cooldownIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   // Start cooldown timer
-  const startCooldownTimer = () => {
-    const interval = setInterval(() => {
-      const lastUpdateTime = parseInt(
-        localStorage.getItem("lastUpdateTime") || "0"
-      );
-      const currentTime = new Date().getTime();
-      const remainingTime = oneDayCountdown - (currentTime - lastUpdateTime);
+  const startCooldownTimer = (initialTimeRemaining = null) => {
+    // Clear any existing timer first
+    if (cooldownIntervalRef.current) {
+      clearInterval(cooldownIntervalRef.current);
+      cooldownIntervalRef.current = null;
+    }
 
-      if (remainingTime <= 0) {
-        clearInterval(interval);
+    let timeRemaining = initialTimeRemaining;
+
+    cooldownIntervalRef.current = setInterval(() => {
+      if (timeRemaining === null) {
+        // Fallback to localStorage calculation
+        const lastUpdateTime = parseInt(
+          localStorage.getItem("lastUpdateTime") || "0"
+        );
+        const currentTime = new Date().getTime();
+        timeRemaining = oneDayCountdown - (currentTime - lastUpdateTime);
+      } else {
+        // Use provided time and countdown
+        timeRemaining -= 1000;
+      }
+
+      if (timeRemaining <= 0) {
+        clearInterval(cooldownIntervalRef.current);
+        cooldownIntervalRef.current = null;
         localStorage.removeItem("lastUpdateTime");
         localStorage.removeItem("quizStatus");
         setQuizStatus("not_started");
         setTimer("");
       } else {
-        const hours = Math.floor((remainingTime / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((remainingTime / (1000 * 60)) % 60);
-        const seconds = Math.floor((remainingTime / 1000) % 60);
+        const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+        const seconds = Math.floor((timeRemaining / 1000) % 60);
 
         setTimer(`${hours}h ${minutes}m ${seconds}s`);
       }
     }, 1000);
-
-    // Clean up interval on component unmount
-    return () => clearInterval(interval);
   };
 
   // Start the quiz
@@ -161,7 +293,6 @@ export default function Quiz() {
       ? Math.floor((new Date().getTime() - parseInt(quizStartTime)) / 1000) // Time in seconds
       : null;
     localStorage.setItem("quizTimeTaken", timeTaken.toString());
-    localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
     localStorage.setItem("quizStatus", "completed");
     localStorage.removeItem("currentQuestionIndex");
     setQuizStatus("completed");
@@ -206,6 +337,9 @@ export default function Quiz() {
       } catch (error) {
         console.error("Error logging score:", error);
       }
+    } else {
+      // For non-logged in users, set lastUpdateTime for cooldown
+      localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
     }
 
     navigate("/results");

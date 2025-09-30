@@ -9,6 +9,7 @@ import {
   getUserSettings,
   updateUserSettings,
   getUserProfile,
+  getCooldownStatus,
 } from "../../controllers/userControllers.js";
 import { authenticateToken } from "../../middleware/auth.js";
 
@@ -25,6 +26,8 @@ router.get("/search", authenticateToken, searchUsers);
 // Settings routes must come before :id routes
 router.get("/settings", authenticateToken, getUserSettings);
 router.post("/settings", authenticateToken, updateUserSettings);
+// Cooldown status route
+router.get("/cooldown", authenticateToken, getCooldownStatus);
 // Profile and user routes
 router.get("/:id/profile", authenticateToken, getUserProfile);
 router.get("/:id", authenticateToken, getUserById);

@@ -1,30 +1,82 @@
 import { useEffect, useState } from "react";
 import { formatTime } from "../utils/helpers";
+import { Link } from "react-router-dom";
 
 export default function Results() {
   const [score, setScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [timeTaken, setTimeTaken] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasQuizData, setHasQuizData] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+
     const loadedQuestions =
       JSON.parse(localStorage.getItem("triviaQuestions")) || [];
-    setTotalQuestions(loadedQuestions.length);
-    setQuestions(loadedQuestions);
 
-    const correctCount = loadedQuestions.reduce((count, _, index) => {
-      return localStorage.getItem(`question${index}`) === "correct"
-        ? count + 1
-        : count;
-    }, 0);
-    setScore(correctCount);
+    if (loadedQuestions.length > 0) {
+      setTotalQuestions(loadedQuestions.length);
+      setQuestions(loadedQuestions);
+      setHasQuizData(true);
 
-    const storedTime = localStorage.getItem("quizTimeTaken");
-    if (storedTime) {
-      setTimeTaken(parseInt(storedTime));
+      const correctCount = loadedQuestions.reduce((count, _, index) => {
+        return localStorage.getItem(`question${index}`) === "correct"
+          ? count + 1
+          : count;
+      }, 0);
+      setScore(correctCount);
+
+      const storedTime = localStorage.getItem("quizTimeTaken");
+      if (storedTime) {
+        setTimeTaken(parseInt(storedTime));
+      }
+    } else {
+      setHasQuizData(false);
     }
   }, []);
+
+  // Show different content based on user state
+  if (isLoggedIn && !hasQuizData) {
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <h1>No Recent Quiz Results</h1>
+          <p>You don't have any recent quiz results to display.</p>
+          <p>
+            This might be because you logged in during another user's quiz
+            session.
+          </p>
+          <div className="mt-4">
+            <Link to="/quiz-history" className="btn btn-primary me-3">
+              View Quiz History
+            </Link>
+            <Link to="/" className="btn btn-outline-primary">
+              Take New Quiz
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasQuizData) {
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <h1>No Quiz Results</h1>
+          <p>You don't have any quiz results to display.</p>
+          <div className="mt-4">
+            <Link to="/" className="btn btn-primary">
+              Take a Quiz
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="content-container">

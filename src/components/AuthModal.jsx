@@ -89,6 +89,9 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
         setEmail("");
       }
 
+      // Dispatch custom event to notify other components of login
+      window.dispatchEvent(new CustomEvent("userLogin"));
+
       setError(null);
       handleClose();
     } catch (err) {

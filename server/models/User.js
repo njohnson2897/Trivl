@@ -82,6 +82,11 @@ User.init(
         isIn: [["english", "spanish", "french", "german"]],
       },
     },
+    lastQuizDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,

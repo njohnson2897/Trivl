@@ -15,9 +15,25 @@ function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    // Clear all quiz-related data from localStorage
+    for (let i = 0; i < 10; i++) {
+      localStorage.removeItem(`question${i}`);
+      localStorage.removeItem(`userAnswer${i}`);
+    }
+    localStorage.removeItem("lastUpdateTime");
+    localStorage.removeItem("quizStatus");
+    localStorage.removeItem("triviaQuestions");
+    localStorage.removeItem("currentQuestionIndex");
+    localStorage.removeItem("quizStartTime");
+    localStorage.removeItem("quizTimeTaken");
+
     setIsLoggedIn(false);
     setShowOffcanvas(false);
     setShowMobileMenu(false);
+
+    // Dispatch custom event to notify other components of logout
+    window.dispatchEvent(new CustomEvent("userLogout"));
+
     navigate("/");
   };
 

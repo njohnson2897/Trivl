@@ -404,3 +404,41 @@ export const updateUserSettings = async (req, res) => {
     res.status(500).json({ error: "Error updating user settings" });
   }
 };
+
+// GET user cooldown status
+export const getCooldownStatus = async (req, res) => {
+  try {
+    const userId = req.user.id; // From auth middleware
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const currentTime = new Date().getTime();
+    const lastQuizDate = user.lastQuizDate
+      ? new Date(user.lastQuizDate).getTime()
+      : null;
+
+    let cooldownStatus = {
+      canTakeQuiz: true,
+      timeRemaining: 0,
+      lastQuizDate: lastQuizDate,
+    };
+
+    if (lastQuizDate) {
+      const timeSinceLastQuiz = currentTime - lastQuizDate;
+
+      if (timeSinceLastQuiz < oneDayInMs) {
+        cooldownStatus.canTakeQuiz = false;
+        cooldownStatus.timeRemaining = oneDayInMs - timeSinceLastQuiz;
+      }
+    }
+
+    res.status(200).json(cooldownStatus);
+  } catch (error) {
+    console.error("Error checking cooldown status:", error);
+    res.status(500).json({ error: "Error checking cooldown status" });
+  }
+};
