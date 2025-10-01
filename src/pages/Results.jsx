@@ -7,6 +7,7 @@ export default function Results() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [timeTaken, setTimeTaken] = useState(0);
+  const [quizMode, setQuizMode] = useState("daily");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasQuizData, setHasQuizData] = useState(false);
 
@@ -32,6 +33,11 @@ export default function Results() {
       const storedTime = localStorage.getItem("quizTimeTaken");
       if (storedTime) {
         setTimeTaken(parseInt(storedTime));
+      }
+
+      const storedQuizMode = localStorage.getItem("quizMode");
+      if (storedQuizMode) {
+        setQuizMode(storedQuizMode);
       }
     } else {
       setHasQuizData(false);
@@ -83,6 +89,9 @@ export default function Results() {
       <div className="quiz-content">
         <h1>Your Results</h1>
         <div className="results-summary">
+          <p className="quiz-mode-indicator">
+            {quizMode === "blitz" ? "⚡ Blitz Mode" : "📅 Daily Quiz"}
+          </p>
           <p>{`Score: ${score}/${totalQuestions}`}</p>
           {timeTaken > 0 && <p>{`Time: ${formatTime(timeTaken)}`}</p>}
         </div>

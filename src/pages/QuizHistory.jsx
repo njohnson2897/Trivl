@@ -39,6 +39,9 @@ const QuizHistory = () => {
 
   const filteredHistory = quizHistory.filter((quiz) => {
     if (filter === "all") return true;
+    if (filter === "daily" || filter === "blitz") {
+      return quiz.quiz_mode === filter;
+    }
     return quiz.quiz_difficulty.toLowerCase() === filter.toLowerCase();
   });
 
@@ -83,10 +86,12 @@ const QuizHistory = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="settings-dropdown"
           >
-            <option value="all">All Difficulties</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
+            <option value="all">All Quizzes</option>
+            <option value="daily">Daily Quiz</option>
+            <option value="blitz">Blitz Mode</option>
+            <option value="easy">Easy Difficulty</option>
+            <option value="medium">Medium Difficulty</option>
+            <option value="hard">Hard Difficulty</option>
           </select>
 
           <select
@@ -106,11 +111,16 @@ const QuizHistory = () => {
                 <h3>
                   Quiz on {new Date(quiz.date_taken).toLocaleDateString()}
                 </h3>
-                <span
-                  className={`difficulty-badge ${quiz.quiz_difficulty.toLowerCase()}`}
-                >
-                  {quiz.quiz_difficulty}
-                </span>
+                <div className="quiz-badges">
+                  <span className={`quiz-mode-badge ${quiz.quiz_mode}`}>
+                    {quiz.quiz_mode === "blitz" ? "⚡ Blitz" : "📅 Daily"}
+                  </span>
+                  <span
+                    className={`difficulty-badge ${quiz.quiz_difficulty.toLowerCase()}`}
+                  >
+                    {quiz.quiz_difficulty}
+                  </span>
+                </div>
               </div>
 
               <div className="quiz-history-details">

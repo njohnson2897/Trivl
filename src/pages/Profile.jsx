@@ -124,6 +124,16 @@ export default function Profile() {
                         <strong>Difficulty:</strong> {score.difficulty}
                       </p>
                     )}
+                    {score.quiz_mode && (
+                      <p>
+                        <strong>Mode:</strong>{" "}
+                        <span className={`quiz-mode-badge ${score.quiz_mode}`}>
+                          {score.quiz_mode === "blitz"
+                            ? "⚡ Blitz"
+                            : "📅 Daily"}
+                        </span>
+                      </p>
+                    )}
                     {score.time_taken && (
                       <p>
                         <strong>Duration:</strong>{" "}
