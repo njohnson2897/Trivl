@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Navbar, Nav, Button, Offcanvas } from "react-bootstrap";
+import { Navbar, Nav, Button, Offcanvas, Dropdown } from "react-bootstrap";
+import { jwtDecode } from "jwt-decode";
 import AuthModal from "./AuthModal.jsx";
 
 function Header() {
@@ -8,7 +9,45 @@ function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [username, setUsername] = useState("");
+  const [pendingNotifications, setPendingNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
   const navigate = useNavigate();
+
+  // Get username from token and fetch notifications
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && isLoggedIn) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setUsername(decodedToken.username || "");
+
+        // Fetch pending notifications
+        const fetchNotifications = async () => {
+          try {
+            const response = await fetch("/api/friends/requests", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            if (response.ok) {
+              const data = await response.json();
+              setPendingNotifications(data.friendRequests || []);
+            }
+          } catch (error) {
+            console.error("Error fetching notifications:", error);
+          }
+        };
+        fetchNotifications();
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    } else {
+      setUsername("");
+      setPendingNotifications([]);
+    }
+  }, [isLoggedIn]);
 
   const handleShowAuthModal = () => setShowAuthModal(true);
   const handleCloseAuthModal = () => setShowAuthModal(false);
@@ -28,8 +67,12 @@ function Header() {
     localStorage.removeItem("quizTimeTaken");
 
     setIsLoggedIn(false);
+    setUsername("");
+    setPendingNotifications([]);
     setShowOffcanvas(false);
     setShowMobileMenu(false);
+    setShowNotifications(false);
+    setShowMessages(false);
 
     // Dispatch custom event to notify other components of logout
     window.dispatchEvent(new CustomEvent("userLogout"));
@@ -57,121 +100,200 @@ function Header() {
         </Link>
         {/* Desktop/Tablet Navigation - Offcanvas */}
         <div className="desktop-nav">
-          <Navbar expand={false}>
-            <Navbar.Toggle
-              aria-controls="offcanvasNavbar"
-              onClick={toggleOffcanvas}
-            />
-            <Navbar.Offcanvas
-              id="offcanvasNavbar"
-              aria-labelledby="offcanvasNavbarLabel"
-              placement="end"
-              show={showOffcanvas}
-              onHide={toggleOffcanvas}
-            >
-              <Offcanvas.Header closeButton>
-                <Offcanvas.Title id="offcanvasNavbarLabel">
-                  Menu
-                </Offcanvas.Title>
-              </Offcanvas.Header>
-              <Offcanvas.Body>
-                <Nav className="flex-column">
-                  <Link
-                    to="/leaderboard"
-                    className="nav-link mb-2"
-                    onClick={() => setShowOffcanvas(false)}
+          <div className="nav-buttons">
+            {isLoggedIn && (
+              <>
+                {/* Notifications Button */}
+                <Dropdown
+                  show={showNotifications}
+                  onToggle={setShowNotifications}
+                >
+                  <Dropdown.Toggle
+                    as={Button}
+                    variant="outline-secondary"
+                    size="sm"
+                    className="nav-icon-button"
                   >
-                    Leaderboard
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="nav-link mb-2"
-                    onClick={() => setShowOffcanvas(false)}
+                    <span className="notification-icon">🔔</span>
+                    {pendingNotifications.length > 0 && (
+                      <span className="notification-badge">
+                        {pendingNotifications.length}
+                      </span>
+                    )}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="notification-dropdown">
+                    <Dropdown.Header>Notifications</Dropdown.Header>
+                    {pendingNotifications.length > 0 ? (
+                      pendingNotifications.map((request) => (
+                        <Dropdown.Item
+                          key={request.id}
+                          className="notification-item"
+                          as={Link}
+                          to="/notifications"
+                          onClick={() => setShowNotifications(false)}
+                        >
+                          <div className="notification-content">
+                            <strong>{request.user.username}</strong> sent you a
+                            friend request
+                          </div>
+                        </Dropdown.Item>
+                      ))
+                    ) : (
+                      <Dropdown.Item disabled className="notification-empty">
+                        No new notifications
+                      </Dropdown.Item>
+                    )}
+                    <Dropdown.Divider />
+                    <Dropdown.Item
+                      as={Link}
+                      to="/notifications"
+                      onClick={() => setShowNotifications(false)}
+                    >
+                      View All Notifications
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+
+                {/* Messages Button */}
+                <Dropdown show={showMessages} onToggle={setShowMessages}>
+                  <Dropdown.Toggle
+                    as={Button}
+                    variant="outline-secondary"
+                    size="sm"
+                    className="nav-icon-button"
                   >
-                    Settings
-                  </Link>
-                  <Link
-                    to="/help"
-                    className="nav-link mb-2"
-                    onClick={() => setShowOffcanvas(false)}
-                  >
-                    Help/Support
-                  </Link>
-                  <Link
-                    to="/instructions"
-                    className="nav-link mb-2"
-                    onClick={() => setShowOffcanvas(false)}
-                  >
-                    How to Play
-                  </Link>
-                  {isLoggedIn ? (
-                    <>
-                      <Link
-                        to="/profile"
-                        className="nav-link mb-2"
-                        onClick={() => setShowOffcanvas(false)}
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        to="/friends"
-                        className="nav-link mb-2"
-                        onClick={() => setShowOffcanvas(false)}
-                      >
-                        Friend List
-                      </Link>
-                      <Link
-                        to="/quiz-history"
-                        className="nav-link mb-2"
-                        onClick={() => setShowOffcanvas(false)}
-                      >
-                        Quiz History
-                      </Link>
-                      <Link
-                        to="/achievements"
-                        className="nav-link mb-2"
-                        onClick={() => setShowOffcanvas(false)}
-                      >
-                        Achievements
-                      </Link>
-                      <Link
-                        to="/user-list"
-                        className="nav-link mb-2"
-                        onClick={() => setShowOffcanvas(false)}
-                      >
-                        User List
-                      </Link>
-                      <Link
-                        to="/notifications"
-                        className="nav-link mb-2"
-                        onClick={() => setShowOffcanvas(false)}
-                      >
-                        Notifications
-                      </Link>
+                    <span className="message-icon">💬</span>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="message-dropdown">
+                    <Dropdown.Header>Messages</Dropdown.Header>
+                    <Dropdown.Item disabled className="message-empty">
+                      Messaging system coming soon!
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item disabled>
+                      Start conversations with friends
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </>
+            )}
+
+            <Navbar expand={false}>
+              <Navbar.Toggle
+                aria-controls="offcanvasNavbar"
+                onClick={toggleOffcanvas}
+              />
+              <Navbar.Offcanvas
+                id="offcanvasNavbar"
+                aria-labelledby="offcanvasNavbarLabel"
+                placement="end"
+                show={showOffcanvas}
+                onHide={toggleOffcanvas}
+              >
+                <Offcanvas.Header closeButton>
+                  <Offcanvas.Title id="offcanvasNavbarLabel">
+                    {isLoggedIn && username ? `Welcome, ${username}` : "Menu"}
+                  </Offcanvas.Title>
+                </Offcanvas.Header>
+                <Offcanvas.Body>
+                  <Nav className="flex-column">
+                    <Link
+                      to="/leaderboard"
+                      className="nav-link mb-2"
+                      onClick={() => setShowOffcanvas(false)}
+                    >
+                      Leaderboard
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="nav-link mb-2"
+                      onClick={() => setShowOffcanvas(false)}
+                    >
+                      Settings
+                    </Link>
+                    <Link
+                      to="/help"
+                      className="nav-link mb-2"
+                      onClick={() => setShowOffcanvas(false)}
+                    >
+                      Help/Support
+                    </Link>
+                    <Link
+                      to="/instructions"
+                      className="nav-link mb-2"
+                      onClick={() => setShowOffcanvas(false)}
+                    >
+                      How to Play
+                    </Link>
+                    {isLoggedIn ? (
+                      <>
+                        <Link
+                          to="/profile"
+                          className="nav-link mb-2"
+                          onClick={() => setShowOffcanvas(false)}
+                        >
+                          Profile
+                        </Link>
+                        <Link
+                          to="/friends"
+                          className="nav-link mb-2"
+                          onClick={() => setShowOffcanvas(false)}
+                        >
+                          Friend List
+                        </Link>
+                        <Link
+                          to="/quiz-history"
+                          className="nav-link mb-2"
+                          onClick={() => setShowOffcanvas(false)}
+                        >
+                          Quiz History
+                        </Link>
+                        <Link
+                          to="/achievements"
+                          className="nav-link mb-2"
+                          onClick={() => setShowOffcanvas(false)}
+                        >
+                          Achievements
+                        </Link>
+                        <Link
+                          to="/user-list"
+                          className="nav-link mb-2"
+                          onClick={() => setShowOffcanvas(false)}
+                        >
+                          User List
+                        </Link>
+                        <Link
+                          to="/notifications"
+                          className="nav-link mb-2"
+                          onClick={() => setShowOffcanvas(false)}
+                        >
+                          Notifications
+                        </Link>
+                        <Button
+                          variant="outline-primary"
+                          onClick={handleLogout}
+                          className="mb-3"
+                        >
+                          Log Out
+                        </Button>
+                      </>
+                    ) : (
                       <Button
                         variant="outline-primary"
-                        onClick={handleLogout}
+                        onClick={() => {
+                          setShowOffcanvas(false);
+                          handleShowAuthModal();
+                        }}
                         className="mb-3"
                       >
-                        Log Out
+                        Log In or Sign Up
                       </Button>
-                    </>
-                  ) : (
-                    <Button
-                      variant="outline-primary"
-                      onClick={() => {
-                        setShowOffcanvas(false);
-                        handleShowAuthModal();
-                      }}
-                      className="mb-3"
-                    >
-                      Log In or Sign Up
-                    </Button>
-                  )}
-                </Nav>
-              </Offcanvas.Body>
-            </Navbar.Offcanvas>
-          </Navbar>
+                    )}
+                  </Nav>
+                </Offcanvas.Body>
+              </Navbar.Offcanvas>
+            </Navbar>
+          </div>
         </div>
         {/* Mobile Navigation - Collapsible Menu */}
         <div className="mobile-nav">

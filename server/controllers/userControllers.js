@@ -21,9 +21,13 @@ export const register = async (req, res) => {
     });
 
     // Sign a JWT for the new user
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "2h",
-    });
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "2h",
+      }
+    );
 
     // Return user info (without password) and the token
     res.status(201).json({
@@ -61,9 +65,13 @@ export const login = async (req, res) => {
     }
 
     // Generate a JWT token for the authenticated user
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "2h",
-    });
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "2h",
+      }
+    );
 
     // Return user info (without password) and the token
     res.json({
