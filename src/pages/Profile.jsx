@@ -130,8 +130,15 @@ export default function Profile() {
                         <span className={`quiz-mode-badge ${score.quiz_mode}`}>
                           {score.quiz_mode === "blitz"
                             ? "⚡ Blitz"
+                            : score.quiz_mode === "category"
+                            ? "🎯 Category"
                             : "📅 Daily"}
                         </span>
+                      </p>
+                    )}
+                    {score.quiz_mode === "category" && score.category_name && (
+                      <p>
+                        <strong>Category:</strong> {score.category_name}
                       </p>
                     )}
                     {score.time_taken && (

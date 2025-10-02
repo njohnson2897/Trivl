@@ -179,6 +179,7 @@ export const getUserProfile = async (req, res) => {
             "date_taken",
             "quiz_difficulty",
             "quiz_mode",
+            "category_name",
           ],
         },
       ],
@@ -321,6 +322,7 @@ export const getUserProfile = async (req, res) => {
           difficulty: score.quiz_difficulty,
           time_taken: score.time_taken,
           quiz_mode: score.quiz_mode,
+          category_name: score.category_name,
         })),
       friends: friendsList,
       achievements: achievements.map((achievement) => ({

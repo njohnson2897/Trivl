@@ -2,12 +2,25 @@ import { useEffect, useState } from "react";
 import { formatTime } from "../utils/helpers";
 import { Link } from "react-router-dom";
 
+// Category options for display names
+const categoryOptions = [
+  { value: "film_and_tv", label: "Film & TV" },
+  { value: "music", label: "Music" },
+  { value: "food_and_drink", label: "Food & Drink" },
+  { value: "geography", label: "Geography" },
+  { value: "history", label: "History" },
+  { value: "science", label: "Science" },
+  { value: "sport_and_leisure", label: "Sport & Leisure" },
+  { value: "general_knowledge", label: "General Knowledge" },
+];
+
 export default function Results() {
   const [score, setScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [timeTaken, setTimeTaken] = useState(0);
   const [quizMode, setQuizMode] = useState("daily");
+  const [quizCategory, setQuizCategory] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasQuizData, setHasQuizData] = useState(false);
 
@@ -38,6 +51,12 @@ export default function Results() {
       const storedQuizMode = localStorage.getItem("quizMode");
       if (storedQuizMode) {
         setQuizMode(storedQuizMode);
+      }
+
+      // Load category name for category quizzes
+      const storedQuizCategory = localStorage.getItem("quizCategory");
+      if (storedQuizCategory) {
+        setQuizCategory(storedQuizCategory);
       }
     } else {
       setHasQuizData(false);
@@ -90,7 +109,16 @@ export default function Results() {
         <h1>Your Results</h1>
         <div className="results-summary">
           <p className="quiz-mode-indicator">
-            {quizMode === "blitz" ? "⚡ Blitz Mode" : "📅 Daily Quiz"}
+            {quizMode === "blitz"
+              ? "⚡ Blitz Mode"
+              : quizMode === "category"
+              ? `🎯 ${
+                  quizCategory
+                    ? categoryOptions.find((c) => c.value === quizCategory)
+                        ?.label
+                    : "Category"
+                } Quiz`
+              : "📅 Daily Quiz"}
           </p>
           <p>{`Score: ${score}/${totalQuestions}`}</p>
           {timeTaken > 0 && <p>{`Time: ${formatTime(timeTaken)}`}</p>}

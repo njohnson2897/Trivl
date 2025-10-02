@@ -12,6 +12,7 @@ export const logScore = async (req, res) => {
       is_niche,
       time_taken,
       quiz_mode = "daily", // Default to 'daily' for backward compatibility
+      category_name = null, // Category name for category quizzes
     } = req.body;
 
     // Check if user exists
@@ -29,6 +30,7 @@ export const logScore = async (req, res) => {
       is_niche,
       time_taken,
       quiz_mode,
+      category_name, // Store category name for category quizzes
     });
 
     // Update user's lastQuizDate to current time

@@ -39,7 +39,7 @@ const QuizHistory = () => {
 
   const filteredHistory = quizHistory.filter((quiz) => {
     if (filter === "all") return true;
-    if (filter === "daily" || filter === "blitz") {
+    if (filter === "daily" || filter === "blitz" || filter === "category") {
       return quiz.quiz_mode === filter;
     }
     return quiz.quiz_difficulty.toLowerCase() === filter.toLowerCase();
@@ -89,6 +89,7 @@ const QuizHistory = () => {
             <option value="all">All Quizzes</option>
             <option value="daily">Daily Quiz</option>
             <option value="blitz">Blitz Mode</option>
+            <option value="category">Category Quiz</option>
             <option value="easy">Easy Difficulty</option>
             <option value="medium">Medium Difficulty</option>
             <option value="hard">Hard Difficulty</option>
@@ -113,7 +114,11 @@ const QuizHistory = () => {
                 </h3>
                 <div className="quiz-badges">
                   <span className={`quiz-mode-badge ${quiz.quiz_mode}`}>
-                    {quiz.quiz_mode === "blitz" ? "⚡ Blitz" : "📅 Daily"}
+                    {quiz.quiz_mode === "blitz"
+                      ? "⚡ Blitz"
+                      : quiz.quiz_mode === "category"
+                      ? "🎯 Category"
+                      : "📅 Daily"}
                   </span>
                   <span
                     className={`difficulty-badge ${quiz.quiz_difficulty.toLowerCase()}`}
@@ -134,6 +139,12 @@ const QuizHistory = () => {
                     {formatTime(quiz.time_taken)}
                   </span>
                 </div>
+                {quiz.quiz_mode === "category" && quiz.category_name && (
+                  <div className="detail-item">
+                    <span className="detail-label">Category:</span>
+                    <span className="detail-value">{quiz.category_name}</span>
+                  </div>
+                )}
               </div>
 
               <button className="view-details-btn">View Details</button>

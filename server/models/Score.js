@@ -36,12 +36,16 @@ Score.init(
       allowNull: false,
     },
     quiz_mode: {
-      type: DataTypes.STRING, // Stores 'daily' or 'blitz'
+      type: DataTypes.STRING, // Stores 'daily', 'blitz', or 'category'
       allowNull: false,
       defaultValue: "daily",
       validate: {
-        isIn: [["daily", "blitz"]],
+        isIn: [["daily", "blitz", "category"]],
       },
+    },
+    category_name: {
+      type: DataTypes.STRING, // Stores the category name for category quizzes (e.g., 'Music', 'Film & TV')
+      allowNull: true,
     },
     date_taken: {
       type: DataTypes.DATE,

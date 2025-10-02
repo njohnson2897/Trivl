@@ -1,16 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from "../../axiosConfig.js";
 import bell from "../assets/button_click.mp3";
-import LoadingSpinner from "../components/LoadingSpinner";
 
 const oneDayCountdown = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
 export default function Quiz() {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [timer, setTimer] = useState("");
   const [quizStatus, setQuizStatus] = useState("not_started");
   const [quizMode, setQuizMode] = useState("daily"); // "daily" or "blitz"
   const [shuffledOptions, setShuffledOptions] = useState([]);
@@ -20,8 +18,12 @@ export default function Quiz() {
   const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState("");
   const [selectedBlitzTime, setSelectedBlitzTime] = useState(90); // Default to 90 seconds
   const [showBlitzTimeSelection, setShowBlitzTimeSelection] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showCategorySelection, setShowCategorySelection] = useState(false);
+  const [quizCategory, setQuizCategory] = useState(null);
   const cooldownIntervalRef = useRef(null);
   const questionTimerRef = useRef(null);
+  const initialCheckDoneRef = useRef(false);
   const navigate = useNavigate();
   const bellSound = new Audio(bell);
 
@@ -31,6 +33,20 @@ export default function Quiz() {
     { value: 60, label: "1 minute", description: "Quick challenge" },
     { value: 120, label: "2 minutes", description: "Balanced pace" },
     { value: 180, label: "3 minutes", description: "More time to think" },
+  ];
+
+  // Category options
+  const categoryOptions = [
+    { value: "arts_and_literature", label: "Arts & Literature", icon: "🎨" },
+    { value: "film_and_tv", label: "Film & TV", icon: "🎬" },
+    { value: "food_and_drink", label: "Food & Drink", icon: "🍕" },
+    { value: "general_knowledge", label: "General Knowledge", icon: "🧠" },
+    { value: "geography", label: "Geography", icon: "🌍" },
+    { value: "history", label: "History", icon: "📚" },
+    { value: "music", label: "Music", icon: "🎵" },
+    { value: "science", label: "Science", icon: "🔬" },
+    { value: "society_and_culture", label: "Society & Culture", icon: "👥" },
+    { value: "sport_and_leisure", label: "Sport & Leisure", icon: "⚽" },
   ];
 
   // Helper function to format time
@@ -47,8 +63,6 @@ export default function Quiz() {
   // Clear quiz state when component mounts or when user logs in
   useEffect(() => {
     const clearCompletedQuizState = () => {
-      const token = localStorage.getItem("token");
-
       // Clear ALL quiz data when a user logs in/out to prevent interference
       const storedQuizStatus = localStorage.getItem("quizStatus");
       if (
@@ -68,7 +82,7 @@ export default function Quiz() {
       }
 
       // Always clear timer and reset quiz status when user state changes
-      setTimer("");
+      setCooldownTimeRemaining("");
       setQuizStatus("not_started");
 
       // Clear any running timers
@@ -97,142 +111,6 @@ export default function Quiz() {
       window.removeEventListener("userLogout", clearCompletedQuizState);
     };
   }, []); // Run on every mount
-
-  // Comprehensive status check on mount
-  useEffect(() => {
-    const checkQuizState = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        // If no token, check localStorage for quiz state and cooldown
-        const lastUpdateTime = localStorage.getItem("lastUpdateTime");
-        const currentTime = new Date().getTime();
-
-        // Check if quiz is in cooldown (for non-logged in users)
-        if (lastUpdateTime) {
-          if (currentTime - parseInt(lastUpdateTime) >= oneDayCountdown) {
-            // Clear all quiz-related data from localStorage
-            for (let i = 0; i < 10; i++) {
-              localStorage.removeItem(`question${i}`);
-              localStorage.removeItem(`userAnswer${i}`);
-            }
-            localStorage.removeItem("lastUpdateTime");
-            localStorage.removeItem("quizStatus");
-            localStorage.removeItem("quizMode");
-            localStorage.removeItem("triviaQuestions");
-            localStorage.removeItem("currentQuestionIndex");
-            setQuizStatus("not_started");
-            setDailyQuizOnCooldown(false);
-            return;
-          } else if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
-            setDailyQuizOnCooldown(true);
-            setQuizStatus("not_started"); // Show quiz mode selection
-            startCooldownTimer();
-            return;
-          }
-        }
-
-        // Check for in-progress quiz
-        const storedQuestions = localStorage.getItem("triviaQuestions");
-        const storedQuizStatus = localStorage.getItem("quizStatus");
-
-        if (storedQuizStatus === "in_progress" && storedQuestions) {
-          const parsedQuestions = JSON.parse(storedQuestions);
-          const savedQuestionIndex = parseInt(
-            localStorage.getItem("currentQuestionIndex") || 0
-          );
-          const savedQuizMode = localStorage.getItem("quizMode") || "daily";
-
-          setQuestions(parsedQuestions);
-          setCurrentQuestionIndex(savedQuestionIndex);
-          setQuizMode(savedQuizMode);
-          setQuizStatus("in_progress");
-          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
-
-          // Restart quiz timer if in Blitz mode
-          if (savedQuizMode === "blitz") {
-            startQuizTimer(90); // Restart with 90 seconds
-          }
-        } else if (storedQuizStatus === "completed") {
-          setQuizStatus("completed");
-          navigate("/results");
-        } else {
-          setQuizStatus("not_started");
-        }
-        return;
-      }
-
-      try {
-        // Check cooldown status from backend (only for daily quiz)
-        const response = await axiosInstance.get("/api/users/cooldown");
-        const cooldownData = response.data;
-
-        // Only apply cooldown for daily quiz mode
-        if (!cooldownData.canTakeQuiz) {
-          setDailyQuizOnCooldown(true);
-          setQuizStatus("not_started"); // Show quiz mode selection
-          startCooldownTimer(cooldownData.timeRemaining);
-          return;
-        }
-
-        // Check for in-progress quiz in localStorage (only for in_progress, not completed)
-        const storedQuestions = localStorage.getItem("triviaQuestions");
-        const storedQuizStatus = localStorage.getItem("quizStatus");
-
-        if (storedQuizStatus === "in_progress" && storedQuestions) {
-          const parsedQuestions = JSON.parse(storedQuestions);
-          const savedQuestionIndex = parseInt(
-            localStorage.getItem("currentQuestionIndex") || 0
-          );
-          const savedQuizMode = localStorage.getItem("quizMode") || "daily";
-
-          setQuestions(parsedQuestions);
-          setCurrentQuestionIndex(savedQuestionIndex);
-          setQuizMode(savedQuizMode);
-          setQuizStatus("in_progress");
-          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
-
-          // Restart quiz timer if in Blitz mode
-          if (savedQuizMode === "blitz") {
-            startQuizTimer(90); // Restart with 90 seconds
-          }
-        } else {
-          // If logged in, don't check for completed status in localStorage
-          // The cooldown check above already handles this via the backend
-          setQuizStatus("not_started");
-        }
-      } catch (error) {
-        console.error("Error checking cooldown status:", error);
-        // Fallback to localStorage check (only for in_progress, not completed)
-        const storedQuestions = localStorage.getItem("triviaQuestions");
-        const storedQuizStatus = localStorage.getItem("quizStatus");
-
-        if (storedQuizStatus === "in_progress" && storedQuestions) {
-          const parsedQuestions = JSON.parse(storedQuestions);
-          const savedQuestionIndex = parseInt(
-            localStorage.getItem("currentQuestionIndex") || 0
-          );
-          const savedQuizMode = localStorage.getItem("quizMode") || "daily";
-
-          setQuestions(parsedQuestions);
-          setCurrentQuestionIndex(savedQuestionIndex);
-          setQuizMode(savedQuizMode);
-          setQuizStatus("in_progress");
-          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
-
-          // Restart quiz timer if in Blitz mode
-          if (savedQuizMode === "blitz") {
-            startQuizTimer(90); // Restart with 90 seconds
-          }
-        } else {
-          // If logged in, don't check for completed status in localStorage
-          setQuizStatus("not_started");
-        }
-      }
-    };
-
-    checkQuizState();
-  }, [navigate, refreshTrigger]);
 
   // Cleanup intervals on unmount
   useEffect(() => {
@@ -278,172 +156,19 @@ export default function Quiz() {
         localStorage.removeItem("quizStatus");
         setDailyQuizOnCooldown(false);
         setCooldownTimeRemaining("");
-        setTimer("");
       } else {
         const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
         const seconds = Math.floor((timeRemaining / 1000) % 60);
 
         const timeString = `${hours}h ${minutes}m ${seconds}s`;
-        setTimer(timeString);
         setCooldownTimeRemaining(timeString);
       }
     }, 1000);
   };
 
-  // Start quiz timer for Blitz mode (total time for entire quiz)
-  const startQuizTimer = (timeLimit = null) => {
-    const actualTimeLimit = timeLimit || selectedBlitzTime;
-
-    if (questionTimerRef.current) {
-      clearInterval(questionTimerRef.current);
-    }
-
-    setQuestionTimer(actualTimeLimit);
-
-    // Store start time for more accurate timing
-    const startTime = Date.now();
-    const endTime = startTime + actualTimeLimit * 1000;
-
-    questionTimerRef.current = setInterval(() => {
-      const currentTime = Date.now();
-      const timeRemaining = Math.max(
-        0,
-        Math.ceil((endTime - currentTime) / 1000)
-      );
-
-      setQuestionTimer(timeRemaining);
-
-      if (timeRemaining <= 0) {
-        // Time's up! Auto-submit all remaining questions as incorrect
-        clearInterval(questionTimerRef.current);
-        questionTimerRef.current = null;
-        handleQuizTimeout();
-      }
-    }, 100); // Check every 100ms for more precision
-  };
-
-  // Handle quiz timeout - mark all remaining questions as incorrect
-  const handleQuizTimeout = () => {
-    // Mark all remaining questions as incorrect
-    for (let i = currentQuestionIndex; i < questions.length; i++) {
-      localStorage.setItem(`question${i}`, "incorrect");
-      localStorage.setItem(`userAnswer${i}`, "Time's up!");
-    }
-
-    // Complete the quiz
-    handleQuizCompletion();
-  };
-
-  // Start the quiz
-  const startQuiz = async (mode = "daily") => {
-    // Check cooldown only for daily quiz
-    if (mode === "daily") {
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const response = await axiosInstance.get("/api/users/cooldown");
-          const cooldownData = response.data;
-
-          if (!cooldownData.canTakeQuiz) {
-            setDailyQuizOnCooldown(true);
-            startCooldownTimer(cooldownData.timeRemaining);
-            return;
-          }
-        } catch (error) {
-          console.error("Error checking cooldown:", error);
-          // Continue with quiz if cooldown check fails
-        }
-      } else {
-        // Check localStorage cooldown for non-logged in users
-        const lastUpdateTime = localStorage.getItem("lastUpdateTime");
-        if (lastUpdateTime) {
-          const currentTime = new Date().getTime();
-          if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
-            setDailyQuizOnCooldown(true);
-            startCooldownTimer();
-            return;
-          }
-        }
-      }
-    }
-
-    const startTime = new Date().getTime(); // Record the quiz start time
-    localStorage.setItem("quizStartTime", startTime); // Save it to local storage
-    localStorage.setItem("quizMode", mode); // Save quiz mode
-    setQuizMode(mode);
-
-    fetch("https://the-trivia-api.com/api/questions")
-      .then((response) => response.json())
-      .then((data) => {
-        setQuestions(data);
-        setQuizStatus("in_progress");
-        setCurrentQuestionIndex(0);
-
-        // Persist quiz state
-        localStorage.setItem("triviaQuestions", JSON.stringify(data));
-        localStorage.setItem("quizStatus", "in_progress");
-        localStorage.setItem("currentQuestionIndex", "0");
-
-        shuffleOptionsForCurrentQuestion(data[0]);
-
-        // Start quiz timer if in Blitz mode
-        if (mode === "blitz") {
-          startQuizTimer(selectedBlitzTime);
-        }
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        alert("Failed to load questions. Please try again.");
-      });
-  };
-
-  // Shuffle options for the current question
-  const shuffleOptionsForCurrentQuestion = (question) => {
-    const options = [question.correctAnswer, ...question.incorrectAnswers];
-    setShuffledOptions(options.sort(() => Math.random() - 0.5));
-  };
-
-  // Handle answer selection
-  const handleAnswer = (selectedAnswer) => {
-    // Don't clear the timer for Blitz mode - it should run for the entire quiz
-    // Only clear it for daily quiz (which doesn't use this timer anyway)
-    if (quizMode !== "blitz" && questionTimerRef.current) {
-      clearInterval(questionTimerRef.current);
-      questionTimerRef.current = null;
-    }
-
-    bellSound.play();
-
-    const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect =
-      selectedAnswer === ""
-        ? false
-        : currentQuestion.correctAnswer === selectedAnswer;
-    const userAnswer = selectedAnswer === "" ? "Time's up!" : selectedAnswer;
-
-    // Store answer status and selected answer
-    localStorage.setItem(
-      `question${currentQuestionIndex}`,
-      isCorrect ? "correct" : "incorrect"
-    );
-    localStorage.setItem(`userAnswer${currentQuestionIndex}`, userAnswer);
-
-    // Move to next question or complete quiz
-    if (currentQuestionIndex + 1 < questions.length) {
-      const nextIndex = currentQuestionIndex + 1;
-      setCurrentQuestionIndex(nextIndex);
-
-      // Persist current question index
-      localStorage.setItem("currentQuestionIndex", nextIndex.toString());
-
-      shuffleOptionsForCurrentQuestion(questions[nextIndex]);
-    } else {
-      handleQuizCompletion();
-    }
-  };
-
-  const handleQuizCompletion = async () => {
+  // Handle quiz completion
+  const handleQuizCompletion = useCallback(async () => {
     const quizStartTime = localStorage.getItem("quizStartTime");
     const timeTaken = quizStartTime
       ? Math.floor((new Date().getTime() - parseInt(quizStartTime)) / 1000) // Time in seconds
@@ -490,6 +215,7 @@ export default function Quiz() {
           is_niche: isNicheArray,
           time_taken: timeTaken,
           quiz_mode: quizMode, // New field for quiz type
+          category_name: quizCategory, // Category name for category quizzes
         });
       } catch (error) {
         console.error("Error logging score:", error);
@@ -502,6 +228,438 @@ export default function Quiz() {
     }
 
     navigate("/results");
+  }, [questions, quizMode, quizCategory, navigate]);
+
+  // Handle quiz timeout - mark all remaining questions as incorrect
+  const handleQuizTimeout = useCallback(() => {
+    // Mark all remaining questions as incorrect
+    for (let i = currentQuestionIndex; i < questions.length; i++) {
+      localStorage.setItem(`question${i}`, "incorrect");
+      localStorage.setItem(`userAnswer${i}`, "Time's up!");
+    }
+
+    // Complete the quiz
+    handleQuizCompletion();
+  }, [questions, currentQuestionIndex, handleQuizCompletion]);
+
+  // Start quiz timer for Blitz mode (total time for entire quiz)
+  const startQuizTimer = useCallback(
+    (timeLimit = null) => {
+      const actualTimeLimit = timeLimit || selectedBlitzTime;
+
+      if (questionTimerRef.current) {
+        clearInterval(questionTimerRef.current);
+      }
+
+      setQuestionTimer(actualTimeLimit);
+
+      // Store start time for more accurate timing
+      const startTime = Date.now();
+      const endTime = startTime + actualTimeLimit * 1000;
+
+      questionTimerRef.current = setInterval(() => {
+        const currentTime = Date.now();
+        const timeRemaining = Math.max(
+          0,
+          Math.ceil((endTime - currentTime) / 1000)
+        );
+
+        setQuestionTimer(timeRemaining);
+
+        if (timeRemaining <= 0) {
+          // Time's up! Auto-submit all remaining questions as incorrect
+          clearInterval(questionTimerRef.current);
+          questionTimerRef.current = null;
+          handleQuizTimeout();
+        }
+      }, 100); // Check every 100ms for more precision
+    },
+    [selectedBlitzTime, handleQuizTimeout]
+  );
+
+  // Comprehensive status check on mount
+  useEffect(() => {
+    const checkQuizState = async () => {
+      console.log("🔍 checkQuizState useEffect triggered");
+
+      // Only run the initial check once
+      if (initialCheckDoneRef.current) {
+        console.log("⏭️ Initial check already done, skipping");
+        return;
+      }
+
+      // Don't run if quiz is already in progress
+      if (quizStatus === "in_progress") {
+        console.log("⏭️ Quiz already in progress, skipping checkQuizState");
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        // If no token, check localStorage for quiz state and cooldown
+        const lastUpdateTime = localStorage.getItem("lastUpdateTime");
+        const currentTime = new Date().getTime();
+
+        // Check if quiz is in cooldown (for non-logged in users)
+        if (lastUpdateTime) {
+          if (currentTime - parseInt(lastUpdateTime) >= oneDayCountdown) {
+            // Clear all quiz-related data from localStorage
+            for (let i = 0; i < 10; i++) {
+              localStorage.removeItem(`question${i}`);
+              localStorage.removeItem(`userAnswer${i}`);
+            }
+            localStorage.removeItem("lastUpdateTime");
+            localStorage.removeItem("quizStatus");
+            localStorage.removeItem("quizMode");
+            localStorage.removeItem("triviaQuestions");
+            localStorage.removeItem("currentQuestionIndex");
+            setQuizStatus("not_started");
+            setDailyQuizOnCooldown(false);
+            return;
+          } else if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
+            setDailyQuizOnCooldown(true);
+            setQuizStatus("not_started"); // Show quiz mode selection
+            startCooldownTimer();
+            return;
+          }
+        }
+
+        // Check for in-progress quiz
+        const storedQuestions = localStorage.getItem("triviaQuestions");
+        const storedQuizStatus = localStorage.getItem("quizStatus");
+
+        console.log(
+          "🔍 Checking localStorage - storedQuizStatus:",
+          storedQuizStatus,
+          "storedQuestions:",
+          !!storedQuestions
+        );
+        console.log("🔍 Current quiz status in state:", quizStatus);
+
+        if (storedQuizStatus === "in_progress" && storedQuestions) {
+          console.log("✅ Found in-progress quiz, restoring state...");
+          const parsedQuestions = JSON.parse(storedQuestions);
+          const savedQuestionIndex = parseInt(
+            localStorage.getItem("currentQuestionIndex") || 0
+          );
+          const savedQuizMode = localStorage.getItem("quizMode") || "daily";
+          const savedQuizCategory = localStorage.getItem("quizCategory");
+
+          console.log(
+            "🔄 Restoring quiz state - savedQuizMode:",
+            savedQuizMode,
+            "savedQuizCategory:",
+            savedQuizCategory
+          );
+
+          setQuestions(parsedQuestions);
+          setCurrentQuestionIndex(savedQuestionIndex);
+          setQuizMode(savedQuizMode);
+          setQuizCategory(savedQuizCategory);
+          setQuizStatus("in_progress");
+          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+
+          // Restart quiz timer if in Blitz mode
+          if (savedQuizMode === "blitz") {
+            startQuizTimer(90); // Restart with 90 seconds
+          }
+        } else if (storedQuizStatus === "completed") {
+          console.log("📋 Found completed quiz, navigating to results...");
+          setQuizStatus("completed");
+          navigate("/results");
+        } else {
+          console.log(
+            "🔄 No in-progress quiz found, setting status to not_started"
+          );
+          setQuizStatus("not_started");
+        }
+        return;
+      }
+
+      try {
+        // Check cooldown status from backend (only for daily quiz)
+        const response = await axiosInstance.get("/api/users/cooldown");
+        const cooldownData = response.data;
+
+        // Only apply cooldown for daily quiz mode
+        if (!cooldownData.canTakeQuiz) {
+          setDailyQuizOnCooldown(true);
+          setQuizStatus("not_started"); // Show quiz mode selection
+          startCooldownTimer(cooldownData.timeRemaining);
+          return;
+        }
+
+        // Check for in-progress quiz in localStorage (only for in_progress, not completed)
+        const storedQuestions = localStorage.getItem("triviaQuestions");
+        const storedQuizStatus = localStorage.getItem("quizStatus");
+
+        if (storedQuizStatus === "in_progress" && storedQuestions) {
+          const parsedQuestions = JSON.parse(storedQuestions);
+          const savedQuestionIndex = parseInt(
+            localStorage.getItem("currentQuestionIndex") || 0
+          );
+          const savedQuizMode = localStorage.getItem("quizMode") || "daily";
+          const savedQuizCategory = localStorage.getItem("quizCategory");
+
+          setQuestions(parsedQuestions);
+          setCurrentQuestionIndex(savedQuestionIndex);
+          setQuizMode(savedQuizMode);
+          setQuizCategory(savedQuizCategory);
+          setQuizStatus("in_progress");
+          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+
+          // Restart quiz timer if in Blitz mode
+          if (savedQuizMode === "blitz") {
+            startQuizTimer(90); // Restart with 90 seconds
+          }
+        } else {
+          // If logged in, don't check for completed status in localStorage
+          // The cooldown check above already handles this via the backend
+          setQuizStatus("not_started");
+        }
+      } catch (error) {
+        console.error("Error checking cooldown status:", error);
+        // Fallback to localStorage check (only for in_progress, not completed)
+        const storedQuestions = localStorage.getItem("triviaQuestions");
+        const storedQuizStatus = localStorage.getItem("quizStatus");
+
+        if (storedQuizStatus === "in_progress" && storedQuestions) {
+          const parsedQuestions = JSON.parse(storedQuestions);
+          const savedQuestionIndex = parseInt(
+            localStorage.getItem("currentQuestionIndex") || 0
+          );
+          const savedQuizMode = localStorage.getItem("quizMode") || "daily";
+          const savedQuizCategory = localStorage.getItem("quizCategory");
+
+          setQuestions(parsedQuestions);
+          setCurrentQuestionIndex(savedQuestionIndex);
+          setQuizMode(savedQuizMode);
+          setQuizCategory(savedQuizCategory);
+          setQuizStatus("in_progress");
+          shuffleOptionsForCurrentQuestion(parsedQuestions[savedQuestionIndex]);
+
+          // Restart quiz timer if in Blitz mode
+          if (savedQuizMode === "blitz") {
+            startQuizTimer(90); // Restart with 90 seconds
+          }
+        } else {
+          // If logged in, don't check for completed status in localStorage
+          setQuizStatus("not_started");
+        }
+      }
+
+      // Mark initial check as done
+      initialCheckDoneRef.current = true;
+    };
+
+    checkQuizState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, refreshTrigger]); // Intentionally limited dependencies to prevent infinite loop
+
+  // Start the quiz
+  const startQuiz = async (mode = "daily", category = null) => {
+    // Check cooldown only for daily quiz
+    if (mode === "daily") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await axiosInstance.get("/api/users/cooldown");
+          const cooldownData = response.data;
+
+          if (!cooldownData.canTakeQuiz) {
+            setDailyQuizOnCooldown(true);
+            startCooldownTimer(cooldownData.timeRemaining);
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking cooldown:", error);
+          // Continue with quiz if cooldown check fails
+        }
+      } else {
+        // Check localStorage cooldown for non-logged in users
+        const lastUpdateTime = localStorage.getItem("lastUpdateTime");
+        if (lastUpdateTime) {
+          const currentTime = new Date().getTime();
+          if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
+            setDailyQuizOnCooldown(true);
+            startCooldownTimer();
+            return;
+          }
+        }
+      }
+    }
+
+    const startTime = new Date().getTime(); // Record the quiz start time
+    localStorage.setItem("quizStartTime", startTime); // Save it to local storage
+    localStorage.setItem("quizMode", mode); // Save quiz mode
+    setQuizMode(mode);
+
+    // Store category name for category quizzes
+    if (mode === "category" && category) {
+      localStorage.setItem("quizCategory", category);
+      console.log("🏷️ Stored category:", category);
+    }
+
+    // Build API URL based on mode and category
+    let apiUrl = "https://the-trivia-api.com/api/questions";
+    if (category) {
+      // For category mode, use the API's category parameter
+      apiUrl = `https://the-trivia-api.com/api/questions?categories=${category}&limit=20`;
+    }
+
+    fetch(apiUrl)
+      .then((response) => response.json())
+      .then((data) => {
+        // Extract questions from the response - API returns {value: [...questions]}
+        let questions = Array.isArray(data) ? data : data.value || data;
+        let filteredData = questions;
+
+        // For category mode, the API already filtered by category
+        if (category) {
+          console.log(`Category quiz for: ${category}`);
+          console.log(`Questions returned: ${questions.length}`);
+          console.log("Raw API response:", data);
+
+          // Log the actual categories returned to verify
+          const returnedCategories = [
+            ...new Set(questions.map((q) => q.category)),
+          ];
+          console.log("Categories in response:", returnedCategories);
+
+          filteredData = questions;
+
+          // If we don't have enough questions, log a warning
+          if (filteredData.length < 10) {
+            console.warn(
+              `Only ${filteredData.length} questions available for category: ${category}`
+            );
+          }
+        }
+
+        // Always take exactly 10 questions, or as many as available
+        filteredData = filteredData.slice(0, 10);
+
+        console.log(`Final question count: ${filteredData.length}`);
+        console.log("Full filteredData array:", filteredData);
+        console.log("First item in array:", filteredData[0]);
+        console.log("Type of first item:", typeof filteredData[0]);
+
+        // Check if we have valid questions
+        if (!filteredData || filteredData.length === 0) {
+          console.error("No valid questions received");
+          alert(
+            "No questions available for this category. Please try a different category."
+          );
+          return;
+        }
+
+        // Validate the first question structure
+        const firstQuestion = filteredData[0];
+        console.log("First question structure:", firstQuestion);
+
+        if (
+          !firstQuestion ||
+          !firstQuestion.correctAnswer ||
+          !firstQuestion.incorrectAnswers
+        ) {
+          console.error("Invalid question structure:", firstQuestion);
+          alert("Invalid question format received. Please try again.");
+          return;
+        }
+
+        console.log("✅ Question validation passed, setting quiz state...");
+
+        setQuestions(filteredData);
+        console.log("✅ Questions set");
+
+        setQuizStatus("in_progress");
+        console.log("✅ Quiz status set to in_progress");
+
+        setCurrentQuestionIndex(0);
+        console.log("✅ Current question index set to 0");
+
+        // Persist quiz state
+        localStorage.setItem("triviaQuestions", JSON.stringify(filteredData));
+        localStorage.setItem("quizStatus", "in_progress");
+        localStorage.setItem("currentQuestionIndex", "0");
+        console.log("✅ Quiz state persisted to localStorage");
+
+        console.log("🔄 Calling shuffleOptionsForCurrentQuestion...");
+        shuffleOptionsForCurrentQuestion(firstQuestion);
+        console.log("✅ shuffleOptionsForCurrentQuestion completed");
+
+        // Start quiz timer if in Blitz mode
+        if (mode === "blitz") {
+          console.log("🔄 Starting quiz timer for Blitz mode...");
+          startQuizTimer(selectedBlitzTime);
+          console.log("✅ Quiz timer started");
+        }
+
+        console.log("🎉 Quiz start process completed successfully!");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+        alert("Failed to load questions. Please try again.");
+      });
+  };
+
+  // Shuffle options for the current question
+  const shuffleOptionsForCurrentQuestion = (question) => {
+    if (!question) {
+      console.error("No question provided to shuffleOptionsForCurrentQuestion");
+      return;
+    }
+
+    if (!question.correctAnswer || !question.incorrectAnswers) {
+      console.error(
+        "Invalid question structure in shuffleOptionsForCurrentQuestion:",
+        question
+      );
+      return;
+    }
+
+    const options = [question.correctAnswer, ...question.incorrectAnswers];
+    setShuffledOptions(options.sort(() => Math.random() - 0.5));
+  };
+
+  // Handle answer selection
+  const handleAnswer = (selectedAnswer) => {
+    // Don't clear the timer for Blitz mode - it should run for the entire quiz
+    // Only clear it for daily quiz (which doesn't use this timer anyway)
+    if (quizMode !== "blitz" && questionTimerRef.current) {
+      clearInterval(questionTimerRef.current);
+      questionTimerRef.current = null;
+    }
+
+    bellSound.play();
+
+    const currentQuestion = questions[currentQuestionIndex];
+    const isCorrect =
+      selectedAnswer === ""
+        ? false
+        : currentQuestion.correctAnswer === selectedAnswer;
+    const userAnswer = selectedAnswer === "" ? "Time's up!" : selectedAnswer;
+
+    // Store answer status and selected answer
+    localStorage.setItem(
+      `question${currentQuestionIndex}`,
+      isCorrect ? "correct" : "incorrect"
+    );
+    localStorage.setItem(`userAnswer${currentQuestionIndex}`, userAnswer);
+
+    // Move to next question or complete quiz
+    if (currentQuestionIndex + 1 < questions.length) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+
+      // Persist current question index
+      localStorage.setItem("currentQuestionIndex", nextIndex.toString());
+
+      shuffleOptionsForCurrentQuestion(questions[nextIndex]);
+    } else {
+      handleQuizCompletion();
+    }
   };
 
   // Render different views based on quiz status
@@ -619,6 +777,85 @@ export default function Quiz() {
                   </div>
                 )}
               </div>
+
+              <div className="quiz-mode-card category-mode">
+                <h3>🎯 Category Mode</h3>
+                <p>Test your knowledge in specific topics!</p>
+
+                {!showCategorySelection ? (
+                  <>
+                    <ul>
+                      <li>Choose your favorite topic</li>
+                      <li>10 questions from one category</li>
+                      <li>Unlimited attempts</li>
+                    </ul>
+                    <div className="current-category-selection">
+                      <span className="category-display">
+                        {selectedCategory
+                          ? categoryOptions.find(
+                              (c) => c.value === selectedCategory
+                            )?.icon +
+                            " " +
+                            categoryOptions.find(
+                              (c) => c.value === selectedCategory
+                            )?.label
+                          : "🎯 Select Category"}
+                      </span>
+                    </div>
+                    <div className="category-buttons">
+                      <button
+                        className="quiz-start-button category-button secondary"
+                        onClick={() => setShowCategorySelection(true)}
+                      >
+                        Choose Category
+                      </button>
+                      <button
+                        className="quiz-start-button category-button primary"
+                        onClick={() => startQuiz("category", selectedCategory)}
+                        disabled={!selectedCategory}
+                      >
+                        Start Category Quiz
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="category-selection">
+                    <h4>Choose Your Category</h4>
+                    <div className="category-options">
+                      {categoryOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          className={`category-option ${
+                            selectedCategory === option.value ? "selected" : ""
+                          }`}
+                          onClick={() => {
+                            setSelectedCategory(option.value);
+                            setShowCategorySelection(false);
+                          }}
+                        >
+                          <div className="category-icon">{option.icon}</div>
+                          <div className="category-label">{option.label}</div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="category-selection-actions">
+                      <button
+                        className="quiz-start-button category-button secondary"
+                        onClick={() => setShowCategorySelection(false)}
+                      >
+                        Back
+                      </button>
+                      <button
+                        className="quiz-start-button category-button primary"
+                        onClick={() => startQuiz("category", selectedCategory)}
+                        disabled={!selectedCategory}
+                      >
+                        Start Quiz
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -627,7 +864,28 @@ export default function Quiz() {
         return (
           <div className="quiz-content">
             <h2>
-              {quizMode === "blitz" ? "⚡ Blitz Quiz" : "Daily Trivia Quiz"}
+              {quizMode === "blitz"
+                ? "⚡ Blitz Quiz"
+                : quizMode === "category"
+                ? (() => {
+                    // Get category name from state or localStorage as fallback
+                    const currentCategory =
+                      quizCategory || localStorage.getItem("quizCategory");
+                    console.log(
+                      "🎯 Quiz title - currentCategory:",
+                      currentCategory
+                    );
+                    const categoryLabel = currentCategory
+                      ? categoryOptions.find((c) => c.value === currentCategory)
+                          ?.label
+                      : "Category";
+                    console.log(
+                      "🎯 Quiz title - categoryLabel:",
+                      categoryLabel
+                    );
+                    return `🎯 ${categoryLabel} Quiz`;
+                  })()
+                : "Daily Trivia Quiz"}
             </h2>
             {quizMode === "blitz" && (
               <div className="quiz-timer">
