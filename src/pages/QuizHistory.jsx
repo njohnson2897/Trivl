@@ -39,7 +39,12 @@ const QuizHistory = () => {
 
   const filteredHistory = quizHistory.filter((quiz) => {
     if (filter === "all") return true;
-    if (filter === "daily" || filter === "blitz" || filter === "category") {
+    if (
+      filter === "daily" ||
+      filter === "blitz" ||
+      filter === "category" ||
+      filter === "survival"
+    ) {
       return quiz.quiz_mode === filter;
     }
     return quiz.quiz_difficulty.toLowerCase() === filter.toLowerCase();
@@ -90,6 +95,7 @@ const QuizHistory = () => {
             <option value="daily">Daily Quiz</option>
             <option value="blitz">Blitz Mode</option>
             <option value="category">Category Quiz</option>
+            <option value="survival">Survival Mode</option>
             <option value="easy">Easy Difficulty</option>
             <option value="medium">Medium Difficulty</option>
             <option value="hard">Hard Difficulty</option>
@@ -118,6 +124,8 @@ const QuizHistory = () => {
                       ? "⚡ Blitz"
                       : quiz.quiz_mode === "category"
                       ? "🎯 Category"
+                      : quiz.quiz_mode === "survival"
+                      ? "🏃 Survival"
                       : "📅 Daily"}
                   </span>
                   <span
@@ -131,7 +139,11 @@ const QuizHistory = () => {
               <div className="quiz-history-details">
                 <div className="detail-item">
                   <span className="detail-label">Score:</span>
-                  <span className="detail-value">{quiz.quiz_score}/10</span>
+                  <span className="detail-value">
+                    {quiz.quiz_mode === "survival"
+                      ? quiz.quiz_score
+                      : `${quiz.quiz_score}/10`}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Time:</span>

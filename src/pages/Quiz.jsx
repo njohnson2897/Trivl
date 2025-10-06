@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from "../../axiosConfig.js";
@@ -10,7 +10,7 @@ export default function Quiz() {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizStatus, setQuizStatus] = useState("not_started");
-  const [quizMode, setQuizMode] = useState("daily"); // "daily" or "blitz"
+  const [quizMode, setQuizMode] = useState("daily"); // "daily", "blitz", "category", or "survival"
   const [shuffledOptions, setShuffledOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [questionTimer, setQuestionTimer] = useState(0);
@@ -21,11 +21,13 @@ export default function Quiz() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showCategorySelection, setShowCategorySelection] = useState(false);
   const [quizCategory, setQuizCategory] = useState(null);
+  const [survivalQuestionTimer, setSurvivalQuestionTimer] = useState(15);
   const cooldownIntervalRef = useRef(null);
   const questionTimerRef = useRef(null);
   const initialCheckDoneRef = useRef(false);
+  const handleAnswerRef = useRef(null);
   const navigate = useNavigate();
-  const bellSound = new Audio(bell);
+  const bellSound = useMemo(() => new Audio(bell), []);
 
   // Blitz time options
   const blitzTimeOptions = [
@@ -184,12 +186,19 @@ export default function Quiz() {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
 
-        // Calculate score
-        const correctCount = questions.reduce((count, question, index) => {
-          return localStorage.getItem(`question${index}`) === "correct"
-            ? count + 1
-            : count;
-        }, 0);
+        // Calculate score - for survival mode use stored count, otherwise calculate from questions
+        let correctCount;
+        if (quizMode === "survival") {
+          correctCount = parseInt(
+            localStorage.getItem("survivalCorrectCount") || "0"
+          );
+        } else {
+          correctCount = questions.reduce((count, question, index) => {
+            return localStorage.getItem(`question${index}`) === "correct"
+              ? count + 1
+              : count;
+          }, 0);
+        }
 
         // Collect data for categories, difficulties, and isNiche
         const categories = questions.map((q) => q.category);
@@ -276,6 +285,31 @@ export default function Quiz() {
     },
     [selectedBlitzTime, handleQuizTimeout]
   );
+
+  // Start survival mode question timer (20 seconds per question)
+  const startSurvivalQuestionTimer = useCallback(() => {
+    if (questionTimerRef.current) {
+      clearInterval(questionTimerRef.current);
+    }
+
+    setSurvivalQuestionTimer(15);
+
+    questionTimerRef.current = setInterval(() => {
+      setSurvivalQuestionTimer((prev) => {
+        if (prev <= 1) {
+          // Time's up! Auto-submit this question as incorrect
+          clearInterval(questionTimerRef.current);
+          questionTimerRef.current = null;
+          // Use the ref to call handleAnswer
+          if (handleAnswerRef.current) {
+            handleAnswerRef.current(""); // Empty string indicates timeout
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
 
   // Comprehensive status check on mount
   useEffect(() => {
@@ -364,6 +398,11 @@ export default function Quiz() {
           if (savedQuizMode === "blitz") {
             startQuizTimer(90); // Restart with 90 seconds
           }
+
+          // Restart survival timer if in Survival mode
+          if (savedQuizMode === "survival") {
+            startSurvivalQuestionTimer();
+          }
         } else if (storedQuizStatus === "completed") {
           console.log("📋 Found completed quiz, navigating to results...");
           setQuizStatus("completed");
@@ -413,6 +452,11 @@ export default function Quiz() {
           if (savedQuizMode === "blitz") {
             startQuizTimer(90); // Restart with 90 seconds
           }
+
+          // Restart survival timer if in Survival mode
+          if (savedQuizMode === "survival") {
+            startSurvivalQuestionTimer();
+          }
         } else {
           // If logged in, don't check for completed status in localStorage
           // The cooldown check above already handles this via the backend
@@ -443,6 +487,11 @@ export default function Quiz() {
           if (savedQuizMode === "blitz") {
             startQuizTimer(90); // Restart with 90 seconds
           }
+
+          // Restart survival timer if in Survival mode
+          if (savedQuizMode === "survival") {
+            startSurvivalQuestionTimer();
+          }
         } else {
           // If logged in, don't check for completed status in localStorage
           setQuizStatus("not_started");
@@ -456,6 +505,22 @@ export default function Quiz() {
     checkQuizState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, refreshTrigger]); // Intentionally limited dependencies to prevent infinite loop
+
+  // Fetch a batch of questions for survival mode
+  const fetchQuestionBatch = async (limit = 50) => {
+    try {
+      const response = await fetch(
+        `https://the-trivia-api.com/api/questions?limit=${limit}`
+      );
+      const data = await response.json();
+
+      let questions = Array.isArray(data) ? data : data.value || data;
+      return questions || [];
+    } catch (error) {
+      console.error("Error fetching question batch:", error);
+      return [];
+    }
+  };
 
   // Start the quiz
   const startQuiz = async (mode = "daily", category = null) => {
@@ -501,7 +566,39 @@ export default function Quiz() {
       console.log("🏷️ Stored category:", category);
     }
 
-    // Build API URL based on mode and category
+    // For survival mode, fetch 50 questions at once
+    if (mode === "survival") {
+      console.log("🏃 Starting survival mode with 50 questions...");
+
+      // Initialize survival mode state
+      localStorage.setItem("survivalCorrectCount", "0");
+
+      // Fetch 50 questions at once
+      const questionBatch = await fetchQuestionBatch(50);
+      if (questionBatch.length === 0) {
+        alert("Failed to load questions. Please try again.");
+        return;
+      }
+
+      console.log(`✅ Fetched ${questionBatch.length} survival questions`);
+
+      setQuestions(questionBatch);
+      setQuizStatus("in_progress");
+      setCurrentQuestionIndex(0);
+
+      // Persist quiz state
+      localStorage.setItem("triviaQuestions", JSON.stringify(questionBatch));
+      localStorage.setItem("quizStatus", "in_progress");
+      localStorage.setItem("currentQuestionIndex", "0");
+
+      shuffleOptionsForCurrentQuestion(questionBatch[0]);
+      startSurvivalQuestionTimer();
+
+      console.log("🎉 Survival mode started successfully!");
+      return;
+    }
+
+    // Build API URL based on mode and category for other modes
     let apiUrl = "https://the-trivia-api.com/api/questions";
     if (category) {
       // For category mode, use the API's category parameter
@@ -624,43 +721,120 @@ export default function Quiz() {
   };
 
   // Handle answer selection
-  const handleAnswer = (selectedAnswer) => {
-    // Don't clear the timer for Blitz mode - it should run for the entire quiz
-    // Only clear it for daily quiz (which doesn't use this timer anyway)
-    if (quizMode !== "blitz" && questionTimerRef.current) {
-      clearInterval(questionTimerRef.current);
-      questionTimerRef.current = null;
-    }
+  const handleAnswer = useCallback(
+    async (selectedAnswer) => {
+      // Clear timers for all modes except blitz (which runs for entire quiz)
+      if (quizMode !== "blitz" && questionTimerRef.current) {
+        clearInterval(questionTimerRef.current);
+        questionTimerRef.current = null;
+      }
 
-    bellSound.play();
+      bellSound.play();
 
-    const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect =
-      selectedAnswer === ""
-        ? false
-        : currentQuestion.correctAnswer === selectedAnswer;
-    const userAnswer = selectedAnswer === "" ? "Time's up!" : selectedAnswer;
+      const currentQuestion = questions[currentQuestionIndex];
+      const isCorrect =
+        selectedAnswer === ""
+          ? false
+          : currentQuestion.correctAnswer === selectedAnswer;
+      const userAnswer = selectedAnswer === "" ? "Time's up!" : selectedAnswer;
 
-    // Store answer status and selected answer
-    localStorage.setItem(
-      `question${currentQuestionIndex}`,
-      isCorrect ? "correct" : "incorrect"
-    );
-    localStorage.setItem(`userAnswer${currentQuestionIndex}`, userAnswer);
+      // Store answer status and selected answer
+      localStorage.setItem(
+        `question${currentQuestionIndex}`,
+        isCorrect ? "correct" : "incorrect"
+      );
+      localStorage.setItem(`userAnswer${currentQuestionIndex}`, userAnswer);
 
-    // Move to next question or complete quiz
-    if (currentQuestionIndex + 1 < questions.length) {
-      const nextIndex = currentQuestionIndex + 1;
-      setCurrentQuestionIndex(nextIndex);
+      // Handle survival mode logic
+      if (quizMode === "survival") {
+        if (!isCorrect) {
+          // Wrong answer - trim questions to only show answered ones
+          const answeredQuestions = questions.slice(
+            0,
+            currentQuestionIndex + 1
+          );
+          setQuestions(answeredQuestions);
+          localStorage.setItem(
+            "triviaQuestions",
+            JSON.stringify(answeredQuestions)
+          );
+          // End the quiz immediately
+          handleQuizCompletion();
+          return;
+        }
 
-      // Persist current question index
-      localStorage.setItem("currentQuestionIndex", nextIndex.toString());
+        // Correct answer - increment correct count
+        const currentCorrectCount = parseInt(
+          localStorage.getItem("survivalCorrectCount") || "0"
+        );
+        const newCorrectCount = currentCorrectCount + 1;
+        localStorage.setItem(
+          "survivalCorrectCount",
+          newCorrectCount.toString()
+        );
 
-      shuffleOptionsForCurrentQuestion(questions[nextIndex]);
-    } else {
-      handleQuizCompletion();
-    }
-  };
+        // Check if we need more questions (when we're near the end of current batch)
+        const nextIndex = currentQuestionIndex + 1;
+
+        if (nextIndex >= questions.length - 5) {
+          // We're within 5 questions of the end, fetch more questions
+          console.log("🔄 Approaching end of question batch, fetching more...");
+          const additionalQuestions = await fetchQuestionBatch(50);
+
+          if (additionalQuestions.length > 0) {
+            const updatedQuestions = [...questions, ...additionalQuestions];
+            setQuestions(updatedQuestions);
+            localStorage.setItem(
+              "triviaQuestions",
+              JSON.stringify(updatedQuestions)
+            );
+            console.log(
+              `✅ Added ${additionalQuestions.length} more questions`
+            );
+          }
+        }
+
+        // Move to next question
+        if (nextIndex < questions.length) {
+          setCurrentQuestionIndex(nextIndex);
+          localStorage.setItem("currentQuestionIndex", nextIndex.toString());
+          shuffleOptionsForCurrentQuestion(questions[nextIndex]);
+          startSurvivalQuestionTimer();
+        } else {
+          // This shouldn't happen with the batch loading, but just in case
+          console.error("No more questions available in survival mode");
+          handleQuizCompletion();
+        }
+        return;
+      }
+
+      // Regular quiz logic for daily, blitz, and category modes
+      if (currentQuestionIndex + 1 < questions.length) {
+        const nextIndex = currentQuestionIndex + 1;
+        setCurrentQuestionIndex(nextIndex);
+
+        // Persist current question index
+        localStorage.setItem("currentQuestionIndex", nextIndex.toString());
+
+        shuffleOptionsForCurrentQuestion(questions[nextIndex]);
+      } else {
+        handleQuizCompletion();
+      }
+    },
+    [
+      quizMode,
+      questions,
+      currentQuestionIndex,
+      handleQuizCompletion,
+      startSurvivalQuestionTimer,
+      bellSound,
+    ]
+  );
+
+  // Store handleAnswer in ref so it can be accessed from timers
+  useEffect(() => {
+    handleAnswerRef.current = handleAnswer;
+  }, [handleAnswer]);
 
   // Render different views based on quiz status
   const renderQuizContent = () => {
@@ -856,6 +1030,22 @@ export default function Quiz() {
                   </div>
                 )}
               </div>
+
+              <div className="quiz-mode-card survival-mode">
+                <h3>🏃 Survival Mode</h3>
+                <p>How long can you survive?</p>
+                <ul>
+                  <li>15 seconds per question</li>
+                  <li>Keep going until you get one wrong</li>
+                  <li>Unlimited attempts</li>
+                </ul>
+                <button
+                  className="quiz-start-button survival-button"
+                  onClick={() => startQuiz("survival")}
+                >
+                  Start Survival Quiz
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -885,6 +1075,8 @@ export default function Quiz() {
                     );
                     return `🎯 ${categoryLabel} Quiz`;
                   })()
+                : quizMode === "survival"
+                ? "🏃 Survival Quiz"
                 : "Daily Trivia Quiz"}
             </h2>
             {quizMode === "blitz" && (
@@ -897,6 +1089,18 @@ export default function Quiz() {
                   {questionTimer}
                 </div>
                 <span>seconds remaining for entire quiz</span>
+              </div>
+            )}
+            {quizMode === "survival" && (
+              <div className="quiz-timer">
+                <div
+                  className={`timer-circle ${
+                    survivalQuestionTimer <= 5 ? "warning" : ""
+                  }`}
+                >
+                  {survivalQuestionTimer}
+                </div>
+                <span>seconds remaining for this question</span>
               </div>
             )}
             <div className="question-block">

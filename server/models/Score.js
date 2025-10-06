@@ -16,7 +16,7 @@ Score.init(
       allowNull: false,
       validate: {
         min: 0,
-        max: 10,
+        // No max limit for survival mode which can have unlimited questions
       },
     },
     quiz_difficulty: {
@@ -36,11 +36,11 @@ Score.init(
       allowNull: false,
     },
     quiz_mode: {
-      type: DataTypes.STRING, // Stores 'daily', 'blitz', or 'category'
+      type: DataTypes.STRING, // Stores 'daily', 'blitz', 'category', or 'survival'
       allowNull: false,
       defaultValue: "daily",
       validate: {
-        isIn: [["daily", "blitz", "category"]],
+        isIn: [["daily", "blitz", "category", "survival"]],
       },
     },
     category_name: {

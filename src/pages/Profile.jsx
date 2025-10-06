@@ -117,7 +117,10 @@ export default function Profile() {
                       {new Date(score.date).toLocaleDateString()}
                     </p>
                     <p>
-                      <strong>Score:</strong> {score.score}/10
+                      <strong>Score:</strong>{" "}
+                      {score.quiz_mode === "survival"
+                        ? score.score
+                        : `${score.score}/10`}
                     </p>
                     {score.difficulty && (
                       <p>
@@ -132,6 +135,8 @@ export default function Profile() {
                             ? "⚡ Blitz"
                             : score.quiz_mode === "category"
                             ? "🎯 Category"
+                            : score.quiz_mode === "survival"
+                            ? "🏃 Survival"
                             : "📅 Daily"}
                         </span>
                       </p>

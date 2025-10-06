@@ -32,23 +32,39 @@ export default function Results() {
       JSON.parse(localStorage.getItem("triviaQuestions")) || [];
 
     if (loadedQuestions.length > 0) {
-      setTotalQuestions(loadedQuestions.length);
       setQuestions(loadedQuestions);
       setHasQuizData(true);
 
-      const correctCount = loadedQuestions.reduce((count, _, index) => {
-        return localStorage.getItem(`question${index}`) === "correct"
-          ? count + 1
-          : count;
-      }, 0);
-      setScore(correctCount);
+      // Get quiz mode once
+      const storedQuizMode = localStorage.getItem("quizMode");
+
+      // For survival mode, total questions is the same as the number answered
+      if (storedQuizMode === "survival") {
+        setTotalQuestions(loadedQuestions.length);
+      } else {
+        setTotalQuestions(loadedQuestions.length);
+      }
+
+      // For survival mode, use the stored correct count
+      if (storedQuizMode === "survival") {
+        const survivalCorrectCount = parseInt(
+          localStorage.getItem("survivalCorrectCount") || "0"
+        );
+        setScore(survivalCorrectCount);
+      } else {
+        const correctCount = loadedQuestions.reduce((count, _, index) => {
+          return localStorage.getItem(`question${index}`) === "correct"
+            ? count + 1
+            : count;
+        }, 0);
+        setScore(correctCount);
+      }
 
       const storedTime = localStorage.getItem("quizTimeTaken");
       if (storedTime) {
         setTimeTaken(parseInt(storedTime));
       }
 
-      const storedQuizMode = localStorage.getItem("quizMode");
       if (storedQuizMode) {
         setQuizMode(storedQuizMode);
       }
@@ -118,9 +134,15 @@ export default function Results() {
                         ?.label
                     : "Category"
                 } Quiz`
+              : quizMode === "survival"
+              ? "🏃 Survival Mode"
               : "📅 Daily Quiz"}
           </p>
-          <p>{`Score: ${score}/${totalQuestions}`}</p>
+          <p>
+            {quizMode === "survival"
+              ? `Score: ${score}`
+              : `Score: ${score}/${totalQuestions}`}
+          </p>
           {timeTaken > 0 && <p>{`Time: ${formatTime(timeTaken)}`}</p>}
         </div>
 
