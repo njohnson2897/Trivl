@@ -92,7 +92,15 @@ export const getUsers = async (req, res) => {
         {
           model: Score,
           as: "Scores",
-          attributes: ["quiz_score", "time_taken", "date_taken"],
+          attributes: [
+            "quiz_score",
+            "time_taken",
+            "date_taken",
+            "quiz_mode",
+            "quiz_difficulty",
+            "category_name",
+            "categories",
+          ],
         },
       ],
     });

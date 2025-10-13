@@ -207,14 +207,19 @@ export default function Quiz() {
         const isNicheArray = questions.map((q) => q.isNiche);
 
         // Determine quiz difficulty (mode of difficulties array)
-        const difficultyCounts = difficulties.reduce((counts, difficulty) => {
-          counts[difficulty] = (counts[difficulty] || 0) + 1;
-          return counts;
-        }, {});
-
-        const quizDifficulty = Object.keys(difficultyCounts).reduce((a, b) =>
-          difficultyCounts[a] > difficultyCounts[b] ? a : b
-        );
+        // For blitz mode, store the time limit instead of question difficulty
+        let quizDifficulty;
+        if (quizMode === "blitz") {
+          quizDifficulty = selectedBlitzTime.toString(); // Store as "30", "60", or "120"
+        } else {
+          const difficultyCounts = difficulties.reduce((counts, difficulty) => {
+            counts[difficulty] = (counts[difficulty] || 0) + 1;
+            return counts;
+          }, {});
+          quizDifficulty = Object.keys(difficultyCounts).reduce((a, b) =>
+            difficultyCounts[a] > difficultyCounts[b] ? a : b
+          );
+        }
 
         // Post the data to the backend
         await axiosInstance.post("/api/scores/logscore", {
@@ -249,7 +254,7 @@ export default function Quiz() {
     }
 
     navigate("/results");
-  }, [questions, quizMode, quizCategory, navigate]);
+  }, [questions, quizMode, quizCategory, navigate, selectedBlitzTime]);
 
   // Handle quiz timeout - mark all remaining questions as incorrect
   const handleQuizTimeout = useCallback(() => {
@@ -601,6 +606,17 @@ export default function Quiz() {
 
   // Start the quiz
   const startQuiz = async (mode = "daily", category = null) => {
+    // For category mode, find and store the display label
+    if (mode === "category" && category) {
+      const categoryOption = categoryOptions.find(
+        (opt) => opt.value === category
+      );
+      if (categoryOption) {
+        setQuizCategory(categoryOption.label);
+        localStorage.setItem("quizCategory", categoryOption.label);
+      }
+    }
+
     // Check cooldown only for daily quiz
     if (mode === "daily") {
       const token = localStorage.getItem("token");
