@@ -286,6 +286,39 @@ export const getUserProfile = async (req, res) => {
     console.log("Scores array length:", scores.length);
 
     const totalQuizzes = scores.length;
+
+    // Calculate mode-specific statistics
+    const modeStats = {};
+    const modes = ["daily", "blitz", "category", "survival"];
+
+    modes.forEach((mode) => {
+      const modeScores = scores.filter((s) => s.quiz_mode === mode);
+      const count = modeScores.length;
+
+      modeStats[mode] = {
+        totalQuizzes: count,
+        averageScore:
+          count > 0
+            ? parseFloat(
+                (
+                  modeScores.reduce((acc, s) => acc + s.quiz_score, 0) / count
+                ).toFixed(2)
+              )
+            : 0,
+        bestScore:
+          count > 0 ? Math.max(...modeScores.map((s) => s.quiz_score)) : 0,
+        averageTime:
+          count > 0
+            ? Math.round(
+                modeScores.reduce((acc, s) => acc + (s.time_taken || 0), 0) /
+                  count
+              )
+            : 0,
+        totalCorrect: modeScores.reduce((acc, s) => acc + s.quiz_score, 0),
+      };
+    });
+
+    // Overall statistics (amalgamated)
     const averageScore =
       totalQuizzes > 0
         ? scores.reduce((acc, score) => acc + score.quiz_score, 0) /
@@ -313,6 +346,7 @@ export const getUserProfile = async (req, res) => {
       averageScore: Math.round(averageScore),
       highestScore,
       averageDuration: Math.round(averageDuration),
+      modeStats, // Add mode-specific statistics
       recentScores: scores
         .sort((a, b) => new Date(b.date_taken) - new Date(a.date_taken))
         .slice(0, 5)

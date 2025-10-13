@@ -10,6 +10,7 @@ const QuizHistory = () => {
   const [quizHistory, setQuizHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedQuiz, setExpandedQuiz] = useState(null);
 
   useEffect(() => {
     const fetchQuizHistory = async () => {
@@ -113,11 +114,29 @@ const QuizHistory = () => {
 
         <div className="quiz-history-grid">
           {sortedHistory.map((quiz) => (
-            <div key={quiz.id} className="quiz-history-card">
+            <div
+              key={quiz.id}
+              className={`quiz-history-card ${
+                expandedQuiz === quiz.id ? "expanded" : ""
+              }`}
+            >
               <div className="quiz-history-header">
-                <h3>
-                  Quiz on {new Date(quiz.date_taken).toLocaleDateString()}
-                </h3>
+                <div className="quiz-header-content">
+                  <h3>
+                    {new Date(quiz.date_taken).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </h3>
+                  <p className="quiz-time">
+                    {new Date(quiz.date_taken).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
                 <div className="quiz-badges">
                   <span className={`quiz-mode-badge ${quiz.quiz_mode}`}>
                     {quiz.quiz_mode === "blitz"
@@ -136,30 +155,135 @@ const QuizHistory = () => {
                 </div>
               </div>
 
-              <div className="quiz-history-details">
-                <div className="detail-item">
-                  <span className="detail-label">Score:</span>
-                  <span className="detail-value">
-                    {quiz.quiz_mode === "survival"
-                      ? quiz.quiz_score
-                      : `${quiz.quiz_score}/10`}
-                  </span>
+              <div className="quiz-history-summary">
+                <div className="summary-stat">
+                  <div className="stat-icon">🎯</div>
+                  <div className="stat-content">
+                    <span className="stat-label">Score</span>
+                    <span className="stat-value">
+                      {quiz.quiz_mode === "survival"
+                        ? quiz.quiz_score
+                        : `${quiz.quiz_score}/10`}
+                    </span>
+                  </div>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Time:</span>
-                  <span className="detail-value">
-                    {formatTime(quiz.time_taken)}
-                  </span>
+                <div className="summary-stat">
+                  <div className="stat-icon">⏱️</div>
+                  <div className="stat-content">
+                    <span className="stat-label">Time</span>
+                    <span className="stat-value">
+                      {formatTime(quiz.time_taken)}
+                    </span>
+                  </div>
                 </div>
                 {quiz.quiz_mode === "category" && quiz.category_name && (
-                  <div className="detail-item">
-                    <span className="detail-label">Category:</span>
-                    <span className="detail-value">{quiz.category_name}</span>
+                  <div className="summary-stat">
+                    <div className="stat-icon">📚</div>
+                    <div className="stat-content">
+                      <span className="stat-label">Category</span>
+                      <span className="stat-value">{quiz.category_name}</span>
+                    </div>
                   </div>
                 )}
               </div>
 
-              <button className="view-details-btn">View Details</button>
+              {expandedQuiz === quiz.id && (
+                <div className="quiz-details-expanded">
+                  <div className="details-section">
+                    <h4>Quiz Information</h4>
+                    <div className="details-grid">
+                      <div className="detail-row">
+                        <span className="detail-label">Mode:</span>
+                        <span className="detail-value">
+                          {quiz.quiz_mode === "blitz"
+                            ? "Blitz Mode"
+                            : quiz.quiz_mode === "category"
+                            ? "Category Quiz"
+                            : quiz.quiz_mode === "survival"
+                            ? "Survival Mode"
+                            : "Daily Quiz"}
+                        </span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Difficulty:</span>
+                        <span className="detail-value">
+                          {quiz.quiz_difficulty}
+                        </span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Questions:</span>
+                        <span className="detail-value">
+                          {quiz.quiz_mode === "survival"
+                            ? quiz.quiz_score + 1
+                            : 10}
+                        </span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Accuracy:</span>
+                        <span className="detail-value">
+                          {quiz.quiz_mode === "survival"
+                            ? `${Math.round(
+                                (quiz.quiz_score / (quiz.quiz_score + 1)) * 100
+                              )}%`
+                            : `${quiz.quiz_score * 10}%`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {quiz.categories && quiz.categories.length > 0 && (
+                    <div className="details-section">
+                      <h4>Categories Covered</h4>
+                      <div className="categories-list">
+                        {[...new Set(quiz.categories)].map((cat, idx) => (
+                          <span key={idx} className="category-tag">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="details-section">
+                    <h4>Performance Metrics</h4>
+                    <div className="performance-bars">
+                      <div className="performance-item">
+                        <div className="performance-label">
+                          <span>Score</span>
+                          <span className="performance-value">
+                            {quiz.quiz_mode === "survival"
+                              ? `${quiz.quiz_score} correct`
+                              : `${quiz.quiz_score}/10`}
+                          </span>
+                        </div>
+                        <div className="performance-bar">
+                          <div
+                            className="performance-fill"
+                            style={{
+                              width:
+                                quiz.quiz_mode === "survival"
+                                  ? `${Math.min(
+                                      (quiz.quiz_score / 20) * 100,
+                                      100
+                                    )}%`
+                                  : `${quiz.quiz_score * 10}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <button
+                className="view-details-btn"
+                onClick={() =>
+                  setExpandedQuiz(expandedQuiz === quiz.id ? null : quiz.id)
+                }
+              >
+                {expandedQuiz === quiz.id ? "▲ Hide Details" : "▼ View Details"}
+              </button>
             </div>
           ))}
         </div>

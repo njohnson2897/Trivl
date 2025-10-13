@@ -84,23 +84,145 @@ export default function Profile() {
         </div>
 
         <div className="profile-section">
-          <h3>Quiz Statistics</h3>
-          <div className="quiz-stats-grid">
-            <div className="stat-card">
-              <strong>{totalQuizzes}</strong>
-              <p>Total Quizzes</p>
+          <h3>Quiz Statistics by Mode</h3>
+
+          <div className="mode-stats-grid">
+            {/* Daily Quiz Stats */}
+            <div className="mode-stat-card daily-stats">
+              <div className="mode-stat-header">
+                <span className="mode-stat-icon">📅</span>
+                <h4>Daily Quiz</h4>
+              </div>
+              <div className="mode-stat-content">
+                <div className="stat-row">
+                  <span className="stat-label">Total Taken:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.daily?.totalQuizzes || 0}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.daily?.averageScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Best Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.daily?.bestScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Time:</span>
+                  <span className="stat-value">
+                    {formatTime(userData?.modeStats?.daily?.averageTime || 0)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="stat-card">
-              <strong>{averageScore}</strong>
-              <p>Average Score</p>
+
+            {/* Blitz Mode Stats */}
+            <div className="mode-stat-card blitz-stats">
+              <div className="mode-stat-header">
+                <span className="mode-stat-icon">⚡</span>
+                <h4>Blitz Mode</h4>
+              </div>
+              <div className="mode-stat-content">
+                <div className="stat-row">
+                  <span className="stat-label">Total Taken:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.blitz?.totalQuizzes || 0}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.blitz?.averageScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Best Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.blitz?.bestScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Time:</span>
+                  <span className="stat-value">
+                    {formatTime(userData?.modeStats?.blitz?.averageTime || 0)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="stat-card">
-              <strong>{bestScore}</strong>
-              <p>Best Score</p>
+
+            {/* Category Quiz Stats */}
+            <div className="mode-stat-card category-stats">
+              <div className="mode-stat-header">
+                <span className="mode-stat-icon">🎯</span>
+                <h4>Category Quiz</h4>
+              </div>
+              <div className="mode-stat-content">
+                <div className="stat-row">
+                  <span className="stat-label">Total Taken:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.category?.totalQuizzes || 0}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.category?.averageScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Best Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.category?.bestScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Time:</span>
+                  <span className="stat-value">
+                    {formatTime(
+                      userData?.modeStats?.category?.averageTime || 0
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="stat-card">
-              <strong>{formatTime(averageDuration)}</strong>
-              <p>Avg. Duration</p>
+
+            {/* Survival Mode Stats */}
+            <div className="mode-stat-card survival-stats">
+              <div className="mode-stat-header">
+                <span className="mode-stat-icon">🏃</span>
+                <h4>Survival Mode</h4>
+              </div>
+              <div className="mode-stat-content">
+                <div className="stat-row">
+                  <span className="stat-label">Total Taken:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.survival?.totalQuizzes || 0}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.survival?.averageScore || 0} correct
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Best Streak:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.survival?.bestScore || 0} correct
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Total Correct:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.survival?.totalCorrect || 0}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
