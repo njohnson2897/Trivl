@@ -2,6 +2,7 @@ import User from "./User.js";
 import Score from "./Score.js";
 import UserFriends from "./UserFriends.js";
 import Achievement from "./Achievement.js";
+import DailyQuestions from "./DailyQuestions.js";
 
 // Define relationships
 Score.belongsTo(User, {
@@ -47,4 +48,4 @@ UserFriends.belongsTo(User, {
 });
 
 // Export models
-export { User, Score, UserFriends, Achievement };
+export { User, Score, UserFriends, Achievement, DailyQuestions };

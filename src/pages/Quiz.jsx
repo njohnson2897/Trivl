@@ -19,6 +19,7 @@ export default function Quiz() {
   const [selectedBlitzTime, setSelectedBlitzTime] = useState(90); // Default to 90 seconds
   const [showBlitzTimeSelection, setShowBlitzTimeSelection] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [showCategorySelection, setShowCategorySelection] = useState(false);
   const [quizCategory, setQuizCategory] = useState(null);
   const [survivalQuestionTimer, setSurvivalQuestionTimer] = useState(15);
@@ -230,9 +231,20 @@ export default function Quiz() {
         console.error("Error logging score:", error);
       }
     } else {
-      // For non-logged in users, set lastUpdateTime for cooldown (only for daily quiz)
+      // For non-logged in users, set lastQuizDate for cooldown (only for daily quiz)
       if (quizMode === "daily") {
-        localStorage.setItem("lastUpdateTime", new Date().getTime().toString());
+        // Store the date in CT timezone (YYYY-MM-DD format)
+        const today = new Date();
+        const ctDate = today.toLocaleDateString("en-US", {
+          timeZone: "America/Chicago",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+        // Convert from MM/DD/YYYY to YYYY-MM-DD
+        const [month, day, year] = ctDate.split("/");
+        const formattedDate = `${year}-${month}-${day}`;
+        localStorage.setItem("lastQuizDateCT", formattedDate);
       }
     }
 
@@ -332,31 +344,59 @@ export default function Quiz() {
 
       if (!token) {
         // If no token, check localStorage for quiz state and cooldown
-        const lastUpdateTime = localStorage.getItem("lastUpdateTime");
-        const currentTime = new Date().getTime();
+        const lastQuizDateCT = localStorage.getItem("lastQuizDateCT");
+
+        // Get today's date in CT timezone
+        const today = new Date();
+        const todayDateCT = today.toLocaleDateString("en-US", {
+          timeZone: "America/Chicago",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+        const [month, day, year] = todayDateCT.split("/");
+        const formattedTodayDate = `${year}-${month}-${day}`;
 
         // Check if quiz is in cooldown (for non-logged in users)
-        if (lastUpdateTime) {
-          if (currentTime - parseInt(lastUpdateTime) >= oneDayCountdown) {
-            // Clear all quiz-related data from localStorage
+        if (lastQuizDateCT) {
+          if (lastQuizDateCT !== formattedTodayDate) {
+            // Different day - clear all quiz-related data from localStorage
             for (let i = 0; i < 10; i++) {
               localStorage.removeItem(`question${i}`);
               localStorage.removeItem(`userAnswer${i}`);
             }
-            localStorage.removeItem("lastUpdateTime");
+            localStorage.removeItem("lastQuizDateCT");
             localStorage.removeItem("quizStatus");
             localStorage.removeItem("quizMode");
             localStorage.removeItem("triviaQuestions");
             localStorage.removeItem("currentQuestionIndex");
             setQuizStatus("not_started");
             setDailyQuizOnCooldown(false);
+            setCooldownTimeRemaining("");
             return;
-          } else if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
+          } else {
+            // Same day - still on cooldown
             setDailyQuizOnCooldown(true);
             setQuizStatus("not_started"); // Show quiz mode selection
-            startCooldownTimer();
+
+            // Calculate time until midnight CT
+            const midnightCT = new Date();
+            midnightCT.setDate(midnightCT.getDate() + 1);
+            midnightCT.setHours(0, 0, 0, 0);
+            const ctMidnight = new Date(
+              midnightCT.toLocaleString("en-US", {
+                timeZone: "America/Chicago",
+              })
+            );
+            const timeRemaining = ctMidnight.getTime() - new Date().getTime();
+
+            startCooldownTimer(timeRemaining);
             return;
           }
+        } else {
+          // No cooldown stored - user can take quiz
+          setDailyQuizOnCooldown(false);
+          setCooldownTimeRemaining("");
         }
 
         // Check for in-progress quiz
@@ -427,6 +467,10 @@ export default function Quiz() {
           setQuizStatus("not_started"); // Show quiz mode selection
           startCooldownTimer(cooldownData.timeRemaining);
           return;
+        } else {
+          // User can take quiz - clear cooldown
+          setDailyQuizOnCooldown(false);
+          setCooldownTimeRemaining("");
         }
 
         // Check for in-progress quiz in localStorage (only for in_progress, not completed)
@@ -504,7 +548,40 @@ export default function Quiz() {
 
     checkQuizState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate, refreshTrigger]); // Intentionally limited dependencies to prevent infinite loop
+  }, [navigate, refreshTrigger, isLoggedIn]); // Re-run when login state changes
+
+  // Listen for authentication changes (login/logout)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "token" || e.key === null) {
+        // Token changed or storage cleared
+        const newIsLoggedIn = !!localStorage.getItem("token");
+        if (newIsLoggedIn !== isLoggedIn) {
+          // Reset the initial check flag so checkQuizState can run again
+          initialCheckDoneRef.current = false;
+          setIsLoggedIn(newIsLoggedIn);
+        }
+      }
+    };
+
+    // Listen for storage events from other tabs/windows
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also check periodically in case login happens in same tab
+    const checkAuthInterval = setInterval(() => {
+      const currentIsLoggedIn = !!localStorage.getItem("token");
+      if (currentIsLoggedIn !== isLoggedIn) {
+        // Reset the initial check flag so checkQuizState can run again
+        initialCheckDoneRef.current = false;
+        setIsLoggedIn(currentIsLoggedIn);
+      }
+    }, 500); // Check every 500ms
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(checkAuthInterval);
+    };
+  }, [isLoggedIn]);
 
   // Fetch a batch of questions for survival mode
   const fetchQuestionBatch = async (limit = 50) => {
@@ -543,12 +620,35 @@ export default function Quiz() {
         }
       } else {
         // Check localStorage cooldown for non-logged in users
-        const lastUpdateTime = localStorage.getItem("lastUpdateTime");
-        if (lastUpdateTime) {
-          const currentTime = new Date().getTime();
-          if (currentTime - parseInt(lastUpdateTime) < oneDayCountdown) {
+        const lastQuizDateCT = localStorage.getItem("lastQuizDateCT");
+        if (lastQuizDateCT) {
+          // Get today's date in CT timezone
+          const today = new Date();
+          const todayDateCT = today.toLocaleDateString("en-US", {
+            timeZone: "America/Chicago",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          });
+          const [month, day, year] = todayDateCT.split("/");
+          const formattedTodayDate = `${year}-${month}-${day}`;
+
+          if (lastQuizDateCT === formattedTodayDate) {
+            // Same day - on cooldown
             setDailyQuizOnCooldown(true);
-            startCooldownTimer();
+
+            // Calculate time until midnight CT
+            const midnightCT = new Date();
+            midnightCT.setDate(midnightCT.getDate() + 1);
+            midnightCT.setHours(0, 0, 0, 0);
+            const ctMidnight = new Date(
+              midnightCT.toLocaleString("en-US", {
+                timeZone: "America/Chicago",
+              })
+            );
+            const timeRemaining = ctMidnight.getTime() - new Date().getTime();
+
+            startCooldownTimer(timeRemaining);
             return;
           }
         }
@@ -596,6 +696,37 @@ export default function Quiz() {
 
       console.log("🎉 Survival mode started successfully!");
       return;
+    }
+
+    // For daily quiz, fetch from backend API
+    if (mode === "daily") {
+      try {
+        const response = await axiosInstance.get("/api/daily-questions");
+        const data = response.data;
+        const questions = data.questions;
+
+        if (!questions || questions.length === 0) {
+          alert("Failed to load daily questions. Please try again.");
+          return;
+        }
+
+        console.log("✅ Daily questions loaded from backend");
+        setQuestions(questions);
+        setQuizStatus("in_progress");
+        setCurrentQuestionIndex(0);
+
+        localStorage.setItem("triviaQuestions", JSON.stringify(questions));
+        localStorage.setItem("quizStatus", "in_progress");
+        localStorage.setItem("currentQuestionIndex", "0");
+
+        shuffleOptionsForCurrentQuestion(questions[0]);
+        console.log("🎉 Daily quiz started successfully!");
+        return;
+      } catch (error) {
+        console.error("Error fetching daily questions:", error);
+        alert("Failed to load daily questions. Please try again.");
+        return;
+      }
     }
 
     // Build API URL based on mode and category for other modes
@@ -859,13 +990,13 @@ export default function Quiz() {
                 {dailyQuizOnCooldown ? (
                   <div className="cooldown-info">
                     <div className="cooldown-timer">
-                      <strong>Available in:</strong>
+                      <strong>Next Quiz is Available In:</strong>
                       <span className="timer-display">
-                        {cooldownTimeRemaining}
+                        {cooldownTimeRemaining || "Calculating..."}
                       </span>
                     </div>
                     <button className="quiz-start-button disabled" disabled>
-                      Daily Quiz on Cooldown
+                      Come Back Tomorrow
                     </button>
                   </div>
                 ) : (

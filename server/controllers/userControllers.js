@@ -417,6 +417,45 @@ export const updateUserSettings = async (req, res) => {
   }
 };
 
+// Helper function to get today's date in Central Time (YYYY-MM-DD)
+const getTodayDateCT = () => {
+  const today = new Date();
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = formatter.formatToParts(today);
+  const year = parts.find((p) => p.type === "year").value;
+  const month = parts.find((p) => p.type === "month").value;
+  const day = parts.find((p) => p.type === "day").value;
+  return `${year}-${month}-${day}`;
+};
+
+// Helper function to calculate milliseconds until next midnight CT
+const getTimeUntilMidnightCT = () => {
+  const now = new Date();
+
+  // Get current time components in CT timezone
+  const ctFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const ctTime = ctFormatter.format(now);
+  const [hours, minutes, seconds] = ctTime.split(":").map(Number);
+
+  // Calculate seconds until midnight CT
+  const secondsUntilMidnight =
+    24 * 60 * 60 - (hours * 60 * 60 + minutes * 60 + seconds);
+
+  return secondsUntilMidnight * 1000; // Convert to milliseconds
+};
+
 // GET user cooldown status
 export const getCooldownStatus = async (req, res) => {
   try {
@@ -427,25 +466,38 @@ export const getCooldownStatus = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    const currentTime = new Date().getTime();
-    const lastQuizDate = user.lastQuizDate
-      ? new Date(user.lastQuizDate).getTime()
+    const todayDateCT = getTodayDateCT();
+    const lastQuizDateStr = user.lastQuizDate
+      ? new Date(user.lastQuizDate)
+          .toLocaleDateString("en-US", {
+            timeZone: "America/Chicago",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })
+          .split("/")
+          .reverse()
+          .join("-")
+          .replace(/(\d+)-(\d+)-(\d+)/, "$1-$3-$2")
       : null;
 
     let cooldownStatus = {
       canTakeQuiz: true,
       timeRemaining: 0,
-      lastQuizDate: lastQuizDate,
+      nextQuizTime: null,
+      lastQuizDate: user.lastQuizDate,
     };
 
-    if (lastQuizDate) {
-      const timeSinceLastQuiz = currentTime - lastQuizDate;
+    // Check if user has taken a quiz today (in CT timezone)
+    if (lastQuizDateStr === todayDateCT) {
+      cooldownStatus.canTakeQuiz = false;
 
-      if (timeSinceLastQuiz < oneDayInMs) {
-        cooldownStatus.canTakeQuiz = false;
-        cooldownStatus.timeRemaining = oneDayInMs - timeSinceLastQuiz;
-      }
+      // Calculate time until midnight CT
+      cooldownStatus.timeRemaining = getTimeUntilMidnightCT();
+
+      // Calculate next quiz time (midnight CT)
+      const nextQuizTime = new Date(Date.now() + cooldownStatus.timeRemaining);
+      cooldownStatus.nextQuizTime = nextQuizTime.toISOString();
     }
 
     res.status(200).json(cooldownStatus);
