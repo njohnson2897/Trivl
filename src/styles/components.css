@@ -143,6 +143,20 @@
   transition: color 0.2s ease;
 }
 
+.notification-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.notification-actions .btn {
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
 .notification-item:hover .notification-content {
   color: var(--text-primary);
 }

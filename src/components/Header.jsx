@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Navbar, Nav, Button, Offcanvas, Dropdown } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import AuthModal from "./AuthModal.jsx";
+import axiosInstance from "../../axiosConfig.js";
 
 function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -14,6 +15,27 @@ function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Function to fetch notifications
+  const fetchNotifications = async () => {
+    const token = localStorage.getItem("token");
+    console.log("🔍 fetchNotifications called", { token: !!token, isLoggedIn });
+    if (token && isLoggedIn) {
+      try {
+        const response = await axiosInstance.get("/api/friends/requests");
+        console.log("🔍 API response status:", response.status);
+        console.log("🔍 API response data:", response.data);
+        setPendingNotifications(response.data.friendRequests || []);
+        console.log(
+          "🔍 Set pending notifications:",
+          response.data.friendRequests || []
+        );
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    }
+  };
 
   // Get username from token and fetch notifications
   useEffect(() => {
@@ -22,23 +44,6 @@ function Header() {
       try {
         const decodedToken = jwtDecode(token);
         setUsername(decodedToken.username || "");
-
-        // Fetch pending notifications
-        const fetchNotifications = async () => {
-          try {
-            const response = await fetch("/api/friends/requests", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            if (response.ok) {
-              const data = await response.json();
-              setPendingNotifications(data.friendRequests || []);
-            }
-          } catch (error) {
-            console.error("Error fetching notifications:", error);
-          }
-        };
         fetchNotifications();
       } catch (error) {
         console.error("Error decoding token:", error);
@@ -47,6 +52,39 @@ function Header() {
       setUsername("");
       setPendingNotifications([]);
     }
+  }, [isLoggedIn]);
+
+  // Refresh notifications when the user navigates (e.g., after sending a friend request)
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchNotifications();
+    }
+  }, [location.pathname, isLoggedIn]); // This will run when the route changes or when isLoggedIn changes
+
+  // Periodic refresh of notifications (every 30 seconds)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  // Refresh notifications when the window regains focus
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const handleFocus = () => {
+      fetchNotifications();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [isLoggedIn]);
 
   const handleShowAuthModal = () => setShowAuthModal(true);
@@ -106,7 +144,13 @@ function Header() {
                 {/* Notifications Button */}
                 <Dropdown
                   show={showNotifications}
-                  onToggle={setShowNotifications}
+                  onToggle={(isOpen) => {
+                    setShowNotifications(isOpen);
+                    // Refresh notifications when dropdown is opened
+                    if (isOpen) {
+                      fetchNotifications();
+                    }
+                  }}
                 >
                   <Dropdown.Toggle
                     as={Button}
@@ -122,19 +166,90 @@ function Header() {
                     )}
                   </Dropdown.Toggle>
                   <Dropdown.Menu className="notification-dropdown">
-                    <Dropdown.Header>Notifications</Dropdown.Header>
+                    <Dropdown.Header className="d-flex justify-content-between align-items-center">
+                      <span>Notifications</span>
+                      <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetchNotifications();
+                        }}
+                        style={{ fontSize: "12px", padding: "2px 6px" }}
+                      >
+                        🔄
+                      </button>
+                    </Dropdown.Header>
                     {pendingNotifications.length > 0 ? (
                       pendingNotifications.map((request) => (
                         <Dropdown.Item
                           key={request.id}
                           className="notification-item"
-                          as={Link}
-                          to="/notifications"
-                          onClick={() => setShowNotifications(false)}
                         >
                           <div className="notification-content">
-                            <strong>{request.user.username}</strong> sent you a
-                            friend request
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <strong>{request.user.username}</strong> sent
+                                you a friend request
+                              </div>
+                              <div className="notification-actions ms-2">
+                                <button
+                                  className="btn btn-sm btn-success me-1"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      await axiosInstance.post(
+                                        `/api/friends/accept/${request.id}`
+                                      );
+                                      // Remove the accepted request from the list
+                                      setPendingNotifications((prev) =>
+                                        prev.filter(
+                                          (req) => req.id !== request.id
+                                        )
+                                      );
+                                    } catch (error) {
+                                      console.error(
+                                        "Error accepting friend request:",
+                                        error
+                                      );
+                                    }
+                                  }}
+                                  style={{
+                                    fontSize: "10px",
+                                    padding: "1px 4px",
+                                  }}
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-danger"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      await axiosInstance.post(
+                                        `/api/friends/reject/${request.id}`
+                                      );
+                                      // Remove the rejected request from the list
+                                      setPendingNotifications((prev) =>
+                                        prev.filter(
+                                          (req) => req.id !== request.id
+                                        )
+                                      );
+                                    } catch (error) {
+                                      console.error(
+                                        "Error rejecting friend request:",
+                                        error
+                                      );
+                                    }
+                                  }}
+                                  style={{
+                                    fontSize: "10px",
+                                    padding: "1px 4px",
+                                  }}
+                                >
+                                  ✗
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </Dropdown.Item>
                       ))

@@ -136,10 +136,12 @@ router.post("/reject/:requestId", authenticateToken, async (req, res) => {
 router.get("/requests", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log("🔍 GET /api/friends/requests - User ID:", userId);
 
     // Validate that the current user exists
     const currentUser = await User.findByPk(userId);
     if (!currentUser) {
+      console.log("❌ User not found for ID:", userId);
       return res.status(401).json({
         error: "Invalid user token. Please log in again.",
       });
@@ -158,6 +160,16 @@ router.get("/requests", authenticateToken, async (req, res) => {
         },
       ],
     });
+
+    console.log("🔍 Found friend requests:", friendRequests.length);
+    console.log(
+      "🔍 Friend requests data:",
+      friendRequests.map((r) => ({
+        id: r.id,
+        from: r.user?.username,
+        to: r.friendId,
+      }))
+    );
 
     res.status(200).json({ friendRequests });
   } catch (error) {
