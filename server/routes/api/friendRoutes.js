@@ -11,6 +11,29 @@ router.post("/add", authenticateToken, async (req, res) => {
     const { friendId } = req.body;
     const userId = req.user.id;
 
+    // Validate that the current user exists
+    const currentUser = await User.findByPk(userId);
+    if (!currentUser) {
+      return res.status(401).json({
+        error: "Invalid user token. Please log in again.",
+      });
+    }
+
+    // Validate that the friend user exists
+    const friendUser = await User.findByPk(friendId);
+    if (!friendUser) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    // Prevent self-friending
+    if (userId === friendId) {
+      return res.status(400).json({
+        error: "Cannot send friend request to yourself",
+      });
+    }
+
     // Check if friend request already exists
     const existingRequest = await UserFriends.findOne({
       where: {
@@ -47,6 +70,14 @@ router.post("/accept/:requestId", authenticateToken, async (req, res) => {
     const { requestId } = req.params;
     const userId = req.user.id;
 
+    // Validate that the current user exists
+    const currentUser = await User.findByPk(userId);
+    if (!currentUser) {
+      return res.status(401).json({
+        error: "Invalid user token. Please log in again.",
+      });
+    }
+
     const friendRequest = await UserFriends.findOne({
       where: {
         id: requestId,
@@ -73,6 +104,14 @@ router.post("/reject/:requestId", authenticateToken, async (req, res) => {
     const { requestId } = req.params;
     const userId = req.user.id;
 
+    // Validate that the current user exists
+    const currentUser = await User.findByPk(userId);
+    if (!currentUser) {
+      return res.status(401).json({
+        error: "Invalid user token. Please log in again.",
+      });
+    }
+
     const friendRequest = await UserFriends.findOne({
       where: {
         id: requestId,
@@ -97,6 +136,14 @@ router.post("/reject/:requestId", authenticateToken, async (req, res) => {
 router.get("/requests", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
+
+    // Validate that the current user exists
+    const currentUser = await User.findByPk(userId);
+    if (!currentUser) {
+      return res.status(401).json({
+        error: "Invalid user token. Please log in again.",
+      });
+    }
 
     const friendRequests = await UserFriends.findAll({
       where: {
@@ -123,6 +170,14 @@ router.get("/requests", authenticateToken, async (req, res) => {
 router.get("/list", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
+
+    // Validate that the current user exists
+    const currentUser = await User.findByPk(userId);
+    if (!currentUser) {
+      return res.status(401).json({
+        error: "Invalid user token. Please log in again.",
+      });
+    }
 
     const friends = await UserFriends.findAll({
       where: {
