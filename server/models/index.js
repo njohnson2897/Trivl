@@ -3,6 +3,7 @@ import Score from "./Score.js";
 import UserFriends from "./UserFriends.js";
 import Achievement from "./Achievement.js";
 import DailyQuestions from "./DailyQuestions.js";
+import Challenge from "./Challenge.js";
 
 // Define relationships
 Score.belongsTo(User, {
@@ -47,5 +48,16 @@ UserFriends.belongsTo(User, {
   as: "friend",
 });
 
+// Challenge relationships
+Challenge.belongsTo(User, {
+  foreignKey: "challengerId",
+  as: "challenger",
+});
+
+Challenge.belongsTo(User, {
+  foreignKey: "challengedId",
+  as: "challenged",
+});
+
 // Export models
-export { User, Score, UserFriends, Achievement, DailyQuestions };
+export { User, Score, UserFriends, Achievement, DailyQuestions, Challenge };

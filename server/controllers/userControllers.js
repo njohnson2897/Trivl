@@ -188,6 +188,10 @@ export const getUserProfile = async (req, res) => {
             "quiz_difficulty",
             "quiz_mode",
             "category_name",
+            "challenge_id",
+            "opponent_id",
+            "opponent_username",
+            "won_challenge",
           ],
         },
       ],
@@ -297,7 +301,7 @@ export const getUserProfile = async (req, res) => {
 
     // Calculate mode-specific statistics
     const modeStats = {};
-    const modes = ["daily", "blitz", "category", "survival"];
+    const modes = ["daily", "blitz", "category", "survival", "challenge"];
 
     modes.forEach((mode) => {
       const modeScores = scores.filter((s) => s.quiz_mode === mode);
@@ -365,6 +369,10 @@ export const getUserProfile = async (req, res) => {
           time_taken: score.time_taken,
           quiz_mode: score.quiz_mode,
           category_name: score.category_name,
+          challenge_id: score.challenge_id,
+          opponent_id: score.opponent_id,
+          opponent_username: score.opponent_username,
+          won_challenge: score.won_challenge,
         })),
       friends: friendsList,
       achievements: achievements.map((achievement) => ({

@@ -224,6 +224,42 @@ export default function Profile() {
                 </div>
               </div>
             </div>
+
+            {/* Challenge Mode Stats */}
+            <div className="mode-stat-card challenge-stats">
+              <div className="mode-stat-header">
+                <span className="mode-stat-icon">🎯</span>
+                <h4>Challenge Quiz</h4>
+              </div>
+              <div className="mode-stat-content">
+                <div className="stat-row">
+                  <span className="stat-label">Total Taken:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.challenge?.totalQuizzes || 0}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.challenge?.averageScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Best Score:</span>
+                  <span className="stat-value">
+                    {userData?.modeStats?.challenge?.bestScore || 0}/10
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Avg Time:</span>
+                  <span className="stat-value">
+                    {formatTime(
+                      userData?.modeStats?.challenge?.averageTime || 0
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -259,6 +295,8 @@ export default function Profile() {
                             ? "🎯 Category"
                             : score.quiz_mode === "survival"
                             ? "🏃 Survival"
+                            : score.quiz_mode === "challenge"
+                            ? "🎯 Challenge"
                             : "📅 Daily"}
                         </span>
                       </p>
@@ -268,6 +306,20 @@ export default function Profile() {
                         <strong>Category:</strong> {score.category_name}
                       </p>
                     )}
+                    {score.quiz_mode === "challenge" &&
+                      score.opponent_username && (
+                        <>
+                          <p>
+                            <strong>Opponent:</strong> {score.opponent_username}
+                          </p>
+                          {score.won_challenge !== null && (
+                            <p>
+                              <strong>Result:</strong>{" "}
+                              {score.won_challenge ? "🏆 Won" : "❌ Lost"}
+                            </p>
+                          )}
+                        </>
+                      )}
                     {score.time_taken && (
                       <p>
                         <strong>Duration:</strong>{" "}

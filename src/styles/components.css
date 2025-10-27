@@ -592,6 +592,23 @@
   box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
 }
 
+.quiz-mode-card.challenge-mode {
+  border-color: var(--color-info);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(13, 110, 253, 0.05) 100%);
+}
+
+.quiz-mode-card.challenge-mode:hover {
+  border-color: var(--color-info);
+  box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2);
+}
+
+.quiz-mode-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
 .quiz-mode-card.cooldown {
   opacity: 0.8;
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
@@ -1613,6 +1630,14 @@
 
 .survival-stats:hover {
   box-shadow: 0 8px 20px rgba(220, 53, 69, 0.15);
+}
+
+.challenge-stats {
+  border-color: var(--color-info);
+}
+
+.challenge-stats:hover {
+  box-shadow: 0 8px 20px rgba(13, 110, 253, 0.15);
 }
 
 .mode-stat-header {
@@ -3268,6 +3293,85 @@ footer .col-md-4:last-child {
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
+}
+
+/* Friend Selection Styles */
+.friend-selection {
+  width: 100%;
+}
+
+.friend-selection h4 {
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.friend-option {
+  padding: var(--spacing-md);
+  background-color: var(--bg-tertiary);
+  border: 2px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.friend-option:hover {
+  background-color: var(--bg-quaternary);
+  border-color: var(--color-primary);
+  transform: translateX(4px);
+}
+
+.friend-option.selected {
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
+  border-color: var(--color-primary);
+}
+
+.friend-selection-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.challenge-button.secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-secondary);
+}
+
+.challenge-button.secondary:hover {
+  background-color: var(--bg-quaternary);
+  border-color: var(--text-secondary);
+}
+
+.challenge-button.primary {
+  background-color: var(--color-info);
+}
+
+.challenge-button.primary:hover {
+  background-color: #0b5ed7;
+}
+
+.no-friends {
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.no-friends p {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
 }
 
 /* Gameplay Steps */

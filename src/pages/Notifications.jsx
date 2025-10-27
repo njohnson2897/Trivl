@@ -5,6 +5,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Notifications() {
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [pendingChallenges, setPendingChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,6 +15,14 @@ export default function Notifications() {
         const response = await axiosInstance.get(`/api/friends/requests`);
         console.log("Friend requests:", response.data.friendRequests); // Debug log
         setPendingRequests(response.data.friendRequests);
+
+        // Also fetch pending challenges
+        const challengeResponse = await axiosInstance.get(
+          `/api/challenges/pending`
+        );
+        console.log("Pending challenges:", challengeResponse.data.challenges);
+        setPendingChallenges(challengeResponse.data.challenges || []);
+
         setError(null);
       } catch (err) {
         console.error("Error fetching pending requests:", err);
@@ -54,6 +63,39 @@ export default function Notifications() {
     }
   };
 
+  const handleAcceptChallenge = async (challengeId) => {
+    try {
+      const response = await axiosInstance.post(
+        `/api/challenges/${challengeId}/accept`
+      );
+      const challenge = response.data.challenge;
+
+      // Store challenge data in localStorage and redirect to quiz
+      localStorage.setItem(
+        "triviaQuestions",
+        JSON.stringify(response.data.questions)
+      );
+      localStorage.setItem("quizStatus", "in_progress");
+      localStorage.setItem("currentQuestionIndex", "0");
+      localStorage.setItem("quizMode", "challenge");
+      localStorage.setItem("challengeId", challenge.id);
+
+      const startTime = new Date().getTime();
+      localStorage.setItem("quizStartTime", startTime);
+
+      // Remove from pending challenges
+      setPendingChallenges(
+        pendingChallenges.filter((challenge) => challenge.id !== challengeId)
+      );
+
+      // Navigate to quiz page
+      window.location.reload();
+    } catch (err) {
+      console.error("Error accepting challenge:", err);
+      alert("Failed to accept challenge. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="content-container">
@@ -79,7 +121,7 @@ export default function Notifications() {
       <div className="quiz-content">
         <h1>Notifications</h1>
 
-        {pendingRequests.length > 0 ? (
+        {pendingRequests.length > 0 || pendingChallenges.length > 0 ? (
           <div className="notifications-list">
             {pendingRequests.map((request) => (
               <div key={`request-${request.id}`} className="notification-card">
@@ -96,6 +138,26 @@ export default function Notifications() {
                     className="decline-btn"
                   >
                     Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {pendingChallenges.map((challenge) => (
+              <div
+                key={`challenge-${challenge.id}`}
+                className="notification-card"
+              >
+                <h3>
+                  🎯 {challenge.challenger.username} challenged you to a quiz!
+                </h3>
+                <p>Take the same 10 question quiz and see who scores higher!</p>
+                <div className="notification-actions">
+                  <button
+                    onClick={() => handleAcceptChallenge(challenge.id)}
+                    className="accept-btn"
+                  >
+                    Accept Challenge
                   </button>
                 </div>
               </div>

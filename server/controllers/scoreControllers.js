@@ -5,7 +5,6 @@ import { checkAchievements } from "./achievementControllers.js";
 export const logScore = async (req, res) => {
   try {
     const {
-      userId,
       quiz_score,
       quiz_difficulty,
       categories,
@@ -13,7 +12,16 @@ export const logScore = async (req, res) => {
       time_taken,
       quiz_mode = "daily", // Default to 'daily' for backward compatibility
       category_name = null, // Category name for category quizzes
+      challenge_id = null,
+      opponent_id = null,
+      opponent_username = null,
+      won_challenge = null,
     } = req.body;
+
+    // Get userId from authenticated user (from auth middleware)
+    const userId = req.user.id;
+
+    console.log("Logging score for userId:", userId, "quiz_mode:", quiz_mode);
 
     // Check if user exists
     const user = await User.findByPk(userId);
@@ -31,12 +39,19 @@ export const logScore = async (req, res) => {
       time_taken,
       quiz_mode,
       category_name, // Store category name for category quizzes
+      challenge_id, // For challenge quizzes
+      opponent_id, // Opponent's user ID
+      opponent_username, // Opponent's username
+      won_challenge, // Whether the user won the challenge
     });
 
-    // Update user's lastQuizDate to current time
-    await user.update({
-      lastQuizDate: new Date(),
-    });
+    // Update user's lastQuizDate to current time (ONLY for daily quiz mode)
+    // Other modes don't have cooldowns, so they shouldn't update lastQuizDate
+    if (quiz_mode === "daily") {
+      await user.update({
+        lastQuizDate: new Date(),
+      });
+    }
 
     // Check for new achievements
     await checkAchievements(userId);
@@ -44,7 +59,12 @@ export const logScore = async (req, res) => {
     res.status(201).json(newScore);
   } catch (error) {
     console.error("Error logging score:", error);
-    res.status(500).json({ error: "Error logging score" });
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+    res.status(500).json({ error: `Error logging score: ${error.message}` });
   }
 };
 

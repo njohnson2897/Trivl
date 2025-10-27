@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { formatTime } from "../utils/helpers";
 import { Link } from "react-router-dom";
+import axiosInstance from "../../axiosConfig.js";
+import { jwtDecode } from "jwt-decode";
 
 // Category options for display names
 const categoryOptions = [
@@ -23,10 +25,17 @@ export default function Results() {
   const [quizCategory, setQuizCategory] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasQuizData, setHasQuizData] = useState(false);
+  const [challengeData, setChallengeData] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setUserId(decodedToken.id);
+    }
 
     const loadedQuestions =
       JSON.parse(localStorage.getItem("triviaQuestions")) || [];
@@ -73,6 +82,33 @@ export default function Results() {
       const storedQuizCategory = localStorage.getItem("quizCategory");
       if (storedQuizCategory) {
         setQuizCategory(storedQuizCategory);
+      }
+
+      // Load challenge data if it's a challenge quiz
+      if (storedQuizMode === "challenge") {
+        const challengeId = localStorage.getItem("challengeId");
+        if (challengeId) {
+          // Fetch challenge details immediately and set up polling
+          const fetchChallengeData = async () => {
+            try {
+              const response = await axiosInstance.get(
+                `/api/challenges/${challengeId}`
+              );
+              const challenge = response.data.challenge;
+              setChallengeData(challenge);
+
+              // Keep polling if not completed
+              if (challenge.status !== "completed") {
+                setTimeout(fetchChallengeData, 2000);
+              }
+            } catch (error) {
+              console.error("Error fetching challenge data:", error);
+            }
+          };
+
+          // Initial fetch
+          fetchChallengeData();
+        }
       }
     } else {
       setHasQuizData(false);
@@ -136,6 +172,8 @@ export default function Results() {
                 } Quiz`
               : quizMode === "survival"
               ? "🏃 Survival Mode"
+              : quizMode === "challenge"
+              ? "🎯 Challenge Quiz"
               : "📅 Daily Quiz"}
           </p>
           <p>
@@ -145,6 +183,50 @@ export default function Results() {
           </p>
           {timeTaken > 0 && <p>{`Time: ${formatTime(timeTaken)}`}</p>}
         </div>
+
+        {/* Challenge Results Comparison */}
+        {quizMode === "challenge" && challengeData && (
+          <div className="challenge-results">
+            <h2>Challenge Results</h2>
+            {challengeData.status === "completed" && (
+              <>
+                <div className="challenge-comparison">
+                  <div className="challenge-player">
+                    <h3>{challengeData.challenger.username}</h3>
+                    <p>
+                      Score: {challengeData.challengerScore || "Pending"}/10
+                    </p>
+                    {challengeData.challengerTimeTaken && (
+                      <p>
+                        Time: {formatTime(challengeData.challengerTimeTaken)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="challenge-vs">VS</div>
+                  <div className="challenge-player">
+                    <h3>{challengeData.challenged.username}</h3>
+                    <p>
+                      Score: {challengeData.challengedScore || "Pending"}/10
+                    </p>
+                    {challengeData.challengedTimeTaken && (
+                      <p>
+                        Time: {formatTime(challengeData.challengedTimeTaken)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {challengeData.winner && (
+                  <div className="challenge-winner">
+                    <h3>🎉 Winner: {challengeData.winner.username}</h3>
+                  </div>
+                )}
+              </>
+            )}
+            {challengeData.status !== "completed" && (
+              <p>Waiting for opponent to complete the challenge...</p>
+            )}
+          </div>
+        )}
 
         <div className="questions-container">
           {questions.map((question, index) => {

@@ -97,6 +97,7 @@ const QuizHistory = () => {
             <option value="blitz">Blitz Mode</option>
             <option value="category">Category Quiz</option>
             <option value="survival">Survival Mode</option>
+            <option value="challenge">Challenge Quiz</option>
             <option value="easy">Easy Difficulty</option>
             <option value="medium">Medium Difficulty</option>
             <option value="hard">Hard Difficulty</option>
@@ -145,6 +146,8 @@ const QuizHistory = () => {
                       ? "🎯 Category"
                       : quiz.quiz_mode === "survival"
                       ? "🏃 Survival"
+                      : quiz.quiz_mode === "challenge"
+                      ? "🎯 Challenge"
                       : "📅 Daily"}
                   </span>
                   <span
@@ -201,9 +204,30 @@ const QuizHistory = () => {
                             ? "Category Quiz"
                             : quiz.quiz_mode === "survival"
                             ? "Survival Mode"
+                            : quiz.quiz_mode === "challenge"
+                            ? "Challenge Quiz"
                             : "Daily Quiz"}
                         </span>
                       </div>
+                      {quiz.quiz_mode === "challenge" &&
+                        quiz.opponent_username && (
+                          <>
+                            <div className="detail-row">
+                              <span className="detail-label">Opponent:</span>
+                              <span className="detail-value">
+                                {quiz.opponent_username}
+                              </span>
+                            </div>
+                            {quiz.won_challenge !== null && (
+                              <div className="detail-row">
+                                <span className="detail-label">Result:</span>
+                                <span className="detail-value">
+                                  {quiz.won_challenge ? "🏆 Won" : "❌ Lost"}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        )}
                       <div className="detail-row">
                         <span className="detail-label">Difficulty:</span>
                         <span className="detail-value">

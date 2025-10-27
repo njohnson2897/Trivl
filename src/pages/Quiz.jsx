@@ -10,7 +10,7 @@ export default function Quiz() {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizStatus, setQuizStatus] = useState("not_started");
-  const [quizMode, setQuizMode] = useState("daily"); // "daily", "blitz", "category", or "survival"
+  const [quizMode, setQuizMode] = useState("daily"); // "daily", "blitz", "category", "survival", or "challenge"
   const [shuffledOptions, setShuffledOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [questionTimer, setQuestionTimer] = useState(0);
@@ -23,6 +23,9 @@ export default function Quiz() {
   const [showCategorySelection, setShowCategorySelection] = useState(false);
   const [quizCategory, setQuizCategory] = useState(null);
   const [survivalQuestionTimer, setSurvivalQuestionTimer] = useState(15);
+  const [showFriendSelection, setShowFriendSelection] = useState(false);
+  const [friends, setFriends] = useState([]);
+  const [selectedFriend, setSelectedFriend] = useState(null);
   const cooldownIntervalRef = useRef(null);
   const questionTimerRef = useRef(null);
   const initialCheckDoneRef = useRef(false);
@@ -63,14 +66,65 @@ export default function Quiz() {
     }
   };
 
+  // Fetch friends for challenge
+  const fetchFriends = async () => {
+    try {
+      const response = await axiosInstance.get("/api/friends/list");
+      setFriends(response.data.friends);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+      setFriends([]);
+    }
+  };
+
+  // Create a challenge
+  const createChallenge = async (friendId) => {
+    try {
+      const response = await axiosInstance.post("/api/challenges/create", {
+        challengedId: friendId,
+      });
+      const challenge = response.data.challenge;
+      setSelectedFriend(friendId);
+      setQuizMode("challenge");
+      setShowFriendSelection(false);
+
+      // Set questions from the challenge
+      setQuestions(challenge.questions);
+      setQuizStatus("in_progress");
+      setCurrentQuestionIndex(0);
+
+      // Persist quiz state
+      localStorage.setItem(
+        "triviaQuestions",
+        JSON.stringify(challenge.questions)
+      );
+      localStorage.setItem("quizStatus", "in_progress");
+      localStorage.setItem("currentQuestionIndex", "0");
+      localStorage.setItem("quizMode", "challenge");
+      localStorage.setItem("challengeId", challenge.id);
+
+      const startTime = new Date().getTime();
+      localStorage.setItem("quizStartTime", startTime);
+
+      shuffleOptionsForCurrentQuestion(challenge.questions[0]);
+    } catch (error) {
+      console.error("Error creating challenge:", error);
+      alert("Failed to create challenge. Please try again.");
+    }
+  };
+
   // Clear quiz state when component mounts or when user logs in
   useEffect(() => {
     const clearCompletedQuizState = () => {
       // Clear ALL quiz data when a user logs in/out to prevent interference
       const storedQuizStatus = localStorage.getItem("quizStatus");
+      // Don't clear if it's a challenge that was just accepted (status is "in_progress" with challenge mode)
+      const storedQuizMode = localStorage.getItem("quizMode");
+      const isChallengeMode = storedQuizMode === "challenge";
+
       if (
         storedQuizStatus === "completed" ||
-        storedQuizStatus === "in_progress"
+        (storedQuizStatus === "in_progress" && !isChallengeMode)
       ) {
         localStorage.removeItem("quizStatus");
         localStorage.removeItem("quizTimeTaken");
@@ -172,6 +226,7 @@ export default function Quiz() {
 
   // Handle quiz completion
   const handleQuizCompletion = useCallback(async () => {
+    console.log("🔴 handleQuizCompletion called");
     const quizStartTime = localStorage.getItem("quizStartTime");
     const timeTaken = quizStartTime
       ? Math.floor((new Date().getTime() - parseInt(quizStartTime)) / 1000) // Time in seconds
@@ -221,17 +276,126 @@ export default function Quiz() {
           );
         }
 
-        // Post the data to the backend
-        await axiosInstance.post("/api/scores/logscore", {
-          userId,
-          quiz_score: correctCount,
-          quiz_difficulty: quizDifficulty,
-          categories,
-          is_niche: isNicheArray,
-          time_taken: timeTaken,
-          quiz_mode: quizMode, // New field for quiz type
-          category_name: quizCategory, // Category name for category quizzes
-        });
+        // Check for challenge mode from localStorage (more reliable than state)
+        const currentQuizMode = localStorage.getItem("quizMode");
+        console.log(
+          "🔴 Quiz completion - quizMode state:",
+          quizMode,
+          "localStorage:",
+          currentQuizMode
+        );
+
+        // For challenge mode, submit to challenge endpoint
+        if (quizMode === "challenge" || currentQuizMode === "challenge") {
+          console.log("🔴 Entering challenge mode completion flow");
+
+          // Get challenge details to get opponent info
+          const challengeId = localStorage.getItem("challengeId");
+          let opponentId = null;
+          let opponentUsername = null;
+          let wonChallenge = null;
+
+          if (challengeId) {
+            try {
+              const challengeResponse = await axiosInstance.get(
+                `/api/challenges/${challengeId}`
+              );
+              const challenge = challengeResponse.data.challenge;
+
+              // Determine opponent
+              if (challenge.challengerId === userId) {
+                opponentId = challenge.challengedId;
+                opponentUsername = challenge.challenged?.username || null;
+              } else if (challenge.challengedId === userId) {
+                opponentId = challenge.challengerId;
+                opponentUsername = challenge.challenger?.username || null;
+              }
+
+              // Determine win/loss (only if challenge is completed)
+              if (challenge.status === "completed" && challenge.winnerId) {
+                wonChallenge = challenge.winnerId === userId;
+              }
+            } catch (err) {
+              console.error("🔴 Error fetching challenge details:", err);
+            }
+          }
+
+          // ALWAYS save challenge quiz to history FIRST - regardless of challenge submission success
+          console.log(
+            "🔴 Saving challenge quiz to history with quiz_mode:",
+            currentQuizMode
+          );
+          try {
+            const historyResponse = await axiosInstance.post(
+              "/api/scores/logscore",
+              {
+                quiz_score: correctCount,
+                quiz_difficulty: quizDifficulty,
+                categories,
+                is_niche: isNicheArray,
+                time_taken: timeTaken,
+                quiz_mode: currentQuizMode,
+                category_name: null,
+                challenge_id: challengeId,
+                opponent_id: opponentId,
+                opponent_username: opponentUsername,
+                won_challenge: wonChallenge,
+              }
+            );
+            console.log(
+              "🔴 Challenge quiz saved to history:",
+              historyResponse.data
+            );
+          } catch (historyError) {
+            console.error(
+              "🔴 Error saving challenge quiz to history:",
+              historyError
+            );
+          }
+
+          // Now try to submit challenge results
+          if (challengeId) {
+            try {
+              const challengeResponse = await axiosInstance.get(
+                `/api/challenges/${challengeId}`
+              );
+              const challenge = challengeResponse.data.challenge;
+
+              if (challenge.challengerId === userId) {
+                // User is the challenger (first to complete)
+                await axiosInstance.post(
+                  `/api/challenges/${challengeId}/submit-challenger`,
+                  {
+                    score: correctCount,
+                    timeTaken: timeTaken,
+                  }
+                );
+              } else if (challenge.challengedId === userId) {
+                // User is the challenged (second to complete)
+                await axiosInstance.post(
+                  `/api/challenges/${challengeId}/submit-challenged`,
+                  {
+                    score: correctCount,
+                    timeTaken: timeTaken,
+                  }
+                );
+              }
+            } catch (error) {
+              console.error("🔴 Error submitting challenge results:", error);
+            }
+          }
+        } else {
+          // Post the data to the backend for regular quiz modes
+          await axiosInstance.post("/api/scores/logscore", {
+            quiz_score: correctCount,
+            quiz_difficulty: quizDifficulty,
+            categories,
+            is_niche: isNicheArray,
+            time_taken: timeTaken,
+            quiz_mode: quizMode, // New field for quiz type
+            category_name: quizCategory, // Category name for category quizzes
+          });
+        }
       } catch (error) {
         console.error("Error logging score:", error);
       }
@@ -615,6 +779,11 @@ export default function Quiz() {
         setQuizCategory(categoryOption.label);
         localStorage.setItem("quizCategory", categoryOption.label);
       }
+    }
+
+    // Challenge mode is handled separately by createChallenge function
+    if (mode === "challenge") {
+      return;
     }
 
     // Check cooldown only for daily quiz
@@ -1193,6 +1362,103 @@ export default function Quiz() {
                   Start Survival Quiz
                 </button>
               </div>
+
+              <div
+                className={`quiz-mode-card challenge-mode ${
+                  !isLoggedIn ? "disabled" : ""
+                }`}
+              >
+                <h3>🎯 Challenge Your Friends</h3>
+                <p>Test your knowledge against your friends!</p>
+                {!isLoggedIn ? (
+                  <>
+                    <ul>
+                      <li>Same 10 questions for both players</li>
+                      <li>Winner based on score</li>
+                      <li>Time tiebreaker</li>
+                    </ul>
+                    <button className="quiz-start-button disabled" disabled>
+                      Log in to Challenge Friends
+                    </button>
+                  </>
+                ) : !showFriendSelection ? (
+                  <>
+                    <ul>
+                      <li>Same 10 questions for both players</li>
+                      <li>Winner based on score</li>
+                      <li>Time tiebreaker</li>
+                    </ul>
+                    <button
+                      className="quiz-start-button challenge-button"
+                      onClick={() => {
+                        fetchFriends();
+                        setShowFriendSelection(true);
+                      }}
+                    >
+                      Challenge a Friend
+                    </button>
+                  </>
+                ) : (
+                  <div className="friend-selection">
+                    <h4>Choose a Friend to Challenge</h4>
+                    {friends.length === 0 ? (
+                      <div className="no-friends">
+                        <p>You don&apos;t have any friends added yet.</p>
+                        <button
+                          className="quiz-start-button challenge-button secondary"
+                          onClick={() => setShowFriendSelection(false)}
+                        >
+                          Back
+                        </button>
+                        <button
+                          className="quiz-start-button challenge-button primary"
+                          onClick={() => navigate("/friends")}
+                        >
+                          Add Friends
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="friends-list">
+                          {friends.map((friend) => (
+                            <button
+                              key={friend.id}
+                              className={`friend-option ${
+                                selectedFriend === friend.id ? "selected" : ""
+                              }`}
+                              onClick={() => {
+                                setSelectedFriend(friend.id);
+                              }}
+                            >
+                              {friend.username}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="friend-selection-actions">
+                          <button
+                            className="quiz-start-button challenge-button secondary"
+                            onClick={() => {
+                              setShowFriendSelection(false);
+                              setSelectedFriend(null);
+                            }}
+                          >
+                            Back
+                          </button>
+                          <button
+                            className="quiz-start-button challenge-button primary"
+                            onClick={() =>
+                              selectedFriend && createChallenge(selectedFriend)
+                            }
+                            disabled={!selectedFriend}
+                          >
+                            Start Challenge
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -1224,6 +1490,8 @@ export default function Quiz() {
                   })()
                 : quizMode === "survival"
                 ? "🏃 Survival Quiz"
+                : quizMode === "challenge"
+                ? "🎯 Challenge Quiz"
                 : "Daily Trivia Quiz"}
             </h2>
             {quizMode === "blitz" && (

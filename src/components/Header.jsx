@@ -12,6 +12,7 @@ function Header() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [username, setUsername] = useState("");
   const [pendingNotifications, setPendingNotifications] = useState([]);
+  const [pendingChallenges, setPendingChallenges] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const navigate = useNavigate();
@@ -31,6 +32,17 @@ function Header() {
           "🔍 Set pending notifications:",
           response.data.friendRequests || []
         );
+
+        // Also fetch pending challenges
+        try {
+          const challengeResponse = await axiosInstance.get(
+            "/api/challenges/pending"
+          );
+          setPendingChallenges(challengeResponse.data.challenges || []);
+        } catch (challengeError) {
+          console.error("Error fetching challenges:", challengeError);
+          setPendingChallenges([]);
+        }
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -159,9 +171,10 @@ function Header() {
                     className="nav-icon-button"
                   >
                     <span className="notification-icon">🔔</span>
-                    {pendingNotifications.length > 0 && (
+                    {(pendingNotifications.length > 0 ||
+                      pendingChallenges.length > 0) && (
                       <span className="notification-badge">
-                        {pendingNotifications.length}
+                        {pendingNotifications.length + pendingChallenges.length}
                       </span>
                     )}
                   </Dropdown.Toggle>
@@ -179,80 +192,194 @@ function Header() {
                         🔄
                       </button>
                     </Dropdown.Header>
-                    {pendingNotifications.length > 0 ? (
-                      pendingNotifications.map((request) => (
-                        <Dropdown.Item
-                          key={request.id}
-                          className="notification-item"
-                        >
-                          <div className="notification-content">
-                            <div className="d-flex justify-content-between align-items-start">
-                              <div>
-                                <strong>{request.user.username}</strong> sent
-                                you a friend request
-                              </div>
-                              <div className="notification-actions ms-2">
-                                <button
-                                  className="btn btn-sm btn-success me-1"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    try {
-                                      await axiosInstance.post(
-                                        `/api/friends/accept/${request.id}`
-                                      );
-                                      // Remove the accepted request from the list
-                                      setPendingNotifications((prev) =>
-                                        prev.filter(
-                                          (req) => req.id !== request.id
-                                        )
-                                      );
-                                    } catch (error) {
-                                      console.error(
-                                        "Error accepting friend request:",
-                                        error
-                                      );
-                                    }
-                                  }}
-                                  style={{
-                                    fontSize: "10px",
-                                    padding: "1px 4px",
-                                  }}
-                                >
-                                  ✓
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-danger"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    try {
-                                      await axiosInstance.post(
-                                        `/api/friends/reject/${request.id}`
-                                      );
-                                      // Remove the rejected request from the list
-                                      setPendingNotifications((prev) =>
-                                        prev.filter(
-                                          (req) => req.id !== request.id
-                                        )
-                                      );
-                                    } catch (error) {
-                                      console.error(
-                                        "Error rejecting friend request:",
-                                        error
-                                      );
-                                    }
-                                  }}
-                                  style={{
-                                    fontSize: "10px",
-                                    padding: "1px 4px",
-                                  }}
-                                >
-                                  ✗
-                                </button>
+                    {pendingNotifications.length > 0 ||
+                    pendingChallenges.length > 0 ? (
+                      <>
+                        {pendingNotifications.map((request) => (
+                          <Dropdown.Item
+                            key={request.id}
+                            className="notification-item"
+                          >
+                            <div className="notification-content">
+                              <div className="d-flex justify-content-between align-items-start">
+                                <div>
+                                  <strong>{request.user.username}</strong> sent
+                                  you a friend request
+                                </div>
+                                <div className="notification-actions ms-2">
+                                  <button
+                                    className="btn btn-sm btn-success me-1"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        await axiosInstance.post(
+                                          `/api/friends/accept/${request.id}`
+                                        );
+                                        // Remove the accepted request from the list
+                                        setPendingNotifications((prev) =>
+                                          prev.filter(
+                                            (req) => req.id !== request.id
+                                          )
+                                        );
+                                      } catch (error) {
+                                        console.error(
+                                          "Error accepting friend request:",
+                                          error
+                                        );
+                                      }
+                                    }}
+                                    style={{
+                                      fontSize: "10px",
+                                      padding: "1px 4px",
+                                    }}
+                                  >
+                                    ✓
+                                  </button>
+                                  <button
+                                    className="btn btn-sm btn-danger"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        await axiosInstance.post(
+                                          `/api/friends/reject/${request.id}`
+                                        );
+                                        // Remove the rejected request from the list
+                                        setPendingNotifications((prev) =>
+                                          prev.filter(
+                                            (req) => req.id !== request.id
+                                          )
+                                        );
+                                      } catch (error) {
+                                        console.error(
+                                          "Error rejecting friend request:",
+                                          error
+                                        );
+                                      }
+                                    }}
+                                    style={{
+                                      fontSize: "10px",
+                                      padding: "1px 4px",
+                                    }}
+                                  >
+                                    ✗
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </Dropdown.Item>
-                      ))
+                          </Dropdown.Item>
+                        ))}
+
+                        {pendingChallenges.map((challenge) => (
+                          <Dropdown.Item
+                            key={`challenge-${challenge.id}`}
+                            className="notification-item"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="notification-content">
+                              <div className="d-flex justify-content-between align-items-start">
+                                <div>
+                                  <strong>
+                                    🎯 {challenge.challenger.username}
+                                  </strong>{" "}
+                                  challenged you to a quiz!
+                                </div>
+                                <div
+                                  className="notification-actions ms-2"
+                                  style={{ minWidth: "80px", flexShrink: 0 }}
+                                >
+                                  <button
+                                    className="btn btn-sm btn-success me-1"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        const response =
+                                          await axiosInstance.post(
+                                            `/api/challenges/${challenge.id}/accept`
+                                          );
+
+                                        // Store challenge data in localStorage and redirect to quiz
+                                        localStorage.setItem(
+                                          "triviaQuestions",
+                                          JSON.stringify(
+                                            response.data.questions
+                                          )
+                                        );
+                                        localStorage.setItem(
+                                          "quizStatus",
+                                          "in_progress"
+                                        );
+                                        localStorage.setItem(
+                                          "currentQuestionIndex",
+                                          "0"
+                                        );
+                                        localStorage.setItem(
+                                          "quizMode",
+                                          "challenge"
+                                        );
+                                        localStorage.setItem(
+                                          "challengeId",
+                                          challenge.id
+                                        );
+
+                                        const startTime = new Date().getTime();
+                                        localStorage.setItem(
+                                          "quizStartTime",
+                                          startTime
+                                        );
+
+                                        // Remove from pending challenges
+                                        setPendingChallenges((prev) =>
+                                          prev.filter(
+                                            (c) => c.id !== challenge.id
+                                          )
+                                        );
+
+                                        // Navigate to quiz page
+                                        setShowNotifications(false);
+                                        // Use reload to force the quiz to pick up the challenge data
+                                        window.location.reload();
+                                      } catch (error) {
+                                        console.error(
+                                          "Error accepting challenge:",
+                                          error
+                                        );
+                                        alert(
+                                          "Failed to accept challenge. Please try again."
+                                        );
+                                      }
+                                    }}
+                                    style={{
+                                      fontSize: "10px",
+                                      padding: "1px 4px",
+                                    }}
+                                  >
+                                    ✓
+                                  </button>
+                                  <button
+                                    className="btn btn-sm btn-danger"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      // TODO: Add decline functionality
+                                      alert("Challenge declined");
+                                      setPendingChallenges((prev) =>
+                                        prev.filter(
+                                          (c) => c.id !== challenge.id
+                                        )
+                                      );
+                                    }}
+                                    style={{
+                                      fontSize: "10px",
+                                      padding: "1px 4px",
+                                    }}
+                                  >
+                                    ✗
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </Dropdown.Item>
+                        ))}
+                      </>
                     ) : (
                       <Dropdown.Item disabled className="notification-empty">
                         No new notifications

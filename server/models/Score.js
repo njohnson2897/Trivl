@@ -36,11 +36,11 @@ Score.init(
       allowNull: false,
     },
     quiz_mode: {
-      type: DataTypes.STRING, // Stores 'daily', 'blitz', 'category', or 'survival'
+      type: DataTypes.STRING, // Stores 'daily', 'blitz', 'category', 'survival', or 'challenge'
       allowNull: false,
       defaultValue: "daily",
       validate: {
-        isIn: [["daily", "blitz", "category", "survival"]],
+        isIn: [["daily", "blitz", "category", "survival", "challenge"]],
       },
     },
     category_name: {
@@ -59,6 +59,32 @@ Score.init(
         key: "id",
       },
       onDelete: "CASCADE",
+    },
+    challenge_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "challenge",
+        key: "id",
+      },
+      onDelete: "SET NULL",
+    },
+    opponent_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "user",
+        key: "id",
+      },
+      onDelete: "SET NULL",
+    },
+    opponent_username: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    won_challenge: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
     },
   },
   {
