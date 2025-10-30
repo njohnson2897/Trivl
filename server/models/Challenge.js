@@ -50,6 +50,14 @@ Challenge.init(
       type: DataTypes.INTEGER,
       defaultValue: null,
     },
+    challengerAnswers: {
+      type: DataTypes.JSON,
+      defaultValue: null,
+    },
+    challengedAnswers: {
+      type: DataTypes.JSON,
+      defaultValue: null,
+    },
     winnerId: {
       type: DataTypes.INTEGER,
       defaultValue: null,

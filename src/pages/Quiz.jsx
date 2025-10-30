@@ -365,6 +365,13 @@ export default function Quiz() {
               );
               const challenge = challengeResponse.data.challenge;
 
+              // Build answers array from localStorage (include correct answer)
+              const answers = questions.map((q, idx) => ({
+                selectedAnswer: localStorage.getItem(`userAnswer${idx}`),
+                correctAnswer: q.correctAnswer,
+                isCorrect: localStorage.getItem(`question${idx}`) === "correct",
+              }));
+
               if (challenge.challengerId === userId) {
                 // User is the challenger (first to complete)
                 await axiosInstance.post(
@@ -372,6 +379,7 @@ export default function Quiz() {
                   {
                     score: correctCount,
                     timeTaken: timeTaken,
+                    answers,
                   }
                 );
               } else if (challenge.challengedId === userId) {
@@ -381,6 +389,7 @@ export default function Quiz() {
                   {
                     score: correctCount,
                     timeTaken: timeTaken,
+                    answers,
                   }
                 );
               }

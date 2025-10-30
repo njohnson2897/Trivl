@@ -158,7 +158,7 @@ export default function Results() {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h1>Your Results</h1>
+        <h1>{quizMode === "challenge" ? "Challenge Results" : "Your Results"}</h1>
         <div className="results-summary">
           <p className="quiz-mode-indicator">
             {quizMode === "blitz"
@@ -186,50 +186,108 @@ export default function Results() {
           {timeTaken > 0 && <p>{`Time: ${formatTime(timeTaken)}`}</p>}
         </div>
 
-        {/* Challenge Results Comparison */}
+        {/* Challenge Results Side-by-Side */}
         {quizMode === "challenge" && challengeData && (
-          <div className="challenge-results">
-            <h2>Challenge Results</h2>
-            {challengeData.status === "completed" && (
-              <>
-                <div className="challenge-comparison">
-                  <div className="challenge-player">
-                    <h3>{challengeData.challenger.username}</h3>
-                    <p>
-                      Score: {challengeData.challengerScore || "Pending"}/10
-                    </p>
-                    {challengeData.challengerTimeTaken && (
-                      <p>
-                        Time: {formatTime(challengeData.challengerTimeTaken)}
-                      </p>
+          <>
+          {challengeData.status === "completed" && challengeData.winner && (
+            <div className="challenge-winner">
+              <h3>🎉 Winner: {challengeData.winner.username}</h3>
+            </div>
+          )}
+          <div className="challenge-results-grid">
+            <div className="challenge-column">
+              <h3>{challengeData.challenger?.username || "Challenger"}</h3>
+              {challengeData.challengerScore != null && (
+                <p>Score: {challengeData.challengerScore}/10</p>
+              )}
+              {challengeData.challengerTimeTaken != null && (
+                <p>Time: {formatTime(challengeData.challengerTimeTaken)}</p>
+              )}
+              <div className="questions-container">
+                {Array.isArray(challengeData.challengerAnswers)
+                  ? questions.map((q, idx) => {
+                      const ans = (challengeData.challengerAnswers || [])[idx];
+                      const userSelectedAnswer = ans?.selectedAnswer;
+                      const correctAnswer = ans?.correctAnswer || q.correctAnswer;
+                      const userAnswerStatus = ans ? (ans.isCorrect ? "correct" : "incorrect") : null;
+                      const options = [correctAnswer, ...(q.incorrectAnswers || [])];
+                      return (
+                        <div key={`c-${idx}`} className="question-block">
+                          <p>{`Q${idx + 1}: ${q.question}`}</p>
+                          <div className="options">
+                            {options.map((option, oIdx) => (
+                              <p
+                                key={oIdx}
+                                className={`option 
+                                  ${option === correctAnswer ? "correct" : ""}
+                                  ${
+                                    option === userSelectedAnswer && userAnswerStatus === "incorrect"
+                                      ? "user-incorrect"
+                                      : ""
+                                  }
+                                `}
+                              >
+                                {option}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })
+                  : (
+                      <p>Waiting for this player to complete the challenge...</p>
                     )}
-                  </div>
-                  <div className="challenge-vs">VS</div>
-                  <div className="challenge-player">
-                    <h3>{challengeData.challenged.username}</h3>
-                    <p>
-                      Score: {challengeData.challengedScore || "Pending"}/10
-                    </p>
-                    {challengeData.challengedTimeTaken && (
-                      <p>
-                        Time: {formatTime(challengeData.challengedTimeTaken)}
-                      </p>
+              </div>
+            </div>
+            <div className="challenge-column">
+              <h3>{challengeData.challenged?.username || "Challenged"}</h3>
+              {challengeData.challengedScore != null && (
+                <p>Score: {challengeData.challengedScore}/10</p>
+              )}
+              {challengeData.challengedTimeTaken != null && (
+                <p>Time: {formatTime(challengeData.challengedTimeTaken)}</p>
+              )}
+              <div className="questions-container">
+                {Array.isArray(challengeData.challengedAnswers)
+                  ? questions.map((q, idx) => {
+                      const ans = (challengeData.challengedAnswers || [])[idx];
+                      const userSelectedAnswer = ans?.selectedAnswer;
+                      const correctAnswer = ans?.correctAnswer || q.correctAnswer;
+                      const userAnswerStatus = ans ? (ans.isCorrect ? "correct" : "incorrect") : null;
+                      const options = [correctAnswer, ...(q.incorrectAnswers || [])];
+                      return (
+                        <div key={`d-${idx}`} className="question-block">
+                          <p>{`Q${idx + 1}: ${q.question}`}</p>
+                          <div className="options">
+                            {options.map((option, oIdx) => (
+                              <p
+                                key={oIdx}
+                                className={`option 
+                                  ${option === correctAnswer ? "correct" : ""}
+                                  ${
+                                    option === userSelectedAnswer && userAnswerStatus === "incorrect"
+                                      ? "user-incorrect"
+                                      : ""
+                                  }
+                                `}
+                              >
+                                {option}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })
+                  : (
+                      <p>Waiting for this player to complete the challenge...</p>
                     )}
-                  </div>
-                </div>
-                {challengeData.winner && (
-                  <div className="challenge-winner">
-                    <h3>🎉 Winner: {challengeData.winner.username}</h3>
-                  </div>
-                )}
-              </>
-            )}
-            {challengeData.status !== "completed" && (
-              <p>Waiting for opponent to complete the challenge...</p>
-            )}
+              </div>
+            </div>
           </div>
+          </>
         )}
 
+        {quizMode !== "challenge" && (
         <div className="questions-container">
           {questions.map((question, index) => {
             const userAnswerStatus = localStorage.getItem(`question${index}`);
@@ -265,6 +323,7 @@ export default function Results() {
             );
           })}
         </div>
+        )}
       </div>
     </div>
   );

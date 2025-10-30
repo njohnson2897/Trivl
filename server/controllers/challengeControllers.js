@@ -124,6 +124,8 @@ export const getUserChallenges = async (req, res) => {
   }
 };
 
+// Get completed challenges for the current user
+
 // Accept a challenge (start the quiz)
 export const acceptChallenge = async (req, res) => {
   try {
@@ -159,7 +161,7 @@ export const acceptChallenge = async (req, res) => {
 export const submitChallengerResults = async (req, res) => {
   try {
     const { challengeId } = req.params;
-    const { score, timeTaken } = req.body;
+    const { score, timeTaken, answers } = req.body;
     const userId = req.user.id;
 
     const challenge = await Challenge.findOne({
@@ -177,6 +179,7 @@ export const submitChallengerResults = async (req, res) => {
     await challenge.update({
       challengerScore: score,
       challengerTimeTaken: timeTaken,
+      challengerAnswers: Array.isArray(answers) ? answers : null,
     });
 
     res
@@ -192,7 +195,7 @@ export const submitChallengerResults = async (req, res) => {
 export const submitChallengedResults = async (req, res) => {
   try {
     const { challengeId } = req.params;
-    const { score, timeTaken } = req.body;
+    const { score, timeTaken, answers } = req.body;
     const userId = req.user.id;
 
     const challenge = await Challenge.findOne({
@@ -211,6 +214,7 @@ export const submitChallengedResults = async (req, res) => {
     await challenge.update({
       challengedScore: score,
       challengedTimeTaken: timeTaken,
+      challengedAnswers: Array.isArray(answers) ? answers : null,
     });
 
     // Determine winner

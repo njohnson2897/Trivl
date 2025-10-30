@@ -21,6 +21,7 @@ router.get("/pending", authenticateToken, getPendingChallenges);
 // Get all challenges for the current user
 router.get("/list", authenticateToken, getUserChallenges);
 
+
 // Get challenge details
 router.get("/:challengeId", authenticateToken, getChallengeDetails);
 

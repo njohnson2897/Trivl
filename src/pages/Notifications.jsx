@@ -6,6 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 export default function Notifications() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [pendingChallenges, setPendingChallenges] = useState([]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -96,6 +97,8 @@ export default function Notifications() {
     }
   };
 
+  
+
   if (loading) {
     return (
       <div className="content-container">
@@ -162,6 +165,7 @@ export default function Notifications() {
                 </div>
               </div>
             ))}
+
           </div>
         ) : (
           <div className="notifications-empty-state">
