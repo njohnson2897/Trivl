@@ -174,6 +174,8 @@ export default function Results() {
               ? "🏃 Survival Mode"
               : quizMode === "challenge"
               ? "🎯 Challenge Quiz"
+              : quizMode === "zen"
+              ? "🧘 Practice Quiz"
               : "📅 Daily Quiz"}
           </p>
           <p>

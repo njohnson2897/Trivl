@@ -602,6 +602,27 @@
   box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2);
 }
 
+/* New: Daily and Zen mode theming */
+.quiz-mode-card.daily-mode {
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(100, 108, 255, 0.06) 100%);
+}
+
+.quiz-mode-card.daily-mode:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 25px rgba(100, 108, 255, 0.2);
+}
+
+.quiz-mode-card.zen-mode {
+  border-color: var(--color-accent);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(156, 39, 176, 0.07) 100%);
+}
+
+.quiz-mode-card.zen-mode:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 8px 25px rgba(156, 39, 176, 0.2);
+}
+
 .quiz-mode-card.disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -859,6 +880,24 @@
 
 .quiz-start-button.category-button.primary:hover {
   background-color: #218838;
+}
+
+.quiz-start-button.daily-button {
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+.quiz-start-button.daily-button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.quiz-start-button.zen-button {
+  background-color: var(--color-accent);
+  color: var(--text-inverse);
+}
+
+.quiz-start-button.zen-button:hover {
+  background-color: var(--color-accent-hover);
 }
 
 .quiz-start-button.survival-button {

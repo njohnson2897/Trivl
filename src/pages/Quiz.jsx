@@ -10,7 +10,7 @@ export default function Quiz() {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizStatus, setQuizStatus] = useState("not_started");
-  const [quizMode, setQuizMode] = useState("daily"); // "daily", "blitz", "category", "survival", or "challenge"
+  const [quizMode, setQuizMode] = useState("daily"); // "daily", "blitz", "category", "survival", "challenge", or "zen"
   const [shuffledOptions, setShuffledOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [questionTimer, setQuestionTimer] = useState(0);
@@ -31,7 +31,11 @@ export default function Quiz() {
   const initialCheckDoneRef = useRef(false);
   const handleAnswerRef = useRef(null);
   const navigate = useNavigate();
-  const bellSound = useMemo(() => new Audio(bell), []);
+  const bellSound = useMemo(() => {
+    const audio = new Audio(bell);
+    audio.preload = "auto";
+    return audio;
+  }, []);
 
   // Blitz time options
   const blitzTimeOptions = [
@@ -385,16 +389,18 @@ export default function Quiz() {
             }
           }
         } else {
-          // Post the data to the backend for regular quiz modes
-          await axiosInstance.post("/api/scores/logscore", {
-            quiz_score: correctCount,
-            quiz_difficulty: quizDifficulty,
-            categories,
-            is_niche: isNicheArray,
-            time_taken: timeTaken,
-            quiz_mode: quizMode, // New field for quiz type
-            category_name: quizCategory, // Category name for category quizzes
-          });
+          // Post the data to the backend for regular quiz modes (skip for zen)
+          if (quizMode !== "zen") {
+            await axiosInstance.post("/api/scores/logscore", {
+              quiz_score: correctCount,
+              quiz_difficulty: quizDifficulty,
+              categories,
+              is_niche: isNicheArray,
+              time_taken: timeTaken,
+              quiz_mode: quizMode, // New field for quiz type
+              category_name: quizCategory, // Category name for category quizzes
+            });
+          }
         }
       } catch (error) {
         console.error("Error logging score:", error);
@@ -752,6 +758,30 @@ export default function Quiz() {
     };
   }, [isLoggedIn]);
 
+  // Unlock audio on first user interaction to improve first-click reliability
+  useEffect(() => {
+    let unlocked = false;
+    const unlock = async () => {
+      if (unlocked) return;
+      try {
+        bellSound.currentTime = 0;
+        await bellSound.play();
+        bellSound.pause();
+        unlocked = true;
+        window.removeEventListener("pointerdown", unlock);
+        window.removeEventListener("keydown", unlock);
+      } catch (_) {
+        // ignore
+      }
+    };
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [bellSound]);
+
   // Fetch a batch of questions for survival mode
   const fetchQuestionBatch = async (limit = 50) => {
     try {
@@ -914,6 +944,39 @@ export default function Quiz() {
       }
     }
 
+    // Zen Practice: random questions (no timers, no score storage)
+    if (mode === "zen") {
+      try {
+        const response = await fetch(
+          "https://the-trivia-api.com/api/questions"
+        );
+        const data = await response.json();
+        let questions = Array.isArray(data) ? data : data.value || data;
+        const filteredData = (questions || []).slice(0, 10);
+
+        if (!filteredData || filteredData.length === 0) {
+          alert("Failed to load questions. Please try again.");
+          return;
+        }
+
+        setQuestions(filteredData);
+        setQuizStatus("in_progress");
+        setCurrentQuestionIndex(0);
+
+        localStorage.setItem("triviaQuestions", JSON.stringify(filteredData));
+        localStorage.setItem("quizStatus", "in_progress");
+        localStorage.setItem("currentQuestionIndex", "0");
+
+        shuffleOptionsForCurrentQuestion(filteredData[0]);
+        console.log("🎉 Zen Practice started successfully!");
+        return;
+      } catch (error) {
+        console.error("Error fetching zen practice questions:", error);
+        alert("Failed to load questions. Please try again.");
+        return;
+      }
+    }
+
     // Build API URL based on mode and category for other modes
     let apiUrl = "https://the-trivia-api.com/api/questions";
     if (category) {
@@ -1045,7 +1108,12 @@ export default function Quiz() {
         questionTimerRef.current = null;
       }
 
-      bellSound.play();
+      try {
+        bellSound.currentTime = 0;
+        await bellSound.play();
+      } catch (_) {
+        // ignore
+      }
 
       const currentQuestion = questions[currentQuestionIndex];
       const isCorrect =
@@ -1161,7 +1229,7 @@ export default function Quiz() {
             <h2 className="quiz-start-title">Choose Your Quiz Mode</h2>
             <div className="quiz-mode-selection">
               <div
-                className={`quiz-mode-card ${
+                className={`quiz-mode-card daily-mode ${
                   dailyQuizOnCooldown ? "cooldown" : ""
                 }`}
               >
@@ -1186,7 +1254,7 @@ export default function Quiz() {
                   </div>
                 ) : (
                   <button
-                    className="quiz-start-button"
+                    className="quiz-start-button daily-button"
                     onClick={() => startQuiz("daily")}
                   >
                     Start Daily Quiz
@@ -1266,6 +1334,22 @@ export default function Quiz() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div className="quiz-mode-card zen-mode">
+                <h3>🧘 Zen Practice</h3>
+                <p>Practice in a relaxed mode.</p>
+                <ul>
+                  <li>No time limit</li>
+                  <li>10 random questions</li>
+                  <li>Scores are not saved</li>
+                </ul>
+                <button
+                  className="quiz-start-button zen-button"
+                  onClick={() => startQuiz("zen")}
+                >
+                  Start Zen Practice
+                </button>
               </div>
 
               <div className="quiz-mode-card category-mode">
@@ -1492,6 +1576,8 @@ export default function Quiz() {
                 ? "🏃 Survival Quiz"
                 : quizMode === "challenge"
                 ? "🎯 Challenge Quiz"
+                : quizMode === "zen"
+                ? "🧘 Zen Practice"
                 : "Daily Trivia Quiz"}
             </h2>
             {quizMode === "blitz" && (
