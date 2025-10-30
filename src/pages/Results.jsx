@@ -158,7 +158,9 @@ export default function Results() {
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h1>{quizMode === "challenge" ? "Challenge Results" : "Your Results"}</h1>
+        <h1>
+          {quizMode === "challenge" ? "Challenge Results" : "Your Results"}
+        </h1>
         <div className="results-summary">
           <p className="quiz-mode-indicator">
             {quizMode === "blitz"
@@ -189,28 +191,36 @@ export default function Results() {
         {/* Challenge Results Side-by-Side */}
         {quizMode === "challenge" && challengeData && (
           <>
-          {challengeData.status === "completed" && challengeData.winner && (
-            <div className="challenge-winner">
-              <h3>🎉 Winner: {challengeData.winner.username}</h3>
-            </div>
-          )}
-          <div className="challenge-results-grid">
-            <div className="challenge-column">
-              <h3>{challengeData.challenger?.username || "Challenger"}</h3>
-              {challengeData.challengerScore != null && (
-                <p>Score: {challengeData.challengerScore}/10</p>
-              )}
-              {challengeData.challengerTimeTaken != null && (
-                <p>Time: {formatTime(challengeData.challengerTimeTaken)}</p>
-              )}
-              <div className="questions-container">
-                {Array.isArray(challengeData.challengerAnswers)
-                  ? questions.map((q, idx) => {
+            {challengeData.status === "completed" && challengeData.winner && (
+              <div className="challenge-winner">
+                <h3>🎉 Winner: {challengeData.winner.username}</h3>
+              </div>
+            )}
+            <div className="challenge-results-grid">
+              <div className="challenge-column">
+                <h3>{challengeData.challenger?.username || "Challenger"}</h3>
+                {challengeData.challengerScore != null && (
+                  <p>Score: {challengeData.challengerScore}/10</p>
+                )}
+                {challengeData.challengerTimeTaken != null && (
+                  <p>Time: {formatTime(challengeData.challengerTimeTaken)}</p>
+                )}
+                <div className="questions-container">
+                  {Array.isArray(challengeData.challengerAnswers) ? (
+                    questions.map((q, idx) => {
                       const ans = (challengeData.challengerAnswers || [])[idx];
                       const userSelectedAnswer = ans?.selectedAnswer;
-                      const correctAnswer = ans?.correctAnswer || q.correctAnswer;
-                      const userAnswerStatus = ans ? (ans.isCorrect ? "correct" : "incorrect") : null;
-                      const options = [correctAnswer, ...(q.incorrectAnswers || [])];
+                      const correctAnswer =
+                        ans?.correctAnswer || q.correctAnswer;
+                      const userAnswerStatus = ans
+                        ? ans.isCorrect
+                          ? "correct"
+                          : "incorrect"
+                        : null;
+                      const options = [
+                        correctAnswer,
+                        ...(q.incorrectAnswers || []),
+                      ];
                       return (
                         <div key={`c-${idx}`} className="question-block">
                           <p>{`Q${idx + 1}: ${q.question}`}</p>
@@ -221,7 +231,8 @@ export default function Results() {
                                 className={`option 
                                   ${option === correctAnswer ? "correct" : ""}
                                   ${
-                                    option === userSelectedAnswer && userAnswerStatus === "incorrect"
+                                    option === userSelectedAnswer &&
+                                    userAnswerStatus === "incorrect"
                                       ? "user-incorrect"
                                       : ""
                                   }
@@ -234,27 +245,35 @@ export default function Results() {
                         </div>
                       );
                     })
-                  : (
-                      <p>Waiting for this player to complete the challenge...</p>
-                    )}
+                  ) : (
+                    <p>Waiting for this player to complete the challenge...</p>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="challenge-column">
-              <h3>{challengeData.challenged?.username || "Challenged"}</h3>
-              {challengeData.challengedScore != null && (
-                <p>Score: {challengeData.challengedScore}/10</p>
-              )}
-              {challengeData.challengedTimeTaken != null && (
-                <p>Time: {formatTime(challengeData.challengedTimeTaken)}</p>
-              )}
-              <div className="questions-container">
-                {Array.isArray(challengeData.challengedAnswers)
-                  ? questions.map((q, idx) => {
+              <div className="challenge-column">
+                <h3>{challengeData.challenged?.username || "Challenged"}</h3>
+                {challengeData.challengedScore != null && (
+                  <p>Score: {challengeData.challengedScore}/10</p>
+                )}
+                {challengeData.challengedTimeTaken != null && (
+                  <p>Time: {formatTime(challengeData.challengedTimeTaken)}</p>
+                )}
+                <div className="questions-container">
+                  {Array.isArray(challengeData.challengedAnswers) ? (
+                    questions.map((q, idx) => {
                       const ans = (challengeData.challengedAnswers || [])[idx];
                       const userSelectedAnswer = ans?.selectedAnswer;
-                      const correctAnswer = ans?.correctAnswer || q.correctAnswer;
-                      const userAnswerStatus = ans ? (ans.isCorrect ? "correct" : "incorrect") : null;
-                      const options = [correctAnswer, ...(q.incorrectAnswers || [])];
+                      const correctAnswer =
+                        ans?.correctAnswer || q.correctAnswer;
+                      const userAnswerStatus = ans
+                        ? ans.isCorrect
+                          ? "correct"
+                          : "incorrect"
+                        : null;
+                      const options = [
+                        correctAnswer,
+                        ...(q.incorrectAnswers || []),
+                      ];
                       return (
                         <div key={`d-${idx}`} className="question-block">
                           <p>{`Q${idx + 1}: ${q.question}`}</p>
@@ -265,7 +284,8 @@ export default function Results() {
                                 className={`option 
                                   ${option === correctAnswer ? "correct" : ""}
                                   ${
-                                    option === userSelectedAnswer && userAnswerStatus === "incorrect"
+                                    option === userSelectedAnswer &&
+                                    userAnswerStatus === "incorrect"
                                       ? "user-incorrect"
                                       : ""
                                   }
@@ -278,33 +298,33 @@ export default function Results() {
                         </div>
                       );
                     })
-                  : (
-                      <p>Waiting for this player to complete the challenge...</p>
-                    )}
+                  ) : (
+                    <p>Waiting for this player to complete the challenge...</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
           </>
         )}
 
         {quizMode !== "challenge" && (
-        <div className="questions-container">
-          {questions.map((question, index) => {
-            const userAnswerStatus = localStorage.getItem(`question${index}`);
-            const userSelectedAnswer = localStorage.getItem(
-              `userAnswer${index}`
-            );
-            const correctAnswer = question.correctAnswer;
+          <div className="questions-container">
+            {questions.map((question, index) => {
+              const userAnswerStatus = localStorage.getItem(`question${index}`);
+              const userSelectedAnswer = localStorage.getItem(
+                `userAnswer${index}`
+              );
+              const correctAnswer = question.correctAnswer;
 
-            return (
-              <div key={index} className="question-block">
-                <p>{`Question ${index + 1}: ${question.question}`}</p>
-                <div className="options">
-                  {[correctAnswer, ...question.incorrectAnswers].map(
-                    (option, idx) => (
-                      <p
-                        key={idx}
-                        className={`option 
+              return (
+                <div key={index} className="question-block">
+                  <p>{`Question ${index + 1}: ${question.question}`}</p>
+                  <div className="options">
+                    {[correctAnswer, ...question.incorrectAnswers].map(
+                      (option, idx) => (
+                        <p
+                          key={idx}
+                          className={`option 
                         ${option === correctAnswer ? "correct" : ""} 
                         ${
                           option === userSelectedAnswer &&
@@ -313,16 +333,16 @@ export default function Results() {
                             : ""
                         }
                       `}
-                      >
-                        {option}
-                      </p>
-                    )
-                  )}
+                        >
+                          {option}
+                        </p>
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
