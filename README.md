@@ -1,52 +1,43 @@
-# Trivl - Interactive Quiz Platform
+# Trivl
 
-Trivl is a modern, interactive quiz platform where users can test their knowledge, compete with friends, and earn achievements. Built with React and Node.js, it offers a seamless and engaging quiz-taking experience.
+An interactive quiz platform that allows users to test knowledge, track performance, and compete with others.
 
-## Play Now!
+**Live Demo:**  
+https://trivl.onrender.com
 
-Visit [trivl.onrender.com](https://trivl.onrender.com) to start playing!
+---
 
-## Features
+## Overview
 
-- 🎯 Interactive quiz system with multiple difficulty levels
-- 🏆 Achievement system to track progress
-- 👥 Social features including friend system and leaderboards
-- 📊 Detailed statistics and performance tracking
-- 🎮 Real-time quiz challenges
-- 📱 Responsive design for all devices
+Trivl is a full-stack web application built to explore authentication flows, structured scoring systems, and interactive UI design. Users can take quizzes, track statistics, and view leaderboard comparisons.
+
+---
+
+## Core Features
+
+- User authentication (JWT-based)  
+- Multiple-choice quiz system  
+- Scoring and performance tracking  
+- Leaderboards  
+- Responsive interface  
+
+---
 
 ## Tech Stack
 
 ### Frontend
-
-- React
-- React Router
-- Bootstrap
-- Axios
-- JWT Authentication
+- React  
+- React Router  
+- Axios  
 
 ### Backend
+- Node.js  
+- Express  
+- PostgreSQL  
+- Sequelize  
 
-- Node.js
-- Express
-- PostgreSQL
-- Sequelize ORM
-- JWT Authentication
-- Nodemailer
+---
 
-## Contributing
+## Notes
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Open Trivia Database for quiz questions
-- All contributors who have helped shape this project
+This project focuses on implementing authentication, structured data models, and interactive state management in a full-stack environment.
