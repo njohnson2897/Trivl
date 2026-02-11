@@ -15,26 +15,28 @@ Trivl is a full-stack web application built to explore authentication flows, str
 
 ## Core Features
 
-- User authentication (JWT-based)  
-- Multiple-choice quiz system  
-- Scoring and performance tracking  
-- Leaderboards  
-- Responsive interface  
+- User authentication (JWT-based)
+- Multiple-choice quiz system
+- Scoring and performance tracking
+- Leaderboards
+- Responsive interface
 
 ---
 
 ## Tech Stack
 
 ### Frontend
-- React  
-- React Router  
-- Axios  
+
+- React
+- React Router
+- Axios
 
 ### Backend
-- Node.js  
-- Express  
-- PostgreSQL  
-- Sequelize  
+
+- Node.js
+- Express
+- PostgreSQL
+- Sequelize
 
 ---
 

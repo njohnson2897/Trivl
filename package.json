@@ -7,6 +7,7 @@
     "setup": "npm install && cd server && npm install",
     "develop": "concurrently \"cd server && npm start\" \"npm run dev\"",
     "build": "vite build",
+    "render-build": "npm install --include=dev && npm run build && cd server && npm install",
     "start": "cd server && npm start",
     "dev": "vite",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
