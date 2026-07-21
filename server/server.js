@@ -30,20 +30,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(routes);
 
 // For ES Modules (resolve __dirname)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
-// Only serve static files in production
-if (process.env.NODE_ENV === "production") {
-  // Serve static files from the React app's build folder
-  const buildPath = path.join(__dirname, "../dist");
-  app.use(express.static(buildPath));
+// // Only serve static files in production
+// if (process.env.NODE_ENV === "production") {
+//   // Serve static files from the React app's build folder
+//   const buildPath = path.join(__dirname, "../dist");
+//   app.use(express.static(buildPath));
 
-  // Serve React frontend for any unknown route
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(buildPath, "index.html"));
-  });
-}
+//   // Serve React frontend for any unknown route
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.join(buildPath, "index.html"));
+//   });
+// }
 
 // Run migrations and start server
 const startServer = async () => {
