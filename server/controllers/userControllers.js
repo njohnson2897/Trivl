@@ -53,7 +53,7 @@ export const login = async (req, res) => {
 
   try {
     // Find the user by username
-    const user = await User.findOne({ where: { username } });
+    const user = await User.scope("withPassword").findOne({ where: { username } });
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
@@ -88,6 +88,7 @@ export const login = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
+      attributes: ["id", "username"],
       include: [
         {
           model: Score,
@@ -115,7 +116,9 @@ export const getUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id, {
+      attributes: ["id", "username", "createdAt", "isPublic"],
+    });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });

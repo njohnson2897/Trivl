@@ -99,6 +99,17 @@ User.init(
     freezeTableName: true,
     underscored: true,
     modelName: "user",
+    // Never load the password hash unless a query explicitly asks for it.
+    // This also applies when User is included in another model's query.
+    defaultScope: {
+      attributes: { exclude: ["password"] },
+    },
+    scopes: {
+      // Only for login, which has to compare against the stored hash.
+      withPassword: {
+        attributes: { include: ["password"] },
+      },
+    },
   }
 );
 
