@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axiosInstance from "../../axiosConfig.js";
 
 export default function Help() {
   const [formData, setFormData] = useState({
@@ -23,18 +24,7 @@ export default function Help() {
     setStatus({ type: "loading", message: "Sending message..." });
 
     try {
-      const response = await fetch("http://localhost:5000/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to send message");
-      }
+      await axiosInstance.post("/api/contact", formData);
 
       setStatus({
         type: "success",
@@ -43,9 +33,12 @@ export default function Help() {
       setFormData({ email: "", message: "" });
     } catch (error) {
       console.error("Error sending message:", error);
+      
       setStatus({
         type: "error",
-        message: error.message || "Failed to send message. Please try again.",
+        message:
+          error.response?.data?.message ||
+          "Failed to send message. Please try again.",
       });
     }
   };
