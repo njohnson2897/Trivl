@@ -13,6 +13,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Railway sits behind a proxy, trust its X-Forwarded-For header
+// so req.ip (and the rate limiter) see the real client IP.
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: [
