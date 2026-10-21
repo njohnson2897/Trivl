@@ -3,83 +3,98 @@ import jwt from "jsonwebtoken";
 import { User, Score, UserFriends, Achievement } from "../models/index.js";
 import { Op } from "sequelize";
 
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 72; // bcrypt ignores everything past 72 bytes
+
+/** Returns an error message for invalid registration input, or null. */
+const validateRegistration = ({ username, email, password }) => {
+  if (typeof username !== "string" || !USERNAME_PATTERN.test(username)) {
+    return "Username must be 3–30 characters: letters, numbers, or underscores.";
+  }
+  if (typeof email !== "string" || email.length > 254 || !EMAIL_PATTERN.test(email)) {
+    return "Please enter a valid email address.";
+  }
+  if (
+    typeof password !== "string" ||
+    password.length < MIN_PASSWORD_LENGTH ||
+    password.length > MAX_PASSWORD_LENGTH
+  ) {
+    return `Password must be ${MIN_PASSWORD_LENGTH}–${MAX_PASSWORD_LENGTH} characters.`;
+  }
+  return null;
+};
+
 // Register controller - POST
 export const register = async (req, res) => {
+  const validationError = validateRegistration(req.body);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
   const { username, email, password } = req.body;
 
   try {
-    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, email, password: hashedPassword });
 
-    // Create the user
-    const user = await User.create({
-      username,
-      email, // Include email here
-      password: hashedPassword,
-      quizScores: [], // Default value
-      friends: [], // Default value
-    });
-
-    // Sign a JWT for the new user
     const token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "2h",
-      }
+      { expiresIn: "2h" }
     );
 
-    // Return user info (without password) and the token
     res.status(201).json({
       user: {
         id: user.id,
         username: user.username,
-        email: user.email, // Include email in response
+        email: user.email,
         createdAt: user.createdAt,
-        quizScores: user.quizScores,
-        friends: user.friends,
       },
       token,
     });
   } catch (error) {
-    console.error(error);
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res
+        .status(409)
+        .json({ error: "That username or email is already in use." });
+    }
+    console.error("Error registering user:", error);
     res.status(500).json({ error: "Error registering user" });
   }
 };
+
+
+const INVALID_CREDENTIALS = "Invalid username or password";
 
 // Login controller - POST
 export const login = async (req, res) => {
   const { username, password } = req.body;
 
+  if (typeof username !== "string" || typeof password !== "string") {
+    return res.status(400).json({ error: "Username and password are required." });
+  }
+
   try {
-    // Find the user by username
     const user = await User.scope("withPassword").findOne({ where: { username } });
-    if (!user) {
-      return res.status(400).json({ error: "User not found" });
+
+    // Same response for an unknown username and a wrong password, so the
+    // form doesn't confirm which one was wrong.
+    const isValid = user && (await bcrypt.compare(password, user.password));
+    if (!isValid) {
+      return res.status(401).json({ error: INVALID_CREDENTIALS });
     }
 
-    // Compare provided password with stored hash
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(400).json({ error: "Invalid password" });
-    }
-
-    // Generate a JWT token for the authenticated user
     const token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "2h",
-      }
+      { expiresIn: "2h" }
     );
 
-    // Return user info (without password) and the token
-    res.json({
-      user: { id: user.id, username: user.username },
-      token,
-    });
+    res.json({ user: { id: user.id, username: user.username }, token });
   } catch (error) {
-    console.error(error);
+    console.error("Error logging in:", error);
     res.status(500).json({ error: "Error logging in" });
   }
 };
