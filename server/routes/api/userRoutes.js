@@ -12,12 +12,13 @@ import {
   getCooldownStatus,
 } from "../../controllers/userControllers.js";
 import { authenticateToken } from "../../middleware/auth.js";
+import { loginLimiter, registerLimiter } from "../../middleware/rateLimiters.js";
 
 const router = express.Router();
 
 // Public routes
-router.post("/register", register);
-router.post("/login", login);
+router.post("/register", registerLimiter, register);
+router.post("/login", loginLimiter, login);
 router.get("/check-username/:username", checkUsername);
 
 // Protected routes
