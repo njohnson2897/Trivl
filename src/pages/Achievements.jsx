@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../axiosConfig.js";
 import { jwtDecode } from "jwt-decode";
 import LoadingSpinner from "../components/LoadingSpinner";
 
@@ -19,13 +19,8 @@ const Achievements = () => {
         }
 
         const decoded = jwtDecode(token);
-        const response = await axios.get(
-          `http://localhost:5000/api/achievements/${decoded.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const response = await axiosInstance.get(
+          `/api/achievements/${decoded.id}`
         );
 
         setAchievements(response.data);
