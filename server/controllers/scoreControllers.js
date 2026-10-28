@@ -83,31 +83,10 @@ export const getScoresByUser = async (req, res) => {
     const scores = await Score.findAll({
       where: { user_id: userId },
       order: [["date_taken", "DESC"]],
-      //   include: [
-      //     {
-      //       model: User,
-      //       attributes: "username", // Include only specific user fields
-      //     },
-      //   ],
     });
 
-    // Calculate some statistics
-    // const totalScores = scores.length;
-    // const averageScore = totalScores > 0
-    //     ? (scores.reduce((sum, score) => sum + score.quiz_score, 0) / totalScores).toFixed(1)
-    //     : 0;
-    // const highestScore = totalScores > 0
-    //     ? Math.max(...scores.map(score => score.quiz_score))
-    //     : 0;
-
-    res.status(200).json({
-      scores,
-      // stats: {
-      //     totalQuizzesTaken: totalScores,
-      //     averageScore,
-      //     highestScore
-      // }
-    });
+    res.status(200).json({ scores });
+    
   } catch (error) {
     console.error("Error fetching user scores:", error);
     res.status(500).json({ error: "Error fetching user scores" });

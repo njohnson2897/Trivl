@@ -3,7 +3,6 @@ import {
   register,
   login,
   getUsers,
-  getUserById,
   searchUsers,
   checkUsername,
   getUserSettings,
@@ -31,6 +30,5 @@ router.post("/settings", authenticateToken, updateUserSettings);
 router.get("/cooldown", authenticateToken, getCooldownStatus);
 // Profile and user routes
 router.get("/:id/profile", authenticateToken, getUserProfile);
-router.get("/:id", authenticateToken, getUserById);
 
 export default router;

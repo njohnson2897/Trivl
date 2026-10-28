@@ -127,25 +127,6 @@ export const getUsers = async (req, res) => {
   }
 };
 
-// GET user by ID
-export const getUserById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await User.findByPk(id, {
-      attributes: ["id", "username", "createdAt", "isPublic"],
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.status(200).json(user);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Error fetching user" });
-  }
-};
-
 // search users - GET
 export const searchUsers = async (req, res) => {
   try {
@@ -218,13 +199,6 @@ export const getUserProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    // Debug: Try a direct query to see if there are any scores
-    const directScores = await Score.findAll({
-      where: { user_id: parseInt(id) },
-    });
-    console.log("Direct scores query result:", directScores);
-    console.log("Direct scores count:", directScores.length);
 
     // Get user's friends
     const friends = await UserFriends.findAll({
@@ -437,7 +411,6 @@ export const updateUserSettings = async (req, res) => {
   try {
     const userId = req.user.id; // From auth middleware
     const {
-      theme, // Destructure but don't use (handled by frontend)
       notifications,
       emailNotifications,
       soundEnabled,
