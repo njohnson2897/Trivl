@@ -21,8 +21,6 @@ export const logScore = async (req, res) => {
     // Get userId from authenticated user (from auth middleware)
     const userId = req.user.id;
 
-    console.log("Logging score for userId:", userId, "quiz_mode:", quiz_mode);
-
     // Check if user exists
     const user = await User.findByPk(userId);
     if (!user) {
@@ -59,12 +57,7 @@ export const logScore = async (req, res) => {
     res.status(201).json(newScore);
   } catch (error) {
     console.error("Error logging score:", error);
-    console.error("Error details:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    });
-    res.status(500).json({ error: `Error logging score: ${error.message}` });
+    res.status(500).json({ error: `Error logging score` });
   }
 };
 
@@ -86,7 +79,7 @@ export const getScoresByUser = async (req, res) => {
     });
 
     res.status(200).json({ scores });
-    
+
   } catch (error) {
     console.error("Error fetching user scores:", error);
     res.status(500).json({ error: "Error fetching user scores" });

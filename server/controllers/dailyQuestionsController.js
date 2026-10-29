@@ -43,15 +43,12 @@ export const getDailyQuestions = async (req, res) => {
 
     // If no questions exist for today, create them
     if (!dailyQuestions) {
-      console.log(`No questions found for ${todayDate}, fetching from API...`);
       const questions = await fetchQuestionsFromAPI();
 
       dailyQuestions = await DailyQuestions.create({
         date: todayDate,
         questions: questions,
       });
-
-      console.log(`Created daily questions for ${todayDate}`);
     }
 
     res.status(200).json({

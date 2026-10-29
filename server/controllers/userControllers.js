@@ -253,14 +253,6 @@ export const getUserProfile = async (req, res) => {
       },
     });
 
-    console.log("Profile check:", {
-      profileId: id,
-      currentUserId,
-      isOwnProfile,
-      isPublic: user.isPublic,
-      friendship: friendship ? true : false,
-    });
-
     // If not own profile and not a friend, check if profile is public
     if (!isOwnProfile && !friendship && !user.isPublic) {
       return res.status(200).json({
@@ -285,9 +277,6 @@ export const getUserProfile = async (req, res) => {
 
     // Calculate statistics
     const scores = user.Scores || [];
-    console.log("User scores from database:", scores);
-    console.log("User ID:", id);
-    console.log("Scores array length:", scores.length);
 
     const totalQuizzes = scores.length;
 

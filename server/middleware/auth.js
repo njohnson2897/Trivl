@@ -23,9 +23,6 @@ export const authenticateToken = (req, res, next) => {
     next(); // Allow the request to proceed to the next middleware or route handler
   } catch (error) {
     console.error("Token verification error:", error.message);
-    res.status(403).json({
-      message: "Invalid Token",
-      error: error.message,
-    });
+    res.status(403).json({ message: "Invalid Token" });
   }
 };

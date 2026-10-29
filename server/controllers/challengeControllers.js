@@ -302,14 +302,7 @@ export const submitChallengedResults = async (req, res) => {
     });
   } catch (error) {
     console.error("Error submitting challenged results:", error);
-    console.error("Error details:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    });
-    res
-      .status(500)
-      .json({ error: `Error submitting results: ${error.message}` });
+    res.status(500).json({ error: `Error submitting results` });
   }
 };
 
