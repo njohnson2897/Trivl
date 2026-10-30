@@ -230,7 +230,6 @@ export default function Quiz() {
 
   // Handle quiz completion
   const handleQuizCompletion = useCallback(async () => {
-    console.log("🔴 handleQuizCompletion called");
     const quizStartTime = localStorage.getItem("quizStartTime");
     const timeTaken = quizStartTime
       ? Math.floor((new Date().getTime() - parseInt(quizStartTime)) / 1000) // Time in seconds
@@ -282,16 +281,9 @@ export default function Quiz() {
 
         // Check for challenge mode from localStorage (more reliable than state)
         const currentQuizMode = localStorage.getItem("quizMode");
-        console.log(
-          "🔴 Quiz completion - quizMode state:",
-          quizMode,
-          "localStorage:",
-          currentQuizMode
-        );
 
         // For challenge mode, submit to challenge endpoint
         if (quizMode === "challenge" || currentQuizMode === "challenge") {
-          console.log("🔴 Entering challenge mode completion flow");
 
           // Get challenge details to get opponent info
           const challengeId = localStorage.getItem("challengeId");
@@ -324,11 +316,6 @@ export default function Quiz() {
             }
           }
 
-          // ALWAYS save challenge quiz to history FIRST - regardless of challenge submission success
-          console.log(
-            "🔴 Saving challenge quiz to history with quiz_mode:",
-            currentQuizMode
-          );
           try {
             const historyResponse = await axiosInstance.post(
               "/api/scores/logscore",
@@ -346,10 +333,7 @@ export default function Quiz() {
                 won_challenge: wonChallenge,
               }
             );
-            console.log(
-              "🔴 Challenge quiz saved to history:",
-              historyResponse.data
-            );
+
           } catch (historyError) {
             console.error(
               "🔴 Error saving challenge quiz to history:",
@@ -510,17 +494,14 @@ export default function Quiz() {
   // Comprehensive status check on mount
   useEffect(() => {
     const checkQuizState = async () => {
-      console.log("🔍 checkQuizState useEffect triggered");
 
       // Only run the initial check once
       if (initialCheckDoneRef.current) {
-        console.log("⏭️ Initial check already done, skipping");
         return;
       }
 
       // Don't run if quiz is already in progress
       if (quizStatus === "in_progress") {
-        console.log("⏭️ Quiz already in progress, skipping checkQuizState");
         return;
       }
 
@@ -587,29 +568,13 @@ export default function Quiz() {
         const storedQuestions = localStorage.getItem("triviaQuestions");
         const storedQuizStatus = localStorage.getItem("quizStatus");
 
-        console.log(
-          "🔍 Checking localStorage - storedQuizStatus:",
-          storedQuizStatus,
-          "storedQuestions:",
-          !!storedQuestions
-        );
-        console.log("🔍 Current quiz status in state:", quizStatus);
-
         if (storedQuizStatus === "in_progress" && storedQuestions) {
-          console.log("✅ Found in-progress quiz, restoring state...");
           const parsedQuestions = JSON.parse(storedQuestions);
           const savedQuestionIndex = parseInt(
             localStorage.getItem("currentQuestionIndex") || 0
           );
           const savedQuizMode = localStorage.getItem("quizMode") || "daily";
           const savedQuizCategory = localStorage.getItem("quizCategory");
-
-          console.log(
-            "🔄 Restoring quiz state - savedQuizMode:",
-            savedQuizMode,
-            "savedQuizCategory:",
-            savedQuizCategory
-          );
 
           setQuestions(parsedQuestions);
           setCurrentQuestionIndex(savedQuestionIndex);
@@ -628,13 +593,9 @@ export default function Quiz() {
             startSurvivalQuestionTimer();
           }
         } else if (storedQuizStatus === "completed") {
-          console.log("📋 Found completed quiz, navigating to results...");
           setQuizStatus("completed");
           navigate("/results");
         } else {
-          console.log(
-            "🔄 No in-progress quiz found, setting status to not_started"
-          );
           setQuizStatus("not_started");
         }
         return;
@@ -887,12 +848,10 @@ export default function Quiz() {
     // Store category name for category quizzes
     if (mode === "category" && category) {
       localStorage.setItem("quizCategory", category);
-      console.log("🏷️ Stored category:", category);
     }
 
     // For survival mode, fetch 50 questions at once
     if (mode === "survival") {
-      console.log("🏃 Starting survival mode with 50 questions...");
 
       // Initialize survival mode state
       localStorage.setItem("survivalCorrectCount", "0");
@@ -903,8 +862,6 @@ export default function Quiz() {
         alert("Failed to load questions. Please try again.");
         return;
       }
-
-      console.log(`✅ Fetched ${questionBatch.length} survival questions`);
 
       setQuestions(questionBatch);
       setQuizStatus("in_progress");
@@ -917,8 +874,6 @@ export default function Quiz() {
 
       shuffleOptionsForCurrentQuestion(questionBatch[0]);
       startSurvivalQuestionTimer();
-
-      console.log("🎉 Survival mode started successfully!");
       return;
     }
 
@@ -934,7 +889,6 @@ export default function Quiz() {
           return;
         }
 
-        console.log("✅ Daily questions loaded from backend");
         setQuestions(questions);
         setQuizStatus("in_progress");
         setCurrentQuestionIndex(0);
@@ -944,7 +898,6 @@ export default function Quiz() {
         localStorage.setItem("currentQuestionIndex", "0");
 
         shuffleOptionsForCurrentQuestion(questions[0]);
-        console.log("🎉 Daily quiz started successfully!");
         return;
       } catch (error) {
         console.error("Error fetching daily questions:", error);
@@ -977,7 +930,6 @@ export default function Quiz() {
         localStorage.setItem("currentQuestionIndex", "0");
 
         shuffleOptionsForCurrentQuestion(filteredData[0]);
-        console.log("🎉 Zen Practice started successfully!");
         return;
       } catch (error) {
         console.error("Error fetching zen practice questions:", error);
@@ -1000,35 +952,8 @@ export default function Quiz() {
         let questions = Array.isArray(data) ? data : data.value || data;
         let filteredData = questions;
 
-        // For category mode, the API already filtered by category
-        if (category) {
-          console.log(`Category quiz for: ${category}`);
-          console.log(`Questions returned: ${questions.length}`);
-          console.log("Raw API response:", data);
-
-          // Log the actual categories returned to verify
-          const returnedCategories = [
-            ...new Set(questions.map((q) => q.category)),
-          ];
-          console.log("Categories in response:", returnedCategories);
-
-          filteredData = questions;
-
-          // If we don't have enough questions, log a warning
-          if (filteredData.length < 10) {
-            console.warn(
-              `Only ${filteredData.length} questions available for category: ${category}`
-            );
-          }
-        }
-
         // Always take exactly 10 questions, or as many as available
         filteredData = filteredData.slice(0, 10);
-
-        console.log(`Final question count: ${filteredData.length}`);
-        console.log("Full filteredData array:", filteredData);
-        console.log("First item in array:", filteredData[0]);
-        console.log("Type of first item:", typeof filteredData[0]);
 
         // Check if we have valid questions
         if (!filteredData || filteredData.length === 0) {
@@ -1041,7 +966,6 @@ export default function Quiz() {
 
         // Validate the first question structure
         const firstQuestion = filteredData[0];
-        console.log("First question structure:", firstQuestion);
 
         if (
           !firstQuestion ||
@@ -1053,35 +977,23 @@ export default function Quiz() {
           return;
         }
 
-        console.log("✅ Question validation passed, setting quiz state...");
 
         setQuestions(filteredData);
-        console.log("✅ Questions set");
-
         setQuizStatus("in_progress");
-        console.log("✅ Quiz status set to in_progress");
-
         setCurrentQuestionIndex(0);
-        console.log("✅ Current question index set to 0");
 
         // Persist quiz state
         localStorage.setItem("triviaQuestions", JSON.stringify(filteredData));
         localStorage.setItem("quizStatus", "in_progress");
         localStorage.setItem("currentQuestionIndex", "0");
-        console.log("✅ Quiz state persisted to localStorage");
 
-        console.log("🔄 Calling shuffleOptionsForCurrentQuestion...");
         shuffleOptionsForCurrentQuestion(firstQuestion);
-        console.log("✅ shuffleOptionsForCurrentQuestion completed");
 
         // Start quiz timer if in Blitz mode
         if (mode === "blitz") {
-          console.log("🔄 Starting quiz timer for Blitz mode...");
           startQuizTimer(selectedBlitzTime);
-          console.log("✅ Quiz timer started");
         }
 
-        console.log("🎉 Quiz start process completed successfully!");
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -1170,8 +1082,6 @@ export default function Quiz() {
         const nextIndex = currentQuestionIndex + 1;
 
         if (nextIndex >= questions.length - 5) {
-          // We're within 5 questions of the end, fetch more questions
-          console.log("🔄 Approaching end of question batch, fetching more...");
           const additionalQuestions = await fetchQuestionBatch(50);
 
           if (additionalQuestions.length > 0) {
@@ -1180,9 +1090,6 @@ export default function Quiz() {
             localStorage.setItem(
               "triviaQuestions",
               JSON.stringify(updatedQuestions)
-            );
-            console.log(
-              `✅ Added ${additionalQuestions.length} more questions`
             );
           }
         }
@@ -1567,18 +1474,12 @@ export default function Quiz() {
                     // Get category name from state or localStorage as fallback
                     const currentCategory =
                       quizCategory || localStorage.getItem("quizCategory");
-                    console.log(
-                      "🎯 Quiz title - currentCategory:",
-                      currentCategory
-                    );
+
                     const categoryLabel = currentCategory
                       ? categoryOptions.find((c) => c.value === currentCategory)
                           ?.label
                       : "Category";
-                    console.log(
-                      "🎯 Quiz title - categoryLabel:",
-                      categoryLabel
-                    );
+                      
                     return `🎯 ${categoryLabel} Quiz`;
                   })()
                 : quizMode === "survival"

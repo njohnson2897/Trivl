@@ -21,17 +21,10 @@ function Header() {
   // Function to fetch notifications
   const fetchNotifications = async () => {
     const token = localStorage.getItem("token");
-    console.log("🔍 fetchNotifications called", { token: !!token, isLoggedIn });
     if (token && isLoggedIn) {
       try {
         const response = await axiosInstance.get("/api/friends/requests");
-        console.log("🔍 API response status:", response.status);
-        console.log("🔍 API response data:", response.data);
         setPendingNotifications(response.data.friendRequests || []);
-        console.log(
-          "🔍 Set pending notifications:",
-          response.data.friendRequests || []
-        );
 
         // Also fetch pending challenges
         try {

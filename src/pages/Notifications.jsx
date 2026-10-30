@@ -14,14 +14,12 @@ export default function Notifications() {
     const fetchPendingRequests = async () => {
       try {
         const response = await axiosInstance.get(`/api/friends/requests`);
-        console.log("Friend requests:", response.data.friendRequests); // Debug log
         setPendingRequests(response.data.friendRequests);
 
         // Also fetch pending challenges
         const challengeResponse = await axiosInstance.get(
           `/api/challenges/pending`
         );
-        console.log("Pending challenges:", challengeResponse.data.challenges);
         setPendingChallenges(challengeResponse.data.challenges || []);
 
         setError(null);
@@ -38,7 +36,6 @@ export default function Notifications() {
 
   const handleAcceptRequest = async (requestId) => {
     try {
-      console.log("Accepting request:", requestId); // Debug log
       await axiosInstance.post(`/api/friends/accept/${requestId}`);
       setPendingRequests(
         pendingRequests.filter((request) => request.id !== requestId)
@@ -52,7 +49,6 @@ export default function Notifications() {
 
   const handleDeclineRequest = async (requestId) => {
     try {
-      console.log("Declining request:", requestId); // Debug log
       await axiosInstance.post(`/api/friends/reject/${requestId}`);
       setPendingRequests(
         pendingRequests.filter((request) => request.id !== requestId)

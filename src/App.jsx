@@ -14,7 +14,6 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token && isTokenExpired(token)) {
-      console.log("Token is expired");
       removeToken(); // Clear expired token
       window.location.href = "/";
     }
