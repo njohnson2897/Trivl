@@ -1,21 +1,5 @@
 import { DailyQuestions } from "../models/index.js";
-
-// Helper function to get today's date in Central Time
-const getTodayDateCT = () => {
-  const today = new Date();
-  // Convert to Central Time (America/Chicago)
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Chicago",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const parts = formatter.formatToParts(today);
-  const year = parts.find((p) => p.type === "year").value;
-  const month = parts.find((p) => p.type === "month").value;
-  const day = parts.find((p) => p.type === "day").value;
-  return `${year}-${month}-${day}`;
-};
+import { toDateCT } from "../utils/dates.js";
 
 // Fetch questions from external API
 const fetchQuestionsFromAPI = async () => {
@@ -34,7 +18,7 @@ const fetchQuestionsFromAPI = async () => {
 // Get or create daily questions for a specific date
 export const getDailyQuestions = async (req, res) => {
   try {
-    const todayDate = getTodayDateCT();
+    const todayDate = toDateCT();
 
     // Try to find existing questions for today
     let dailyQuestions = await DailyQuestions.findOne({

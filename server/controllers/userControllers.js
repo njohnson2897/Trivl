@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User, Score, UserFriends, Achievement } from "../models/index.js";
 import { Op } from "sequelize";
+import { toDateCT } from "../utils/dates.js";
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -447,22 +448,6 @@ export const updateUserSettings = async (req, res) => {
   }
 };
 
-// Helper function to get today's date in Central Time (YYYY-MM-DD)
-const getTodayDateCT = () => {
-  const today = new Date();
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Chicago",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const parts = formatter.formatToParts(today);
-  const year = parts.find((p) => p.type === "year").value;
-  const month = parts.find((p) => p.type === "month").value;
-  const day = parts.find((p) => p.type === "day").value;
-  return `${year}-${month}-${day}`;
-};
-
 // Helper function to calculate milliseconds until next midnight CT
 const getTimeUntilMidnightCT = () => {
   const now = new Date();
@@ -496,20 +481,8 @@ export const getCooldownStatus = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const todayDateCT = getTodayDateCT();
-    const lastQuizDateStr = user.lastQuizDate
-      ? new Date(user.lastQuizDate)
-          .toLocaleDateString("en-US", {
-            timeZone: "America/Chicago",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })
-          .split("/")
-          .reverse()
-          .join("-")
-          .replace(/(\d+)-(\d+)-(\d+)/, "$1-$3-$2")
-      : null;
+    const todayDateCT = toDateCT();
+    const lastQuizDateStr = user.lastQuizDate ? toDateCT(user.lastQuizDate) : null;
 
     let cooldownStatus = {
       canTakeQuiz: true,
