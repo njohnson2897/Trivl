@@ -3,18 +3,7 @@ import { formatTime } from "../utils/helpers";
 import { Link } from "react-router-dom";
 import axiosInstance from "../../axiosConfig.js";
 import { jwtDecode } from "jwt-decode";
-
-// Category options for display names
-const categoryOptions = [
-  { value: "film_and_tv", label: "Film & TV" },
-  { value: "music", label: "Music" },
-  { value: "food_and_drink", label: "Food & Drink" },
-  { value: "geography", label: "Geography" },
-  { value: "history", label: "History" },
-  { value: "science", label: "Science" },
-  { value: "sport_and_leisure", label: "Sport & Leisure" },
-  { value: "general_knowledge", label: "General Knowledge" },
-];
+import { getCategoryLabel } from "../utils/categories.js";
 
 export default function Results() {
   const [score, setScore] = useState(0);
@@ -166,12 +155,7 @@ export default function Results() {
             {quizMode === "blitz"
               ? "⚡ Blitz Mode"
               : quizMode === "category"
-              ? `🎯 ${
-                  quizCategory
-                    ? categoryOptions.find((c) => c.value === quizCategory)
-                        ?.label
-                    : "Category"
-                } Quiz`
+              ? `🎯 ${getCategoryLabel(quizCategory)} Quiz`
               : quizMode === "survival"
               ? "🏃 Survival Mode"
               : quizMode === "challenge"

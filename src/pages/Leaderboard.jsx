@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../../axiosConfig.js";
 import { formatTime } from "../utils/helpers.js";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { CATEGORIES } from "../utils/categories.js";
 
 const Leaderboard = () => {
   const [users, setUsers] = useState([]);
@@ -98,21 +99,8 @@ const Leaderboard = () => {
               };
             });
           }
-
-          // For category mode, also calculate per-category stats
           if (mode === "category") {
-            const categories = [
-              "Arts & Literature",
-              "Film & TV",
-              "Food & Drink",
-              "General Knowledge",
-              "Geography",
-              "History",
-              "Music",
-              "Science",
-              "Society & Culture",
-              "Sport & Leisure",
-            ];
+            const categories = CATEGORIES.map((c) => c.label);
             modeStats.categoryByName = {};
 
             categories.forEach((category) => {
@@ -357,16 +345,11 @@ const Leaderboard = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="settings-dropdown compact"
               >
-                <option value="Arts & Literature">Arts & Literature</option>
-                <option value="Film & TV">Film & TV</option>
-                <option value="Food & Drink">Food & Drink</option>
-                <option value="General Knowledge">General Knowledge</option>
-                <option value="Geography">Geography</option>
-                <option value="History">History</option>
-                <option value="Music">Music</option>
-                <option value="Science">Science</option>
-                <option value="Society & Culture">Society & Culture</option>
-                <option value="Sport & Leisure">Sport & Leisure</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.label}>
+                    {c.label}
+                  </option>
+                ))}
               </select>
             )}
 

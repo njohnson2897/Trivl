@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from "../../axiosConfig.js";
 import bell from "../assets/button_click.mp3";
+import { CATEGORIES, findCategory, getCategoryLabel } from "../utils/categories.js";
 
 const oneDayCountdown = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
@@ -43,20 +44,6 @@ export default function Quiz() {
     { value: 60, label: "1 minute", description: "Quick challenge" },
     { value: 120, label: "2 minutes", description: "Balanced pace" },
     { value: 180, label: "3 minutes", description: "More time to think" },
-  ];
-
-  // Category options
-  const categoryOptions = [
-    { value: "arts_and_literature", label: "Arts & Literature", icon: "🎨" },
-    { value: "film_and_tv", label: "Film & TV", icon: "🎬" },
-    { value: "food_and_drink", label: "Food & Drink", icon: "🍕" },
-    { value: "general_knowledge", label: "General Knowledge", icon: "🧠" },
-    { value: "geography", label: "Geography", icon: "🌍" },
-    { value: "history", label: "History", icon: "📚" },
-    { value: "music", label: "Music", icon: "🎵" },
-    { value: "science", label: "Science", icon: "🔬" },
-    { value: "society_and_culture", label: "Society & Culture", icon: "👥" },
-    { value: "sport_and_leisure", label: "Sport & Leisure", icon: "⚽" },
   ];
 
   // Helper function to format time
@@ -391,7 +378,7 @@ export default function Quiz() {
               is_niche: isNicheArray,
               time_taken: timeTaken,
               quiz_mode: quizMode, // New field for quiz type
-              category_name: quizCategory, // Category name for category quizzes
+              category_name: quizCategory ? getCategoryLabel(quizCategory) : null,
             });
           }
         }
@@ -770,15 +757,9 @@ export default function Quiz() {
 
   // Start the quiz
   const startQuiz = async (mode = "daily", category = null) => {
-    // For category mode, find and store the display label
     if (mode === "category" && category) {
-      const categoryOption = categoryOptions.find(
-        (opt) => opt.value === category
-      );
-      if (categoryOption) {
-        setQuizCategory(categoryOption.label);
-        localStorage.setItem("quizCategory", categoryOption.label);
-      }
+      setQuizCategory(category);
+      localStorage.setItem("quizCategory", category);
     }
 
     // Challenge mode is handled separately by createChallenge function
@@ -844,11 +825,6 @@ export default function Quiz() {
     localStorage.setItem("quizStartTime", startTime); // Save it to local storage
     localStorage.setItem("quizMode", mode); // Save quiz mode
     setQuizMode(mode);
-
-    // Store category name for category quizzes
-    if (mode === "category" && category) {
-      localStorage.setItem("quizCategory", category);
-    }
 
     // For survival mode, fetch 50 questions at once
     if (mode === "survival") {
@@ -1282,13 +1258,7 @@ export default function Quiz() {
                     <div className="current-category-selection">
                       <span className="category-display">
                         {selectedCategory
-                          ? categoryOptions.find(
-                              (c) => c.value === selectedCategory
-                            )?.icon +
-                            " " +
-                            categoryOptions.find(
-                              (c) => c.value === selectedCategory
-                            )?.label
+                          ? `${findCategory(selectedCategory)?.icon} ${getCategoryLabel(selectedCategory)}`
                           : "🎯 Select Category"}
                       </span>
                     </div>
@@ -1312,7 +1282,7 @@ export default function Quiz() {
                   <div className="category-selection">
                     <h4>Choose Your Category</h4>
                     <div className="category-options">
-                      {categoryOptions.map((option) => (
+                      {CATEGORIES.map((option) => (
                         <button
                           key={option.value}
                           className={`category-option ${
@@ -1470,18 +1440,7 @@ export default function Quiz() {
               {quizMode === "blitz"
                 ? "⚡ Blitz Quiz"
                 : quizMode === "category"
-                ? (() => {
-                    // Get category name from state or localStorage as fallback
-                    const currentCategory =
-                      quizCategory || localStorage.getItem("quizCategory");
-
-                    const categoryLabel = currentCategory
-                      ? categoryOptions.find((c) => c.value === currentCategory)
-                          ?.label
-                      : "Category";
-                      
-                    return `🎯 ${categoryLabel} Quiz`;
-                  })()
+                ? `🎯 ${getCategoryLabel(quizCategory)} Quiz`
                 : quizMode === "survival"
                 ? "🏃 Survival Quiz"
                 : quizMode === "challenge"
