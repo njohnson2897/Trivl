@@ -36,12 +36,7 @@ export default function Results() {
       // Get quiz mode once
       const storedQuizMode = localStorage.getItem("quizMode");
 
-      // For survival mode, total questions is the same as the number answered
-      if (storedQuizMode === "survival") {
-        setTotalQuestions(loadedQuestions.length);
-      } else {
-        setTotalQuestions(loadedQuestions.length);
-      }
+      setTotalQuestions(loadedQuestions.length);
 
       // For survival mode, use the stored correct count
       if (storedQuizMode === "survival") {
