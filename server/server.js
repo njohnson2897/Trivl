@@ -30,16 +30,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(routes);
 
-// Run migrations and start server
+// Connect to the database and start the server
 const startServer = async () => {
   try {
     // Test database connection
     await sequelize.authenticate();
     console.log("Database connection established successfully.");
 
-    // Sync models (this will create tables if they don't exist)
-    // Note: In production, you should run migrations separately
-    await sequelize.sync({ alter: true });
+    // Creates any missing tables; never changes existing ones.
+    // Changes to existing tables are made by hand in Supabase's SQL editor.
+    await sequelize.sync();
     console.log("Database synchronized successfully.");
 
     // Start the server
