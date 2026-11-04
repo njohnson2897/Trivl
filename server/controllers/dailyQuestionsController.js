@@ -1,19 +1,6 @@
 import { DailyQuestions } from "../models/index.js";
 import { toDateCT } from "../utils/dates.js";
-
-// Fetch questions from external API
-const fetchQuestionsFromAPI = async () => {
-  try {
-    const response = await fetch(
-      "https://the-trivia-api.com/api/questions?limit=10"
-    );
-    const data = await response.json();
-    return Array.isArray(data) ? data : data.value || data;
-  } catch (error) {
-    console.error("Error fetching questions from API:", error);
-    throw error;
-  }
-};
+import { fetchTriviaQuestions } from "../utils/trivia.js";
 
 // Get or create daily questions for a specific date
 export const getDailyQuestions = async (req, res) => {
@@ -27,7 +14,7 @@ export const getDailyQuestions = async (req, res) => {
 
     // If no questions exist for today, create them
     if (!dailyQuestions) {
-      const questions = await fetchQuestionsFromAPI();
+      const questions = await fetchTriviaQuestions();
 
       dailyQuestions = await DailyQuestions.create({
         date: todayDate,

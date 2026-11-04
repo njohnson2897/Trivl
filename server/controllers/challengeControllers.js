@@ -1,4 +1,5 @@
 import { Challenge, User, UserFriends, Score } from "../models/index.js";
+import { fetchTriviaQuestions } from "../utils/trivia.js";
 import { Op } from "sequelize";
 
 // Create a new challenge
@@ -34,23 +35,12 @@ export const createChallenge = async (req, res) => {
       });
     }
 
-    // Fetch 10 random questions
-    const response = await fetch(
-      "https://the-trivia-api.com/api/questions?limit=10"
-    );
-    const questions = await response.json();
+    const questions = await fetchTriviaQuestions();
 
-    if (!questions || questions.length === 0) {
-      return res.status(500).json({ error: "Failed to fetch questions" });
-    }
-
-    // Create the challenge
     const challenge = await Challenge.create({
       challengerId,
       challengedId,
-      questions: Array.isArray(questions)
-        ? questions
-        : questions.value || questions,
+      questions,
       status: "pending",
     });
 
