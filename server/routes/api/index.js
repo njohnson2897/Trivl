@@ -6,6 +6,7 @@ import achievementRoutes from "./achievementRoutes.js";
 import friendRoutes from "./friendRoutes.js";
 import dailyQuestionsRoutes from "./dailyQuestionsRoutes.js";
 import challengeRoutes from "./challengeRoutes.js";
+import quizSessionRoutes from "./quizSessionRoutes.js";
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/achievements", achievementRoutes);
 router.use("/friends", friendRoutes);
 router.use("/daily-questions", dailyQuestionsRoutes);
 router.use("/challenges", challengeRoutes);
+router.use("/quiz-sessions", quizSessionRoutes);
 
 export default router;
