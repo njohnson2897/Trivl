@@ -2,7 +2,7 @@ import express from "express";
 import {
   getDailyQuestions,
   getDailyQuestionsByDate,
-} from "../../controllers/dailyQuestionsController.js";
+} from "../../controllers/dailyQuestionsControllers.js";
 
 const router = express.Router();
 
