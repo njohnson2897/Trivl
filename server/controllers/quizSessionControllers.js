@@ -1,9 +1,9 @@
-import { QuizSession, DailyQuestions, Score, User } from "../models/index.js";
+import { QuizSession, DailyQuestions, Score, User, Challenge } from "../models/index.js";
 import { fetchTriviaQuestions } from "../utils/trivia.js";
 import { toDateCT } from "../utils/dates.js";
 import { checkAchievements } from "./achievementControllers.js";
 
-const SOLO_MODES = ["daily", "blitz", "category", "survival", "zen"];
+const MODES = ["daily", "blitz", "category", "survival", "zen", "challenge"];
 const BLITZ_TIME_LIMITS = [30, 60, 120, 180]; // seconds
 const SURVIVAL_SECONDS_PER_QUESTION = 15;
 const SURVIVAL_BATCH_SIZE = 50;
@@ -100,10 +100,60 @@ const mostCommon = (values) => {
   return Object.keys(counts).reduce((a, b) => (counts[a] >= counts[b] ? a : b));
 };
 
+/** Higher score wins; a tie goes to the faster player; an exact tie is a draw. */
+const pickWinner = (c) => {
+  if (c.challengerScore !== c.challengedScore) {
+    return c.challengerScore > c.challengedScore ? c.challengerId : c.challengedId;
+  }
+  if (c.challengerTimeTaken !== c.challengedTimeTaken) {
+    return c.challengerTimeTaken < c.challengedTimeTaken ? c.challengerId : c.challengedId;
+  }
+  return null;
+};
+
+/**
+ * Store this player's result on the challenge, decide the winner once both
+ * players have finished (in either order), and return the challenge fields
+ * for this player's Score row.
+ */
+const recordChallengeResult = async (session) => {
+  const challenge = await Challenge.findByPk(session.settings.challengeId);
+  const isChallenger = challenge.challengerId === session.user_id;
+  const role = isChallenger ? "challenger" : "challenged";
+  const opponentId = isChallenger ? challenge.challengedId : challenge.challengerId;
+
+  await challenge.update({
+    [`${role}Score`]: session.score,
+    [`${role}TimeTaken`]: session.time_taken,
+    [`${role}Answers`]: session.answers,
+  });
+
+  let wonChallenge = null; // unknown until both players have finished
+  if (challenge.challengerScore !== null && challenge.challengedScore !== null) {
+    const winnerId = pickWinner(challenge);
+    await challenge.update({ status: "completed", winnerId, completedAt: new Date() });
+    wonChallenge = winnerId === session.user_id;
+    // The opponent's Score row was saved before the result was known.
+    await Score.update(
+      { won_challenge: winnerId === opponentId },
+      { where: { challenge_id: challenge.id, user_id: opponentId } }
+    );
+  }
+
+  const opponent = await User.findByPk(opponentId, { attributes: ["username"] });
+  return {
+    challenge_id: challenge.id,
+    opponent_id: opponentId,
+    opponent_username: opponent?.username ?? null,
+    won_challenge: wonChallenge,
+  };
+};
+
 /** Record the result the same way the old /scores/logscore endpoint did. */
 const saveScore = async (session) => {
   const asked = session.questions.slice(0, session.answers.length);
   const { mode, settings } = session;
+  const challengeFields = mode === "challenge" ? await recordChallengeResult(session) : {};
 
   await Score.create({
     user_id: session.user_id,
@@ -117,6 +167,7 @@ const saveScore = async (session) => {
     is_niche: asked.map((q) => q.isNiche),
     // Every question in a category quiz shares the category's display name.
     category_name: mode === "category" ? asked[0].category : null,
+    ...challengeFields,
   });
 
   if (mode === "daily") {
@@ -146,12 +197,49 @@ const finishSession = async (session, answers) => {
 
 // --- Route handlers --------------------------------------------------------
 
-// POST /api/quiz-sessions  { mode, timeLimit?, category? }
+/**
+ * The challenge to play, or null after a response is already sent (resume or refusal).
+ * Each player gets one attempt; refreshing resumes it.
+ */
+const startChallenge = async (req, res, challengeId) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    res.status(401).json({ error: "Log in to play a challenge" });
+    return null;
+  }
+
+  const challenge = await Challenge.findByPk(challengeId);
+  const isChallenger = challenge?.challengerId === userId;
+  if (!challenge || (!isChallenger && challenge.challengedId !== userId)) {
+    res.status(404).json({ error: "Challenge not found" });
+    return null;
+  }
+
+  const mySessions = await QuizSession.findAll({ where: { user_id: userId, mode: "challenge" } });
+  const existing = mySessions.find((s) => s.settings.challengeId === challenge.id);
+  if (existing) {
+    res.json(toClientState(existing));
+    return null;
+  }
+
+  const alreadyPlayed = isChallenger ? challenge.challengerScore : challenge.challengedScore;
+  if (alreadyPlayed !== null) {
+    res.status(409).json({ error: "You already played this challenge" });
+    return null;
+  }
+  if (!isChallenger && challenge.status !== "in_progress") {
+    res.status(409).json({ error: "Accept the challenge first" });
+    return null;
+  }
+  return challenge;
+};
+
+// POST /api/quiz-sessions  { mode, timeLimit?, category?, challengeId? }
 export const startSession = async (req, res) => {
-  const { mode, timeLimit, category } = req.body;
+  const { mode, timeLimit, category, challengeId } = req.body;
   const userId = req.user?.id ?? null;
 
-  if (!SOLO_MODES.includes(mode)) {
+  if (!MODES.includes(mode)) {
     return res.status(400).json({ error: "Unknown quiz mode" });
   }
   if (mode === "blitz" && !BLITZ_TIME_LIMITS.includes(timeLimit)) {
@@ -163,9 +251,15 @@ export const startSession = async (req, res) => {
 
   try {
     let questions;
+    let settings = {};
     let dailyDate = null;
 
-    if (mode === "daily") {
+    if (mode === "challenge") {
+      const challenge = await startChallenge(req, res, challengeId);
+      if (!challenge) return;
+      questions = challenge.questions;
+      settings = { challengeId: challenge.id };
+    } else if (mode === "daily") {
       dailyDate = toDateCT();
       // One daily quiz per player per day: hand back today's session if it
       // exists, so refreshing resumes it instead of starting over.
@@ -180,6 +274,10 @@ export const startSession = async (req, res) => {
       questions = await fetchTriviaQuestions({ limit: SURVIVAL_BATCH_SIZE });
     } else if (mode === "category") {
       questions = await fetchTriviaQuestions({ category });
+      settings = { category };
+    } else if (mode === "blitz") {
+      questions = await fetchTriviaQuestions();
+      settings = { timeLimit };
     } else {
       questions = await fetchTriviaQuestions();
     }
@@ -187,7 +285,7 @@ export const startSession = async (req, res) => {
     const session = await QuizSession.create({
       user_id: userId,
       mode,
-      settings: mode === "blitz" ? { timeLimit } : mode === "category" ? { category } : {},
+      settings,
       daily_date: dailyDate,
       questions,
     });
