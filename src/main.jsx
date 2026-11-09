@@ -24,7 +24,7 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <Quiz /> },
-      { path: "results", element: <Results /> },
+      { path: "results/:sessionId", element: <Results /> },
       { path: "leaderboard", element: <Leaderboard /> },
       { path: "settings", element: <Settings /> },
       { path: "help", element: <Help /> },

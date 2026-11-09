@@ -60,6 +60,7 @@ const toClientState = (session) => {
       review: asked.map((q, i) => ({
         question: q.question,
         category: q.category,
+        options: [q.correctAnswer, ...q.incorrectAnswers],
         correctAnswer: q.correctAnswer,
         answer: session.answers[i].answer,
         correct: session.answers[i].correct,

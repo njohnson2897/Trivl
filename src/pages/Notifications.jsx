@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../../axiosConfig.js";
 import { jwtDecode } from "jwt-decode";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
 
 export default function Notifications() {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -9,6 +10,8 @@ export default function Notifications() {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
@@ -62,31 +65,9 @@ export default function Notifications() {
 
   const handleAcceptChallenge = async (challengeId) => {
     try {
-      const response = await axiosInstance.post(
-        `/api/challenges/${challengeId}/accept`
-      );
-      const challenge = response.data.challenge;
-
-      // Store challenge data in localStorage and redirect to quiz
-      localStorage.setItem(
-        "triviaQuestions",
-        JSON.stringify(response.data.questions)
-      );
-      localStorage.setItem("quizStatus", "in_progress");
-      localStorage.setItem("currentQuestionIndex", "0");
-      localStorage.setItem("quizMode", "challenge");
-      localStorage.setItem("challengeId", challenge.id);
-
-      const startTime = new Date().getTime();
-      localStorage.setItem("quizStartTime", startTime);
-
-      // Remove from pending challenges
-      setPendingChallenges(
-        pendingChallenges.filter((challenge) => challenge.id !== challengeId)
-      );
-
-      // Navigate to quiz page
-      window.location.reload();
+      await axiosInstance.post(`/api/challenges/${challengeId}/accept`);
+      // The quiz page starts the challenge from this id.
+      navigate("/", { state: { challengeId } });
     } catch (err) {
       console.error("Error accepting challenge:", err);
       alert("Failed to accept challenge. Please try again.");

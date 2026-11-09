@@ -97,17 +97,6 @@ function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    // Clear all quiz-related data from localStorage
-    for (let i = 0; i < 10; i++) {
-      localStorage.removeItem(`question${i}`);
-      localStorage.removeItem(`userAnswer${i}`);
-    }
-    localStorage.removeItem("lastUpdateTime");
-    localStorage.removeItem("quizStatus");
-    localStorage.removeItem("triviaQuestions");
-    localStorage.removeItem("currentQuestionIndex");
-    localStorage.removeItem("quizStartTime");
-    localStorage.removeItem("quizTimeTaken");
 
     setIsLoggedIn(false);
     setUsername("");
@@ -285,52 +274,18 @@ function Header() {
                                     onClick={async (e) => {
                                       e.stopPropagation();
                                       try {
-                                        const response =
-                                          await axiosInstance.post(
-                                            `/api/challenges/${challenge.id}/accept`
-                                          );
-
-                                        // Store challenge data in localStorage and redirect to quiz
-                                        localStorage.setItem(
-                                          "triviaQuestions",
-                                          JSON.stringify(
-                                            response.data.questions
-                                          )
+                                        await axiosInstance.post(
+                                          `/api/challenges/${challenge.id}/accept`
                                         );
-                                        localStorage.setItem(
-                                          "quizStatus",
-                                          "in_progress"
-                                        );
-                                        localStorage.setItem(
-                                          "currentQuestionIndex",
-                                          "0"
-                                        );
-                                        localStorage.setItem(
-                                          "quizMode",
-                                          "challenge"
-                                        );
-                                        localStorage.setItem(
-                                          "challengeId",
-                                          challenge.id
-                                        );
-
-                                        const startTime = new Date().getTime();
-                                        localStorage.setItem(
-                                          "quizStartTime",
-                                          startTime
-                                        );
-
-                                        // Remove from pending challenges
                                         setPendingChallenges((prev) =>
-                                          prev.filter(
-                                            (c) => c.id !== challenge.id
-                                          )
+                                          prev.filter((c) => c.id !== challenge.id)
                                         );
-
-                                        // Navigate to quiz page
                                         setShowNotifications(false);
-                                        // Use reload to force the quiz to pick up the challenge data
-                                        window.location.reload();
+                                        // The quiz page starts the challenge from this id.
+                                        navigate("/", {
+                                          state: { challengeId: challenge.id },
+                                        });
+
                                       } catch (error) {
                                         console.error(
                                           "Error accepting challenge:",

@@ -2,6 +2,9 @@ import { Challenge, User, UserFriends, Score } from "../models/index.js";
 import { fetchTriviaQuestions } from "../utils/trivia.js";
 import { Op } from "sequelize";
 
+// Never sent to the browser: quiz sessions serve the questions and grade the answers.
+const HIDDEN_FIELDS = ["questions", "challengerAnswers", "challengedAnswers"];
+
 // Create a new challenge
 export const createChallenge = async (req, res) => {
   try {
@@ -44,7 +47,7 @@ export const createChallenge = async (req, res) => {
       status: "pending",
     });
 
-    res.status(201).json({ challenge });
+    res.status(201).json({ challenge: { id: challenge.id } });
   } catch (error) {
     console.error("Error creating challenge:", error);
     res.status(500).json({ error: "Error creating challenge" });
@@ -61,6 +64,7 @@ export const getPendingChallenges = async (req, res) => {
         challengedId: userId,
         status: "pending",
       },
+      attributes: { exclude: HIDDEN_FIELDS },
       include: [
         {
           model: User,
@@ -137,10 +141,7 @@ export const acceptChallenge = async (req, res) => {
     // Update challenge status
     await challenge.update({ status: "in_progress" });
 
-    res.status(200).json({
-      challenge,
-      questions: challenge.questions,
-    });
+    res.status(200).json({ message: "Challenge accepted" });
   } catch (error) {
     console.error("Error accepting challenge:", error);
     res.status(500).json({ error: "Error accepting challenge" });
@@ -303,6 +304,7 @@ export const getChallengeDetails = async (req, res) => {
     const userId = req.user.id;
 
     const challenge = await Challenge.findByPk(challengeId, {
+      attributes: { exclude: HIDDEN_FIELDS },
       include: [
         {
           model: User,
