@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../axiosConfig.js";
-import { jwtDecode } from "jwt-decode";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
 

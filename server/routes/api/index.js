@@ -4,7 +4,6 @@ import scoreRoutes from "./scoreRoutes.js";
 import contactRoutes from "./contactRoutes.js";
 import achievementRoutes from "./achievementRoutes.js";
 import friendRoutes from "./friendRoutes.js";
-import dailyQuestionsRoutes from "./dailyQuestionsRoutes.js";
 import challengeRoutes from "./challengeRoutes.js";
 import quizSessionRoutes from "./quizSessionRoutes.js";
 
@@ -15,7 +14,6 @@ router.use("/scores", scoreRoutes);
 router.use("/contact", contactRoutes);
 router.use("/achievements", achievementRoutes);
 router.use("/friends", friendRoutes);
-router.use("/daily-questions", dailyQuestionsRoutes);
 router.use("/challenges", challengeRoutes);
 router.use("/quiz-sessions", quizSessionRoutes);
 
