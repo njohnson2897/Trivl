@@ -2,7 +2,6 @@ import express from "express";
 import {
   register,
   login,
-  getUsers,
   searchUsers,
   checkUsername,
   getUserSettings,
@@ -19,9 +18,6 @@ const router = express.Router();
 router.post("/register", registerLimiter, register);
 router.post("/login", loginLimiter, login);
 router.get("/check-username/:username", checkUsername);
-
-// Protected routes
-router.get("/", authenticateToken, getUsers);
 router.get("/search", authenticateToken, searchUsers);
 // Settings routes must come before :id routes
 router.get("/settings", authenticateToken, getUserSettings);

@@ -100,34 +100,6 @@ export const login = async (req, res) => {
   }
 };
 
-// GET all users
-export const getUsers = async (req, res) => {
-  try {
-    const users = await User.findAll({
-      attributes: ["id", "username"],
-      include: [
-        {
-          model: Score,
-          as: "Scores",
-          attributes: [
-            "quiz_score",
-            "time_taken",
-            "date_taken",
-            "quiz_mode",
-            "quiz_difficulty",
-            "category_name",
-            "categories",
-          ],
-        },
-      ],
-    });
-    res.status(200).json(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ error: "Error fetching users" });
-  }
-};
-
 // search users - GET
 export const searchUsers = async (req, res) => {
   try {
