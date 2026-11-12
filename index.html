@@ -1,15 +1,15 @@
 <!doctype html>
 <html lang="en">
-  <script>
-    // Apply the saved (or system) theme before the first paint, so there's no flash of the wrong one.
-    document.documentElement.dataset.theme = localStorage.getItem("theme") ||
-    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  </script>
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./src/assets/logo.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trivl</title>
+    <script>
+    // Apply the saved (or system) theme before the first paint, so there's no flash of the wrong one.
+    document.documentElement.dataset.theme = localStorage.getItem("theme") ||
+    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    </script>
   </head>
   <body>
     <div id="root"></div>
