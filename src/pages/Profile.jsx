@@ -69,13 +69,13 @@ export default function Profile() {
         <div className="profile-section">
           <h3>Account Information</h3>
           <div className="profile-info">
-            <p>
+            <p className="tile">
               <strong>Username:</strong> {userData?.username}
             </p>
-            <p>
+            <p className="tile">
               <strong>Email:</strong> {userData?.email}
             </p>
-            <p>
+            <p className="tile">
               <strong>Member Since:</strong>{" "}
               {new Date(userData?.createdAt).toLocaleDateString()}
             </p>
@@ -87,7 +87,7 @@ export default function Profile() {
 
           <div className="mode-stats-grid">
             {/* Daily Quiz Stats */}
-            <div className="mode-stat-card daily-stats">
+            <div className="panel mode-stat-card daily-stats">
               <div className="mode-stat-header">
                 <span className="mode-stat-icon">📅</span>
                 <h4>Daily Quiz</h4>
@@ -121,7 +121,7 @@ export default function Profile() {
             </div>
 
             {/* Blitz Mode Stats */}
-            <div className="mode-stat-card blitz-stats">
+            <div className="panel mode-stat-card blitz-stats">
               <div className="mode-stat-header">
                 <span className="mode-stat-icon">⚡</span>
                 <h4>Blitz Mode</h4>
@@ -155,7 +155,7 @@ export default function Profile() {
             </div>
 
             {/* Category Quiz Stats */}
-            <div className="mode-stat-card category-stats">
+            <div className="panel mode-stat-card category-stats">
               <div className="mode-stat-header">
                 <span className="mode-stat-icon">🎯</span>
                 <h4>Category Quiz</h4>
@@ -191,7 +191,7 @@ export default function Profile() {
             </div>
 
             {/* Survival Mode Stats */}
-            <div className="mode-stat-card survival-stats">
+            <div className="panel mode-stat-card survival-stats">
               <div className="mode-stat-header">
                 <span className="mode-stat-icon">🏃</span>
                 <h4>Survival Mode</h4>
@@ -225,7 +225,7 @@ export default function Profile() {
             </div>
 
             {/* Challenge Mode Stats */}
-            <div className="mode-stat-card challenge-stats">
+            <div className="panel mode-stat-card challenge-stats">
               <div className="mode-stat-header">
                 <span className="mode-stat-icon">🎯</span>
                 <h4>Challenge Quiz</h4>
@@ -268,7 +268,7 @@ export default function Profile() {
             {scores.length > 0 ? (
               <ul>
                 {scores.map((score, index) => (
-                  <li key={index}>
+                  <li key={index} className="tile">
                     <p>
                       <strong>Date:</strong>{" "}
                       {new Date(score.date).toLocaleDateString()}
@@ -339,7 +339,7 @@ export default function Profile() {
           <div className="recent-achievements">
             {achievements.length > 0 ? (
               achievements.map((achievement) => (
-                <div key={achievement.name} className="achievement-item">
+                <div key={achievement.name} className="panel nested achievement-item">
                   <div className="achievement-header">
                     <div
                       className={`achievement-icon icon-${achievement.icon}`}
@@ -366,7 +366,7 @@ export default function Profile() {
               friends.map((friend) => (
                 <div
                   key={friend.id}
-                  className="friend-card"
+                  className="tile friend-card"
                   onClick={() => handleFriendClick(friend.id)}
                   style={{ cursor: "pointer" }}
                 >
@@ -395,12 +395,12 @@ export default function Profile() {
                 </div>
               ))
             ) : (
-              <p>You have no friends added yet.</p>
+              <p className="tile">You have no friends added yet.</p>
             )}
           </div>
         </div>
 
-        <button className="edit-profile-btn">Edit Profile</button>
+        <button className="primary-button edit-profile-btn">Edit Profile</button>
       </div>
     </div>
   );

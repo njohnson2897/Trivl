@@ -103,7 +103,7 @@ export default function Notifications() {
         {pendingRequests.length > 0 || pendingChallenges.length > 0 ? (
           <div className="notifications-list">
             {pendingRequests.map((request) => (
-              <div key={`request-${request.id}`} className="notification-card">
+              <div key={`request-${request.id}`} className="panel notification-card">
                 <h3>{request.user.username} sent you a friend request.</h3>
                 <div className="notification-actions">
                   <button
@@ -125,7 +125,7 @@ export default function Notifications() {
             {pendingChallenges.map((challenge) => (
               <div
                 key={`challenge-${challenge.id}`}
-                className="notification-card"
+                className="panel notification-card"
               >
                 <h3>
                   🎯 {challenge.challenger.username} challenged you to a quiz!
@@ -152,18 +152,18 @@ export default function Notifications() {
               do:
             </p>
             <div className="notification-tips">
-              <div className="tip-card">
+              <div className="panel tip-card">
                 <h4>Find Friends</h4>
                 <p>Search for other players and send them friend requests</p>
               </div>
-              <div className="tip-card">
+              <div className="panel tip-card">
                 <h4>Challenge Players</h4>
                 <p>
                   Challenge your friends to quiz battles and compete for high
                   scores
                 </p>
               </div>
-              <div className="tip-card">
+              <div className="panel tip-card">
                 <h4>Check Leaderboard</h4>
                 <p>See how you rank against other players in the leaderboard</p>
               </div>

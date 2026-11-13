@@ -101,7 +101,7 @@ const Leaderboard = () => {
               <select
                 value={blitzTime}
                 onChange={(e) => setBlitzTime(e.target.value)}
-                className="settings-dropdown compact"
+                className="text-input compact"
               >
                 {BLITZ_TIMES.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -115,7 +115,7 @@ const Leaderboard = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="settings-dropdown compact"
+                className="text-input compact"
               >
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.label}>
@@ -128,7 +128,7 @@ const Leaderboard = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="settings-dropdown compact"
+              className="text-input compact"
             >
               {sortOptions.map((option) => (
                 <option key={option} value={option}>
@@ -152,14 +152,14 @@ const Leaderboard = () => {
             {players.map((player, index) => {
               const rankClass = RANK_CLASSES[index] || "";
               return (
-                <div key={player.id} className={`leaderboard-card ${rankClass}`}>
+                <div key={player.id} className={`panel leaderboard-card ${rankClass}`}>
                   <div className={`leaderboard-rank ${rankClass}`}>
                     {RANK_MEDALS[index] || `#${index + 1}`}
                   </div>
                   <div className="leaderboard-content">
                     <h3>{player.username}</h3>
                     <div className="leaderboard-stats">
-                      <div className="stat-item">
+                      <div className="tile stat-item">
                         <span className="stat-label">Average Score:</span>
                         <span className="stat-value highlight">
                           {activeTab === "survival"
@@ -168,16 +168,16 @@ const Leaderboard = () => {
                         </span>
                       </div>
                       {activeTab === "survival" && (
-                        <div className="stat-item">
+                        <div className="tile stat-item">
                           <span className="stat-label">Best Score:</span>
                           <span className="stat-value">{player.bestScore} correct</span>
                         </div>
                       )}
-                      <div className="stat-item">
+                      <div className="tile stat-item">
                         <span className="stat-label">Total Quizzes:</span>
                         <span className="stat-value">{player.gamesPlayed}</span>
                       </div>
-                      <div className="stat-item">
+                      <div className="tile stat-item">
                         <span className="stat-label">Avg. Duration:</span>
                         <span className="stat-value">{formatTime(player.averageDuration)}</span>
                       </div>

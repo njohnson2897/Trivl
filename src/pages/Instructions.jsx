@@ -14,7 +14,7 @@ export default function Instructions() {
 
         <div className="game-modes-grid">
           {/* Daily Quiz */}
-          <div className="mode-card daily-card">
+          <div className="panel mode-card daily-card">
             <div className="mode-header">
               <span className="mode-icon">📅</span>
               <h2>Daily Quiz</h2>
@@ -31,14 +31,14 @@ export default function Instructions() {
                 <li>Once per day challenge</li>
                 <li>Compete with friends on identical questions</li>
               </ul>
-              <div className="mode-scoring">
+              <div className="tile mode-scoring">
                 <strong>Scoring:</strong> Simple count out of 10 (e.g., 7/10)
               </div>
             </div>
           </div>
 
           {/* Blitz Mode */}
-          <div className="mode-card blitz-card">
+          <div className="panel mode-card blitz-card">
             <div className="mode-header">
               <span className="mode-icon">⚡</span>
               <h2>Blitz Mode</h2>
@@ -52,14 +52,14 @@ export default function Instructions() {
                 <li>Unlimited attempts</li>
                 <li>Answer as many as you can before time runs out</li>
               </ul>
-              <div className="mode-scoring">
+              <div className="tile mode-scoring">
                 <strong>Scoring:</strong> Number correct out of 10
               </div>
             </div>
           </div>
 
           {/* Category Quiz */}
-          <div className="mode-card category-card">
+          <div className="panel mode-card category-card">
             <div className="mode-header">
               <span className="mode-icon">🎯</span>
               <h2>Category Quiz</h2>
@@ -73,14 +73,14 @@ export default function Instructions() {
                 <li>Unlimited attempts</li>
                 <li>Perfect for practicing specific subjects</li>
               </ul>
-              <div className="mode-scoring">
+              <div className="tile mode-scoring">
                 <strong>Scoring:</strong> Number correct out of 10
               </div>
             </div>
           </div>
 
           {/* Survival Mode */}
-          <div className="mode-card survival-card">
+          <div className="panel mode-card survival-card">
             <div className="mode-header">
               <span className="mode-icon">🏃</span>
               <h2>Survival Mode</h2>
@@ -94,7 +94,7 @@ export default function Instructions() {
                 <li>Unlimited attempts</li>
                 <li>Questions keep coming until you get one wrong</li>
               </ul>
-              <div className="mode-scoring">
+              <div className="tile mode-scoring">
                 <strong>Scoring:</strong> Total number of correct answers (e.g.,
                 23)
               </div>
@@ -105,7 +105,7 @@ export default function Instructions() {
         <div className="instructions-section">
           <h2>🎮 How to Play</h2>
           <div className="gameplay-steps">
-            <div className="step">
+            <div className="panel step">
               <span className="step-number">1</span>
               <div className="step-content">
                 <h3>Choose Your Mode</h3>
@@ -115,7 +115,7 @@ export default function Instructions() {
                 </p>
               </div>
             </div>
-            <div className="step">
+            <div className="panel step">
               <span className="step-number">2</span>
               <div className="step-content">
                 <h3>Read & Answer</h3>
@@ -125,7 +125,7 @@ export default function Instructions() {
                 </p>
               </div>
             </div>
-            <div className="step">
+            <div className="panel step">
               <span className="step-number">3</span>
               <div className="step-content">
                 <h3>Track Progress</h3>
@@ -135,7 +135,7 @@ export default function Instructions() {
                 </p>
               </div>
             </div>
-            <div className="step">
+            <div className="panel step">
               <span className="step-number">4</span>
               <div className="step-content">
                 <h3>View Results</h3>
@@ -151,7 +151,7 @@ export default function Instructions() {
         <div className="instructions-section">
           <h2>💡 Pro Tips</h2>
           <div className="tips-grid">
-            <div className="tip-card">
+            <div className="panel tip-card">
               <span className="tip-icon">🔥</span>
               <h3>Build Your Streak</h3>
               <p>
@@ -159,7 +159,7 @@ export default function Instructions() {
                 compete with friends
               </p>
             </div>
-            <div className="tip-card">
+            <div className="panel tip-card">
               <span className="tip-icon">⏱️</span>
               <h3>Master Blitz Mode</h3>
               <p>
@@ -167,7 +167,7 @@ export default function Instructions() {
                 yourself with shorter times
               </p>
             </div>
-            <div className="tip-card">
+            <div className="panel tip-card">
               <span className="tip-icon">📚</span>
               <h3>Practice Categories</h3>
               <p>
@@ -175,7 +175,7 @@ export default function Instructions() {
                 master
               </p>
             </div>
-            <div className="tip-card">
+            <div className="panel tip-card">
               <span className="tip-icon">🎯</span>
               <h3>Survival Strategy</h3>
               <p>
@@ -189,19 +189,19 @@ export default function Instructions() {
         <div className="instructions-section">
           <h2>📊 Tracking Your Progress</h2>
           <ul className="instructions-list">
-            <li>
+            <li className="panel">
               <strong>Quiz History:</strong> View all your completed quizzes,
               filter by mode, and track improvement
             </li>
-            <li>
+            <li className="panel">
               <strong>Profile Stats:</strong> See your total quizzes, average
               score, best score, and average duration
             </li>
-            <li>
+            <li className="panel">
               <strong>Achievements:</strong> Unlock achievements for milestones
               and special accomplishments
             </li>
-            <li>
+            <li className="panel">
               <strong>Leaderboard:</strong> Compare your scores with friends and
               other players
             </li>
@@ -210,21 +210,21 @@ export default function Instructions() {
 
         <div className="instructions-section faq-section">
           <h2>❓ Frequently Asked Questions</h2>
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>What happens if I close the page during a quiz?</h3>
             <p>
               Don't worry! Your progress is automatically saved. When you
               return, you can continue from where you left off.
             </p>
           </div>
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>Can I retake the Daily Quiz?</h3>
             <p>
               The Daily Quiz can only be taken once per day. It resets at
               midnight Central Time for everyone.
             </p>
           </div>
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>Do I need an account to play?</h3>
             <p>
               No! You can play without an account, but creating one lets you
@@ -232,7 +232,7 @@ export default function Instructions() {
               leaderboards.
             </p>
           </div>
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>What's the difference between logged in and not logged in?</h3>
             <p>
               Everyone gets the same Daily Quiz questions! Logged-in users can

@@ -56,11 +56,11 @@ export default function UserList() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              className="user-search-input"
+              className="text-input user-search-input"
             />
             <button
               onClick={handleSearch}
-              className="search-btn"
+              className="primary-button"
               disabled={isSearching}
             >
               {isSearching ? "Searching..." : "Search"}
@@ -71,12 +71,12 @@ export default function UserList() {
             <div className="search-tips">
               <h3>Search Tips</h3>
               <ul>
-                <li>Search by username to find specific users</li>
-                <li>
+                <li className="panel">Search by username to find specific users</li>
+                <li className="panel">
                   You can send friend requests to connect with other players
                 </li>
-                <li>Challenge your friends to quiz battles</li>
-                <li>Compare scores and compete on the leaderboard</li>
+                <li className="panel">Challenge your friends to quiz battles</li>
+                <li className="panel">Compare scores and compete on the leaderboard</li>
               </ul>
             </div>
           )}
@@ -87,7 +87,7 @@ export default function UserList() {
         <div className="user-search-results">
           {searchResults.length > 0 ? (
             searchResults.map((user) => (
-              <div key={user.id} className="user-card">
+              <div key={user.id} className="panel user-card">
                 <h3
                   onClick={() => handleProfileClick(user.id)}
                   style={{
@@ -103,7 +103,7 @@ export default function UserList() {
                 </p>
                 <button
                   onClick={() => handleSendFriendRequest(user.id)}
-                  className="friend-request-btn"
+                  className="primary-button friend-request-btn"
                 >
                   Send Friend Request
                 </button>

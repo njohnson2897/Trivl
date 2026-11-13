@@ -138,7 +138,7 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className={`form-control-lg ${
+              className={`text-input form-control-lg ${
                 isRegistering && usernameStatus.available !== null
                   ? usernameStatus.available
                     ? "is-valid"
@@ -172,7 +172,7 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="form-control-lg"
+                className="text-input form-control-lg"
                 placeholder="Enter your email"
               />
             </Form.Group>
@@ -185,7 +185,7 @@ function AuthModal({ show, handleClose, setIsLoggedIn }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="form-control-lg"
+              className="text-input form-control-lg"
               placeholder="Enter your password"
             />
           </Form.Group>

@@ -90,7 +90,7 @@ const QuizHistory = () => {
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="settings-dropdown"
+            className="text-input"
           >
             <option value="all">All Quizzes</option>
             <option value="daily">Daily Quiz</option>
@@ -106,7 +106,7 @@ const QuizHistory = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="settings-dropdown"
+            className="text-input"
           >
             <option value="date">Sort by Date</option>
             <option value="score">Sort by Score</option>
@@ -117,7 +117,7 @@ const QuizHistory = () => {
           {sortedHistory.map((quiz) => (
             <div
               key={quiz.id}
-              className={`quiz-history-card ${
+              className={`panel quiz-history-card ${
                 expandedQuiz === quiz.id ? "expanded" : ""
               }`}
             >
@@ -159,7 +159,7 @@ const QuizHistory = () => {
               </div>
 
               <div className="quiz-history-summary">
-                <div className="summary-stat">
+                <div className="tile summary-stat">
                   <div className="stat-icon">🎯</div>
                   <div className="stat-content">
                     <span className="stat-label">Score</span>
@@ -170,7 +170,7 @@ const QuizHistory = () => {
                     </span>
                   </div>
                 </div>
-                <div className="summary-stat">
+                <div className="tile summary-stat">
                   <div className="stat-icon">⏱️</div>
                   <div className="stat-content">
                     <span className="stat-label">Time</span>
@@ -180,7 +180,7 @@ const QuizHistory = () => {
                   </div>
                 </div>
                 {quiz.quiz_mode === "category" && quiz.category_name && (
-                  <div className="summary-stat">
+                  <div className="tile summary-stat">
                     <div className="stat-icon">📚</div>
                     <div className="stat-content">
                       <span className="stat-label">Category</span>
@@ -195,7 +195,7 @@ const QuizHistory = () => {
                   <div className="details-section">
                     <h4>Quiz Information</h4>
                     <div className="details-grid">
-                      <div className="detail-row">
+                      <div className="tile detail-row">
                         <span className="detail-label">Mode:</span>
                         <span className="detail-value">
                           {quiz.quiz_mode === "blitz"
@@ -212,14 +212,14 @@ const QuizHistory = () => {
                       {quiz.quiz_mode === "challenge" &&
                         quiz.opponent_username && (
                           <>
-                            <div className="detail-row">
+                            <div className="tile detail-row">
                               <span className="detail-label">Opponent:</span>
                               <span className="detail-value">
                                 {quiz.opponent_username}
                               </span>
                             </div>
                             {quiz.won_challenge !== null && (
-                              <div className="detail-row">
+                              <div className="tile detail-row">
                                 <span className="detail-label">Result:</span>
                                 <span className="detail-value">
                                   {quiz.won_challenge ? "🏆 Won" : "❌ Lost"}
@@ -228,13 +228,13 @@ const QuizHistory = () => {
                             )}
                           </>
                         )}
-                      <div className="detail-row">
+                      <div className="tile detail-row">
                         <span className="detail-label">Difficulty:</span>
                         <span className="detail-value">
                           {quiz.quiz_difficulty}
                         </span>
                       </div>
-                      <div className="detail-row">
+                      <div className="tile detail-row">
                         <span className="detail-label">Questions:</span>
                         <span className="detail-value">
                           {quiz.quiz_mode === "survival"
@@ -242,7 +242,7 @@ const QuizHistory = () => {
                             : 10}
                         </span>
                       </div>
-                      <div className="detail-row">
+                      <div className="tile detail-row">
                         <span className="detail-label">Accuracy:</span>
                         <span className="detail-value">
                           {quiz.quiz_mode === "survival"

@@ -50,7 +50,7 @@ export default function Help() {
 
         <div className="instructions-section">
           <h2>Frequently Asked Questions</h2>
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>How do I reset my password?</h3>
             <p>
               Go to the Settings page, click "Change Password," and follow the
@@ -58,7 +58,7 @@ export default function Help() {
             </p>
           </div>
 
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>How do I report a bug or contact support?</h3>
             <p>
               Please use the contact form below with details about the issue you
@@ -66,7 +66,7 @@ export default function Help() {
             </p>
           </div>
 
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>Where can I see my scores and achievements?</h3>
             <p>
               Your past scores are visible on the Quiz History page.
@@ -74,7 +74,7 @@ export default function Help() {
             </p>
           </div>
 
-          <div className="faq-item">
+          <div className="panel nested faq-item">
             <h3>Why can't I take the quiz again today?</h3>
             <p>
               Trivl is a daily challenge! You can only take one quiz per day.
@@ -86,7 +86,7 @@ export default function Help() {
         <div className="instructions-section" id="contact">
           <h2>Contact Our Team</h2>
           <div className="contact-methods">
-            <div className="contact-card">
+            <div className="panel nested contact-card">
               <h3>Email Support</h3>
               <p>
                 <a href="mailto:trivlsupport@gmail.com">
@@ -103,12 +103,13 @@ export default function Help() {
               </p>
             </div>
 
-            <div className="contact-card">
+            <div className="panel nested contact-card">
               <h3>Submit a Request</h3>
               <form className="contact-form" onSubmit={handleSubmit}>
                 <div className="form-group">
                   <label>Your Email</label>
                   <input
+                    className="text-input"
                     type="email"
                     name="email"
                     value={formData.email}
@@ -120,6 +121,7 @@ export default function Help() {
                 <div className="form-group">
                   <label>Message</label>
                   <textarea
+                    className="text-input"
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
@@ -143,7 +145,7 @@ export default function Help() {
                 )}
                 <button
                   type="submit"
-                  className="submit-btn"
+                  className="primary-button"
                   disabled={status.type === "loading"}
                 >
                   {status.type === "loading" ? "Sending..." : "Send Message"}

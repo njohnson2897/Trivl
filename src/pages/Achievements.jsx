@@ -63,7 +63,7 @@ const Achievements = () => {
           {achievements.map((achievement) => (
             <div
               key={achievement.name}
-              className={`achievement-card ${
+              className={`panel achievement-card ${
                 !achievement.achieved ? "not-achieved" : ""
               }`}
             >

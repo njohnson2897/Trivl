@@ -61,7 +61,7 @@ export default function FriendsList() {
             friends.map((friend) => (
               <div
                 key={friend.id}
-                className="friend-card"
+                className="tile friend-card"
                 onClick={() => handleFriendClick(friend.id)}
                 style={{ cursor: "pointer" }}
               >
@@ -91,7 +91,7 @@ export default function FriendsList() {
               </div>
             ))
           ) : (
-            <p>You have no friends added yet. Add some to get started!</p>
+            <p className="tile">You have no friends added yet. Add some to get started!</p>
           )}
         </div>
       </div>

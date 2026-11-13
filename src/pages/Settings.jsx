@@ -177,7 +177,7 @@ const Settings = () => {
               <select
                 value={getCurrentThemeValue()}
                 onChange={handleThemeChange}
-                className="settings-dropdown"
+                className="text-input"
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -202,7 +202,7 @@ const Settings = () => {
         <div className="profile-section">
           <h3>Privacy Controls</h3>
           <div className="toggle-group">
-            <label className="toggle-container">
+            <label className="tile toggle-container">
               <input
                 type="checkbox"
                 className="toggle-input"
@@ -212,7 +212,7 @@ const Settings = () => {
               <span className="toggle-slider"></span>
               Public Profile
             </label>
-            <label className="toggle-container">
+            <label className="tile toggle-container">
               <input
                 type="checkbox"
                 className="toggle-input"
@@ -222,7 +222,7 @@ const Settings = () => {
               <span className="toggle-slider"></span>
               Share Scores with Friends
             </label>
-            <label className="toggle-container">
+            <label className="tile toggle-container">
               <input
                 type="checkbox"
                 className="toggle-input"
@@ -239,7 +239,7 @@ const Settings = () => {
         <div className="profile-section">
           <h3>Notification Preferences</h3>
           <div className="toggle-group">
-            <label className="toggle-container">
+            <label className="tile toggle-container">
               <input
                 type="checkbox"
                 className="toggle-input"
@@ -249,7 +249,7 @@ const Settings = () => {
               <span className="toggle-slider"></span>
               Push Notifications
             </label>
-            <label className="toggle-container">
+            <label className="tile toggle-container">
               <input
                 type="checkbox"
                 className="toggle-input"
@@ -259,7 +259,7 @@ const Settings = () => {
               <span className="toggle-slider"></span>
               Email Notifications
             </label>
-            <label className="toggle-container">
+            <label className="tile toggle-container">
               <input
                 type="checkbox"
                 className="toggle-input"
@@ -281,7 +281,7 @@ const Settings = () => {
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="settings-dropdown"
+                className="text-input"
               >
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
@@ -293,7 +293,7 @@ const Settings = () => {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="settings-dropdown"
+                className="text-input"
               >
                 <option value="english">English</option>
                 <option value="spanish">Spanish</option>
@@ -308,7 +308,7 @@ const Settings = () => {
         {hasChanges() && (
           <div className="save-changes">
             <button
-              className="save-btn"
+              className="primary-button"
               onClick={handleSaveChanges}
               disabled={isSaving}
             >

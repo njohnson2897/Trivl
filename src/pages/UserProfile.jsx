@@ -100,7 +100,7 @@ export default function UserProfile() {
             </p>
             <button
               onClick={handleSendFriendRequest}
-              className="friend-request-btn"
+              className="primary-button friend-request-btn"
             >
               Send Friend Request
             </button>
@@ -119,12 +119,12 @@ export default function UserProfile() {
         <div className="profile-section">
           <h3>Basic Information</h3>
           <div className="profile-info">
-            <p>
+            <p className="tile">
               <strong>Member since:</strong>{" "}
               {new Date(profile.createdAt).toLocaleDateString()}
             </p>
             {isOwnProfile && (
-              <p>
+              <p className="tile">
                 <strong>Email:</strong> {profile.email}
               </p>
             )}
@@ -135,19 +135,19 @@ export default function UserProfile() {
         <div className="profile-section">
           <h3>Quiz Statistics</h3>
           <div className="quiz-stats-grid">
-            <div className="stat-card">
+            <div className="tile stat-card">
               <strong>{profile.totalQuizzes || 0}</strong>
               <p>Quizzes Taken</p>
             </div>
-            <div className="stat-card">
+            <div className="tile stat-card">
               <strong>{profile.averageScore || 0}%</strong>
               <p>Average Score</p>
             </div>
-            <div className="stat-card">
+            <div className="tile stat-card">
               <strong>{profile.highestScore || 0}%</strong>
               <p>Highest Score</p>
             </div>
-            <div className="stat-card">
+            <div className="tile stat-card">
               <strong>{profile.achievements?.length || 0}</strong>
               <p>Achievements</p>
             </div>
@@ -161,7 +161,7 @@ export default function UserProfile() {
             {profile.recentScores?.length > 0 ? (
               <ul>
                 {profile.recentScores.map((score, index) => (
-                  <li key={index}>
+                  <li key={index} className="tile">
                     <p>
                       Score: {score.score}% -{" "}
                       {new Date(score.date).toLocaleDateString()}
@@ -180,7 +180,7 @@ export default function UserProfile() {
           <div className="profile-section">
             <button
               onClick={handleSendFriendRequest}
-              className="friend-request-btn"
+              className="primary-button friend-request-btn"
             >
               Send Friend Request
             </button>
