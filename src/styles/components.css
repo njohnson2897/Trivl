@@ -154,7 +154,7 @@
   box-shadow: 0 0 0 0.2rem rgba(100, 108, 255, 0.25);
 }
 
-.notification-icon, .message-icon {
+.notification-icon {
   font-size: 16px;
 }
 
@@ -174,73 +174,6 @@
   align-items: center;
   justify-content: center;
   border: 2px solid var(--bg-primary);
-}
-
-/* Dropdown Styles */
-.notification-dropdown, .message-dropdown {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-secondary);
-  border-radius: var(--border-radius-md);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 280px;
-  max-width: 320px;
-}
-
-.notification-dropdown .dropdown-header,
-.message-dropdown .dropdown-header {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-secondary);
-  font-weight: 600;
-  padding: var(--spacing-sm) var(--spacing-md);
-}
-
-.notification-item, .message-empty {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-bottom: 1px solid var(--border-secondary);
-}
-
-.notification-item:hover {
-  background-color: var(--bg-tertiary);
-  cursor: pointer;
-}
-
-.notification-content {
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-  transition: color 0.2s ease;
-}
-
-.notification-actions .btn {
-  min-width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-}
-
-.notification-item:hover .notification-content {
-  color: var(--text-primary);
-}
-
-.notification-empty, .message-empty {
-  color: var(--text-muted);
-  font-style: italic;
-  text-align: center;
-  padding: var(--spacing-md);
-}
-
-.notification-dropdown .dropdown-item,
-.message-dropdown .dropdown-item {
-  color: var(--text-primary);
-  padding: var(--spacing-sm) var(--spacing-md);
-}
-
-.notification-dropdown .dropdown-item:hover,
-.message-dropdown .dropdown-item:hover {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
 }
 
 /* Mobile Navigation Styles */
@@ -1544,38 +1477,6 @@
   margin: var(--spacing-sm) 0;
 }
 
-.friend-card button {
-  margin: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  transition: all var(--transition-fast);
-}
-
-.friend-card .message-btn {
-  background-color: var(--color-primary);
-  color: var(--text-inverse);
-}
-
-.friend-card .message-btn:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.friend-card .challenge-btn {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.friend-card .challenge-btn:hover {
-  background-color: var(--bg-quaternary);
-}
-
-.edit-profile-btn {
-  margin-top: var(--spacing-md);
-}
-
 /* ========================================
    LEADERBOARD COMPONENTS
    ======================================== */
@@ -2488,15 +2389,8 @@ footer img:hover {
 }
 
 /* Make social media icons white in dark mode */
-[data-theme="dark"] footer img[src*="fb.png"],
-[data-theme="dark"] footer img[src*="twitter.png"],
-[data-theme="dark"] footer img[src*="instagram.png"] {
+[data-theme="dark"] .social-icon {
   filter: brightness(0) invert(1);
-}
-
-/* Keep GitHub icon as is since it's already white */
-[data-theme="dark"] footer img[src*="gh.png"] {
-  filter: none;
 }
 
 /* Footer sections */
@@ -3450,11 +3344,6 @@ footer .col-md-4:last-child {
 
   .friend-card p {
     font-size: var(--font-size-base);
-  }
-
-  .friend-card button {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-sm);
   }
 
   .leaderboard-content h3 {

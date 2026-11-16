@@ -374,24 +374,6 @@ export default function Profile() {
                   <p>
                     Joined: {new Date(friend.createdAt).toLocaleDateString()}
                   </p>
-                  <button
-                    className="message-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // TODO: Implement messaging
-                    }}
-                  >
-                    Send Message
-                  </button>
-                  <button
-                    className="challenge-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // TODO: Implement challenge
-                    }}
-                  >
-                    Challenge to Quiz
-                  </button>
                 </div>
               ))
             ) : (
@@ -399,8 +381,6 @@ export default function Profile() {
             )}
           </div>
         </div>
-
-        <button className="primary-button edit-profile-btn">Edit Profile</button>
       </div>
     </div>
   );

@@ -70,24 +70,6 @@ export default function FriendsList() {
                   Status: <span className="offline">Unknown</span>
                 </p>
                 <p>Joined: {new Date(friend.createdAt).toLocaleDateString()}</p>
-                <button
-                  className="message-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // TODO: Implement messaging
-                  }}
-                >
-                  Send Message
-                </button>
-                <button
-                  className="challenge-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // TODO: Implement challenge
-                  }}
-                >
-                  Challenge to Quiz
-                </button>
               </div>
             ))
           ) : (

@@ -34,7 +34,7 @@ export default function Footer() {
                       src={facebook}
                       alt="facebook logo"
                       height="40px"
-                      className="mx-1"
+                      className="mx-1 social-icon"
                     />
                   </a>
                   <a href="https://twitter.com/" target="blank">
@@ -42,7 +42,7 @@ export default function Footer() {
                       src={twitter}
                       alt="twitter logo"
                       height="40px"
-                      className="mx-1"
+                      className="mx-1 social-icon"
                     />
                   </a>
                   <a href="https://www.instagram.com/" target="blank">
@@ -50,7 +50,7 @@ export default function Footer() {
                       src={instagram}
                       alt="instagram logo"
                       height="40px"
-                      className="mx-1"
+                      className="mx-1 social-icon"
                     />
                   </a>
                 </div>
