@@ -1,264 +1,155 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../axiosConfig.js";
 import { jwtDecode } from "jwt-decode";
 import { formatTime } from "../utils/helpers.js";
 import LoadingSpinner from "../components/LoadingSpinner";
 
+// One card per mode. Survival has no 10-question cap, so it shows streaks instead.
+const MODE_CARDS = [
+  { mode: "daily", icon: "📅", title: "Daily Quiz" },
+  { mode: "blitz", icon: "⚡", title: "Blitz Mode" },
+  { mode: "category", icon: "🎯", title: "Category Quiz" },
+  { mode: "survival", icon: "🏃", title: "Survival Mode" },
+  { mode: "challenge", icon: "🎯", title: "Challenge Quiz" },
+];
+
+const MODE_BADGES = {
+  daily: "📅 Daily",
+  blitz: "⚡ Blitz",
+  category: "🎯 Category",
+  survival: "🏃 Survival",
+  challenge: "🎯 Challenge",
+};
+
+const statRows = (mode, stats = {}) =>
+  mode === "survival"
+    ? [
+        ["Total Taken:", stats.totalQuizzes || 0],
+        ["Avg Score:", `${stats.averageScore || 0} correct`],
+        ["Best Streak:", `${stats.bestScore || 0} correct`],
+        ["Total Correct:", stats.totalCorrect || 0],
+      ]
+    : [
+        ["Total Taken:", stats.totalQuizzes || 0],
+        ["Avg Score:", `${stats.averageScore || 0}/10`],
+        ["Best Score:", `${stats.bestScore || 0}/10`],
+        ["Avg Time:", formatTime(stats.averageTime || 0)],
+      ];
+
+// Serves both /profile (your own) and /user/:userId (anyone's).
 export default function Profile() {
-  const [userData, setUserData] = useState(null);
-  const [scores, setScores] = useState([]);
-  const [friends, setFriends] = useState([]);
-  const [achievements, setAchievements] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { userId } = useParams();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [error, setError] = useState(null);
+
+  const token = localStorage.getItem("token");
+  const currentUserId = token ? jwtDecode(token).id : null;
+  const profileId = userId ?? currentUserId;
+  const isOwnProfile = String(profileId) === String(currentUserId);
 
   useEffect(() => {
-    const fetchProfileData = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.id;
+    setProfile(null);
+    axiosInstance
+      .get(`/api/users/${profileId}/profile`)
+      .then(({ data }) => {
+        setProfile(data);
+        setError(null);
+      })
+      .catch((err) => {
+        console.error("Error fetching profile:", err);
+        setError("Failed to load profile. Please try again.");
+      });
+  }, [profileId]);
 
-        const response = await axiosInstance.get(
-          `/api/users/${userId}/profile`
-        );
-        const profileData = response.data;
+  const sendFriendRequest = async () => {
+    try {
+      await axiosInstance.post("/api/friends/add", { friendId: Number(profileId) });
+      alert("Friend request sent!");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to send friend request. Please try again.");
+    }
+  };
 
-        setUserData(profileData);
-        setScores(profileData.recentScores || []);
-        setFriends(profileData.friends || []);
-        setAchievements(profileData.achievements || []);
-
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-        if (error.response?.status === 401) navigate("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfileData();
-  }, [navigate]);
-
-  if (loading) {
+  if (error || !profile) {
     return (
       <div className="content-container">
         <div className="quiz-content">
-          <LoadingSpinner />
+          {error ? <div className="error-message">{error}</div> : <LoadingSpinner />}
         </div>
       </div>
     );
   }
 
-  // Calculate stats from the backend data
-  const totalQuizzes = userData?.totalQuizzes || 0;
-  const averageScore = userData?.averageScore || 0;
-  const bestScore = userData?.highestScore || 0;
-  const averageDuration = userData?.averageDuration || 0;
+  const title = isOwnProfile ? "Your Profile" : `${profile.username}'s Profile`;
+  const friendButton = !isOwnProfile && !profile.isFriend && (
+    <button onClick={sendFriendRequest} className="primary-button friend-request-btn">
+      Send Friend Request
+    </button>
+  );
 
-  const handleFriendClick = (friendId) => {
-    navigate(`/user/${friendId}`);
-  };
+  // The server only sends a name for private profiles you aren't friends with.
+  if (!isOwnProfile && !profile.isPublic && !profile.isFriend) {
+    return (
+      <div className="content-container">
+        <div className="quiz-content">
+          <h1>{title}</h1>
+          <div className="profile-section">
+            <p>This profile is private. Send a friend request to view more details.</p>
+            {friendButton}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const scores = profile.recentScores || [];
+  const achievements = profile.achievements || [];
+  const friends = profile.friends || [];
 
   return (
     <div className="content-container">
       <div className="quiz-content">
-        <h1>Your Profile</h1>
+        <h1>{title}</h1>
 
         <div className="profile-section">
           <h3>Account Information</h3>
           <div className="profile-info">
             <p className="tile">
-              <strong>Username:</strong> {userData?.username}
+              <strong>Username:</strong> {profile.username}
             </p>
-            <p className="tile">
-              <strong>Email:</strong> {userData?.email}
-            </p>
+            {isOwnProfile && (
+              <p className="tile">
+                <strong>Email:</strong> {profile.email}
+              </p>
+            )}
             <p className="tile">
               <strong>Member Since:</strong>{" "}
-              {new Date(userData?.createdAt).toLocaleDateString()}
+              {new Date(profile.createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>
 
         <div className="profile-section">
           <h3>Quiz Statistics by Mode</h3>
-
           <div className="mode-stats-grid">
-            {/* Daily Quiz Stats */}
-            <div className="panel mode-stat-card daily-stats">
-              <div className="mode-stat-header">
-                <span className="mode-stat-icon">📅</span>
-                <h4>Daily Quiz</h4>
-              </div>
-              <div className="mode-stat-content">
-                <div className="stat-row">
-                  <span className="stat-label">Total Taken:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.daily?.totalQuizzes || 0}
-                  </span>
+            {MODE_CARDS.map(({ mode, icon, title: cardTitle }) => (
+              <div key={mode} className={`panel mode-stat-card ${mode}-stats`}>
+                <div className="mode-stat-header">
+                  <span className="mode-stat-icon">{icon}</span>
+                  <h4>{cardTitle}</h4>
                 </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.daily?.averageScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Best Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.daily?.bestScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Time:</span>
-                  <span className="stat-value">
-                    {formatTime(userData?.modeStats?.daily?.averageTime || 0)}
-                  </span>
+                <div className="mode-stat-content">
+                  {statRows(mode, profile.modeStats?.[mode]).map(([label, value]) => (
+                    <div key={label} className="stat-row">
+                      <span className="stat-label">{label}</span>
+                      <span className="stat-value">{value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-
-            {/* Blitz Mode Stats */}
-            <div className="panel mode-stat-card blitz-stats">
-              <div className="mode-stat-header">
-                <span className="mode-stat-icon">⚡</span>
-                <h4>Blitz Mode</h4>
-              </div>
-              <div className="mode-stat-content">
-                <div className="stat-row">
-                  <span className="stat-label">Total Taken:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.blitz?.totalQuizzes || 0}
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.blitz?.averageScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Best Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.blitz?.bestScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Time:</span>
-                  <span className="stat-value">
-                    {formatTime(userData?.modeStats?.blitz?.averageTime || 0)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Category Quiz Stats */}
-            <div className="panel mode-stat-card category-stats">
-              <div className="mode-stat-header">
-                <span className="mode-stat-icon">🎯</span>
-                <h4>Category Quiz</h4>
-              </div>
-              <div className="mode-stat-content">
-                <div className="stat-row">
-                  <span className="stat-label">Total Taken:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.category?.totalQuizzes || 0}
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.category?.averageScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Best Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.category?.bestScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Time:</span>
-                  <span className="stat-value">
-                    {formatTime(
-                      userData?.modeStats?.category?.averageTime || 0
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Survival Mode Stats */}
-            <div className="panel mode-stat-card survival-stats">
-              <div className="mode-stat-header">
-                <span className="mode-stat-icon">🏃</span>
-                <h4>Survival Mode</h4>
-              </div>
-              <div className="mode-stat-content">
-                <div className="stat-row">
-                  <span className="stat-label">Total Taken:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.survival?.totalQuizzes || 0}
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.survival?.averageScore || 0} correct
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Best Streak:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.survival?.bestScore || 0} correct
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Total Correct:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.survival?.totalCorrect || 0}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Challenge Mode Stats */}
-            <div className="panel mode-stat-card challenge-stats">
-              <div className="mode-stat-header">
-                <span className="mode-stat-icon">🎯</span>
-                <h4>Challenge Quiz</h4>
-              </div>
-              <div className="mode-stat-content">
-                <div className="stat-row">
-                  <span className="stat-label">Total Taken:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.challenge?.totalQuizzes || 0}
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.challenge?.averageScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Best Score:</span>
-                  <span className="stat-value">
-                    {userData?.modeStats?.challenge?.bestScore || 0}/10
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Avg Time:</span>
-                  <span className="stat-value">
-                    {formatTime(
-                      userData?.modeStats?.challenge?.averageTime || 0
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -270,14 +161,11 @@ export default function Profile() {
                 {scores.map((score, index) => (
                   <li key={index} className="tile">
                     <p>
-                      <strong>Date:</strong>{" "}
-                      {new Date(score.date).toLocaleDateString()}
+                      <strong>Date:</strong> {new Date(score.date).toLocaleDateString()}
                     </p>
                     <p>
                       <strong>Score:</strong>{" "}
-                      {score.quiz_mode === "survival"
-                        ? score.score
-                        : `${score.score}/10`}
+                      {score.quiz_mode === "survival" ? score.score : `${score.score}/10`}
                     </p>
                     {score.difficulty && (
                       <p>
@@ -288,15 +176,7 @@ export default function Profile() {
                       <p>
                         <strong>Mode:</strong>{" "}
                         <span className={`quiz-mode-badge ${score.quiz_mode}`}>
-                          {score.quiz_mode === "blitz"
-                            ? "⚡ Blitz"
-                            : score.quiz_mode === "category"
-                            ? "🎯 Category"
-                            : score.quiz_mode === "survival"
-                            ? "🏃 Survival"
-                            : score.quiz_mode === "challenge"
-                            ? "🎯 Challenge"
-                            : "📅 Daily"}
+                          {MODE_BADGES[score.quiz_mode] || MODE_BADGES.daily}
                         </span>
                       </p>
                     )}
@@ -305,24 +185,21 @@ export default function Profile() {
                         <strong>Category:</strong> {score.category_name}
                       </p>
                     )}
-                    {score.quiz_mode === "challenge" &&
-                      score.opponent_username && (
-                        <>
+                    {score.quiz_mode === "challenge" && score.opponent_username && (
+                      <>
+                        <p>
+                          <strong>Opponent:</strong> {score.opponent_username}
+                        </p>
+                        {score.won_challenge !== null && (
                           <p>
-                            <strong>Opponent:</strong> {score.opponent_username}
+                            <strong>Result:</strong> {score.won_challenge ? "🏆 Won" : "❌ Lost"}
                           </p>
-                          {score.won_challenge !== null && (
-                            <p>
-                              <strong>Result:</strong>{" "}
-                              {score.won_challenge ? "🏆 Won" : "❌ Lost"}
-                            </p>
-                          )}
-                        </>
-                      )}
+                        )}
+                      </>
+                    )}
                     {score.time_taken && (
                       <p>
-                        <strong>Duration:</strong>{" "}
-                        {formatTime(score.time_taken)}
+                        <strong>Duration:</strong> {formatTime(score.time_taken)}
                       </p>
                     )}
                   </li>
@@ -341,15 +218,12 @@ export default function Profile() {
               achievements.map((achievement) => (
                 <div key={achievement.name} className="panel nested achievement-item">
                   <div className="achievement-header">
-                    <div
-                      className={`achievement-icon icon-${achievement.icon}`}
-                    ></div>
+                    <div className={`achievement-icon icon-${achievement.icon}`}></div>
                     <h4>{achievement.name}</h4>
                   </div>
                   <p>{achievement.description}</p>
                   <p className="achievement-date">
-                    Earned:{" "}
-                    {new Date(achievement.date_achieved).toLocaleDateString()}
+                    Earned: {new Date(achievement.date_achieved).toLocaleDateString()}
                   </p>
                 </div>
               ))
@@ -367,20 +241,20 @@ export default function Profile() {
                 <div
                   key={friend.id}
                   className="tile friend-card"
-                  onClick={() => handleFriendClick(friend.id)}
+                  onClick={() => navigate(`/user/${friend.id}`)}
                   style={{ cursor: "pointer" }}
                 >
                   <h3>{friend.username}</h3>
-                  <p>
-                    Joined: {new Date(friend.createdAt).toLocaleDateString()}
-                  </p>
+                  <p>Joined: {new Date(friend.createdAt).toLocaleDateString()}</p>
                 </div>
               ))
             ) : (
-              <p className="tile">You have no friends added yet.</p>
+              <p className="tile">{isOwnProfile ? "You have no friends added yet." : "No friends yet."}</p>
             )}
           </div>
         </div>
+
+        {friendButton && <div className="profile-section">{friendButton}</div>}
       </div>
     </div>
   );

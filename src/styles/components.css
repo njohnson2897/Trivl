@@ -1154,7 +1154,7 @@
    ======================================== */
 
 /* Settings Grid */
-.settings-grid, .quiz-stats-grid {
+.settings-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-lg);
@@ -1307,21 +1307,8 @@
   margin-right: var(--spacing-sm);
 }
 
-/* Quiz Stats Grid */
-.stat-card, .friend-card {
+.friend-card {
   text-align: center;
-}
-
-.stat-card p {
-  margin: 0;
-  font-size: var(--font-size-lg);
-}
-
-.stat-card strong {
-  display: block;
-  font-size: var(--font-size-2xl);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
 }
 
 /* Mode-Specific Statistics */
@@ -2963,7 +2950,7 @@ footer .col-md-4:last-child {
     padding: var(--spacing-lg);
   }
 
-  .quiz-mode-selection, .quiz-stats-grid, .quiz-history-grid {
+  .quiz-mode-selection, .quiz-history-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
   }
@@ -3200,7 +3187,6 @@ footer .col-md-4:last-child {
   }
 
   .settings-grid,
-  .quiz-stats-grid,
   .achievements-grid,
   .leaderboard-grid,
   .quiz-history-grid,
@@ -3328,14 +3314,6 @@ footer .col-md-4:last-child {
 
   .profile-info p {
     font-size: var(--font-size-base);
-  }
-
-  .stat-card p {
-    font-size: var(--font-size-base);
-  }
-
-  .stat-card strong {
-    font-size: var(--font-size-lg);
   }
 
   .friend-card h3 {
