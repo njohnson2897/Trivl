@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User, Score, UserFriends, Achievement } from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
+import sequelize from "../config/connection.js";
 import { toDateCT } from "../utils/dates.js";
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
@@ -138,203 +139,100 @@ export const checkUsername = async (req, res) => {
   }
 };
 
-// GET user profile with privacy controls
+// Per-mode totals for one player, computed by the database
+const MODE_STATS_SQL = `
+  SELECT quiz_mode AS mode,
+    CAST(COUNT(*) AS int) AS "totalQuizzes",
+    CAST(ROUND(AVG(quiz_score), 2) AS float) AS "averageScore",
+    MAX(quiz_score) AS "bestScore",
+    CAST(ROUND(AVG(COALESCE(time_taken, 0))) AS int) AS "averageTime",
+    CAST(SUM(quiz_score) AS int) AS "totalCorrect"
+  FROM score
+  WHERE user_id = :userId
+  GROUP BY quiz_mode`;
+const PROFILE_MODES = ["daily", "blitz", "category", "survival", "challenge"];
+const EMPTY_MODE_STATS = { totalQuizzes: 0, averageScore: 0, bestScore: 0, averageTime: 0, totalCorrect: 0 };
+
+// GET user profile, respecting privacy settings
 export const getUserProfile = async (req, res) => {
   try {
-    const { id } = req.params;
-    const currentUserId = req.user.id; // From auth middleware
+    const profileId = Number(req.params.id);
+    const isOwnProfile = profileId === req.user.id;
 
-    // Check if this is the user's own profile
-    const isOwnProfile = parseInt(id) === parseInt(currentUserId);
-
-    // Get the user's profile
-    const user = await User.findByPk(id, {
-      include: [
-        {
-          model: Score,
-          as: "Scores",
-          attributes: [
-            "quiz_score",
-            "time_taken",
-            "date_taken",
-            "quiz_difficulty",
-            "quiz_mode",
-            "category_name",
-            "challenge_id",
-            "opponent_id",
-            "opponent_username",
-            "won_challenge",
-          ],
-        },
-      ],
+    const user = await User.findByPk(profileId, {
+      attributes: ["id", "username", "email", "createdAt", "isPublic"],
     });
-
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Get user's friends
-    const friends = await UserFriends.findAll({
+    // Accepted friendships in either direction
+    const friendships = await UserFriends.findAll({
       where: {
-        [Op.or]: [
-          { userId: parseInt(id), status: "accepted" },
-          { friendId: parseInt(id), status: "accepted" },
-        ],
+        status: "accepted",
+        [Op.or]: [{ userId: profileId }, { friendId: profileId }],
       },
       include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "username", "createdAt"],
-        },
-        {
-          model: User,
-          as: "friend",
-          attributes: ["id", "username", "createdAt"],
-        },
+        { model: User, as: "user", attributes: ["id", "username", "createdAt"] },
+        { model: User, as: "friend", attributes: ["id", "username", "createdAt"] },
       ],
     });
+    const friends = friendships
+      .map((f) => (f.userId === profileId ? f.friend : f.user))
+      .map(({ id, username, createdAt }) => ({ id, username, createdAt }));
+    const isFriend = friends.some((friend) => friend.id === req.user.id);
 
-    // Transform friends list to get friend details
-    const friendsList = friends.map((friendship) => {
-      const friend =
-        friendship.userId === parseInt(id)
-          ? friendship.friend
-          : friendship.user;
-      return {
-        id: friend.id,
-        username: friend.username,
-        createdAt: friend.createdAt,
-      };
-    });
-
-    // Check if the current user is friends with the profile owner
-    const friendship = await UserFriends.findOne({
-      where: {
-        [Op.or]: [
-          {
-            userId: parseInt(currentUserId),
-            friendId: parseInt(id),
-            status: "accepted",
-          },
-          {
-            userId: parseInt(id),
-            friendId: parseInt(currentUserId),
-            status: "accepted",
-          },
-        ],
-      },
-    });
-
-    // If not own profile and not a friend, check if profile is public
-    if (!isOwnProfile && !friendship && !user.isPublic) {
-      return res.status(200).json({
-        id: user.id,
-        username: user.username,
-        isPublic: user.isPublic,
-        isFriend: false,
-      });
+    // A private profile only shows its name to people who aren't friends
+    if (!isOwnProfile && !isFriend && !user.isPublic) {
+      return res.json({ id: user.id, username: user.username, isPublic: false, isFriend: false });
     }
 
-    // Get user's achievements
-    const achievements = await Achievement.findAll({
-      where: {
-        user_id: parseInt(id),
-        date_achieved: {
-          [Op.ne]: null, // Only get achieved achievements
-        },
-      },
-      order: [["date_achieved", "DESC"]],
-      limit: 3, // Get the 3 most recent achievements
-    });
+    const [statRows, recentScores, achievements] = await Promise.all([
+      sequelize.query(MODE_STATS_SQL, {
+        replacements: { userId: profileId },
+        type: QueryTypes.SELECT,
+      }),
+      Score.findAll({
+        where: { user_id: profileId },
+        order: [["date_taken", "DESC"]],
+        limit: 5,
+      }),
+      Achievement.findAll({
+        where: { user_id: profileId, date_achieved: { [Op.ne]: null } },
+        attributes: ["name", "description", "icon", "date_achieved"],
+        order: [["date_achieved", "DESC"]],
+        limit: 3,
+      }),
+    ]);
 
-    // Calculate statistics
-    const scores = user.Scores || [];
+    // Every mode appears, even ones the player hasn't tried yet
+    const modeStats = Object.fromEntries(
+      PROFILE_MODES.map((mode) => [
+        mode,
+        { ...EMPTY_MODE_STATS, ...statRows.find((row) => row.mode === mode) },
+      ])
+    );
 
-    const totalQuizzes = scores.length;
-
-    // Calculate mode-specific statistics
-    const modeStats = {};
-    const modes = ["daily", "blitz", "category", "survival", "challenge"];
-
-    modes.forEach((mode) => {
-      const modeScores = scores.filter((s) => s.quiz_mode === mode);
-      const count = modeScores.length;
-
-      modeStats[mode] = {
-        totalQuizzes: count,
-        averageScore:
-          count > 0
-            ? parseFloat(
-                (
-                  modeScores.reduce((acc, s) => acc + s.quiz_score, 0) / count
-                ).toFixed(2)
-              )
-            : 0,
-        bestScore:
-          count > 0 ? Math.max(...modeScores.map((s) => s.quiz_score)) : 0,
-        averageTime:
-          count > 0
-            ? Math.round(
-                modeScores.reduce((acc, s) => acc + (s.time_taken || 0), 0) /
-                  count
-              )
-            : 0,
-        totalCorrect: modeScores.reduce((acc, s) => acc + s.quiz_score, 0),
-      };
-    });
-
-    // Overall statistics (amalgamated)
-    const averageScore =
-      totalQuizzes > 0
-        ? scores.reduce((acc, score) => acc + score.quiz_score, 0) /
-          totalQuizzes
-        : 0;
-    const highestScore =
-      totalQuizzes > 0
-        ? Math.max(...scores.map((score) => score.quiz_score))
-        : 0;
-    const averageDuration =
-      totalQuizzes > 0
-        ? scores.reduce((acc, score) => acc + (score.time_taken || 0), 0) /
-          totalQuizzes
-        : 0;
-
-    // Return full profile data
-    res.status(200).json({
+    res.json({
       id: user.id,
       username: user.username,
       email: isOwnProfile ? user.email : undefined,
       createdAt: user.createdAt,
       isPublic: user.isPublic,
-      isFriend: !!friendship,
-      totalQuizzes,
-      averageScore: Math.round(averageScore),
-      highestScore,
-      averageDuration: Math.round(averageDuration),
-      modeStats, // Add mode-specific statistics
-      recentScores: scores
-        .sort((a, b) => new Date(b.date_taken) - new Date(a.date_taken))
-        .slice(0, 5)
-        .map((score) => ({
-          score: score.quiz_score,
-          date: score.date_taken,
-          difficulty: score.quiz_difficulty,
-          time_taken: score.time_taken,
-          quiz_mode: score.quiz_mode,
-          category_name: score.category_name,
-          challenge_id: score.challenge_id,
-          opponent_id: score.opponent_id,
-          opponent_username: score.opponent_username,
-          won_challenge: score.won_challenge,
-        })),
-      friends: friendsList,
-      achievements: achievements.map((achievement) => ({
-        name: achievement.name,
-        description: achievement.description,
-        icon: achievement.icon,
-        date_achieved: achievement.date_achieved,
+      isFriend,
+      modeStats,
+      recentScores: recentScores.map((score) => ({
+        score: score.quiz_score,
+        date: score.date_taken,
+        difficulty: score.quiz_difficulty,
+        time_taken: score.time_taken,
+        quiz_mode: score.quiz_mode,
+        category_name: score.category_name,
+        opponent_username: score.opponent_username,
+        won_challenge: score.won_challenge,
       })),
+      friends,
+      achievements,
     });
   } catch (error) {
     console.error("Error fetching user profile:", error);
