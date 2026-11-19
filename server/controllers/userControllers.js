@@ -1,9 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { User, Score, UserFriends, Achievement } from "../models/index.js";
+import { User, Score, Achievement } from "../models/index.js";
 import { Op, QueryTypes } from "sequelize";
 import sequelize from "../config/connection.js";
 import { toDateCT } from "../utils/dates.js";
+import { findFriends } from "./friendControllers.js";
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -166,20 +167,7 @@ export const getUserProfile = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Accepted friendships in either direction
-    const friendships = await UserFriends.findAll({
-      where: {
-        status: "accepted",
-        [Op.or]: [{ userId: profileId }, { friendId: profileId }],
-      },
-      include: [
-        { model: User, as: "user", attributes: ["id", "username", "createdAt"] },
-        { model: User, as: "friend", attributes: ["id", "username", "createdAt"] },
-      ],
-    });
-    const friends = friendships
-      .map((f) => (f.userId === profileId ? f.friend : f.user))
-      .map(({ id, username, createdAt }) => ({ id, username, createdAt }));
+    const friends = await findFriends(profileId);
     const isFriend = friends.some((friend) => friend.id === req.user.id);
 
     // A private profile only shows its name to people who aren't friends
