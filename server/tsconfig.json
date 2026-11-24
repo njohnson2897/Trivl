@@ -1,0 +1,13 @@
+{
+  // Type-check only: Node runs the .ts files directly by stripping the types.
+  // These are the settings Node's docs recommend for that.
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "nodenext",
+    "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowJs": true,
+    "types": ["node"]
+  }
+}

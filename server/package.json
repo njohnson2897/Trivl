@@ -5,9 +5,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "typecheck": "tsc",
     "test": "vitest",
     "start": "node server.js"
   },
+  "engines": { "node": ">=22.18" },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,6 +25,8 @@
     "sequelize": "^6.37.5"
   },
   "devDependencies": {
+    "@types/node": "^26.6.7",
+    "typescript": "^7.0.2",
     "vitest": "^5.1.1"
   }
 }
